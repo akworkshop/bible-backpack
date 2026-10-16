@@ -136,8 +136,8 @@
     <!-- 頁面 1：研經工作台 (Study Workspace Page) -->
     <div id="study-workspace-page" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       
-      <!-- 左欄：經文閱讀區 (Scripture Viewer) -->
-      <section class="no-print lg:col-span-5 bg-white border border-stone-200 rounded-xl shadow-sm p-4 sm:p-5 flex flex-col h-full max-h-[calc(100vh-170px)] sticky top-28">
+      <!-- 左欄：經文閱讀區 (Scripture Viewer) - 列印時完全排除 (no-print) -->
+      <section id="scripture-viewer-section" class="no-print lg:col-span-5 bg-white border border-stone-200 rounded-xl shadow-sm p-4 sm:p-5 flex flex-col h-full max-h-[calc(100vh-170px)] sticky top-28">
         <div class="flex items-center justify-between pb-3 border-b border-stone-100 mb-3">
           <div class="flex items-center gap-2">
             <h2 id="scripture-title" class="font-bold text-stone-900 text-base">創世記 第 1 章</h2>
@@ -162,8 +162,8 @@
         </div>
       </section>
 
-      <!-- 右欄：研經行囊雙層展示區 (Two-Tier Study Material Container) -->
-      <section class="lg:col-span-7 flex flex-col gap-4">
+      <!-- 右欄：研經行囊雙層展示區 (Two-Tier Study Material Container) - 列印核心區 -->
+      <section id="study-material-section" class="lg:col-span-7 flex flex-col gap-4">
         
         <!-- 主題課程進行中橫幅 (Curriculum Session Active Banner) -->
         <div id="curriculum-session-banner" class="hidden no-print bg-amber-50/95 border border-amber-200/90 rounded-xl p-3 sm:p-4 text-xs text-amber-900 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">

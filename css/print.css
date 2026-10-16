@@ -16,8 +16,33 @@
   .action-btn,
   #taste-bar-container,
   #backpack-hub-page,
-  .leaflet-control-container {
+  .leaflet-control-container,
+  #scripture-viewer-section,
+  #scripture-verses,
+  .verse-item,
+  .verse-num,
+  .verse-text,
+  #scripture-title {
     display: none !important;
+  }
+
+  /* ★ 經文閱讀區完全不列印：確保無論任何選擇器權重，聖經逐節經文原文皆不輸出至紙張或 PDF */
+  #scripture-viewer-section,
+  #scripture-verses,
+  .verse-item,
+  .verse-num,
+  .verse-text,
+  #scripture-title,
+  #study-workspace-page > section#scripture-viewer-section,
+  #study-workspace-page > section.no-print {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
   }
 
   /* A4 緊湊邊距，徹底消除過大白邊 */
@@ -39,10 +64,11 @@
     max-width: 100% !important;
   }
 
-  /* ★ 關鍵修正：解除主工作區 max-w-7xl、12欄網格 (lg:col-span-7) 與外框卡片的寬度與內距限制 */
+  /* ★ 關鍵修正：僅展開右欄研經材料區 (study-material-section)，滿版 100% 呈現，解除 12 欄限制與外框白邊 */
   main,
   #study-workspace-page,
-  #study-workspace-page > section,
+  #study-material-section,
+  #study-workspace-page > #study-material-section,
   #tier-content-container,
   .sheet-body,
   .dossier-body {

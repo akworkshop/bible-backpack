@@ -748,6 +748,18 @@ function renderTier2Dossier(container) {
   const chapNum = activeStudyData?.chapter || currentChapter;
 
   container.innerHTML = `
+    <!-- 打印抬頭（平時隱藏，打印時自動顯示） -->
+    <div class="print-header">
+      <div class="print-brand">
+        <span>🎒 Bible Backpack · 深度研經行囊 (組長手冊)</span>
+        <span style="font-weight: normal; font-size: 10pt;">經文：${bookName} 第 ${chapNum} 章</span>
+      </div>
+      <div class="print-meta">
+        <span>姓名/組別：____________________</span>
+        <span>日期：${new Date().toLocaleDateString()}</span>
+      </div>
+    </div>
+
     <!-- 屏幕頂部操作欄 -->
     <div class="no-print flex items-center justify-between pb-4 mb-4 border-b border-stone-200">
       <div>
