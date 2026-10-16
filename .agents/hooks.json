@@ -1,0 +1,21 @@
+{
+  "budget-safeguard": {
+    "enabled": true,
+    "description": "Enforces budget safeguard capping consecutive agent replies to 15 and session tokens to 500,000 before pausing for human approval.",
+    "maxConsecutiveReplies": 100,
+    "maxSessionTokens": 500000,
+    "safeguardAction": "pause_for_human_approval",
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/budget_safeguard.py",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

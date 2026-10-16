@@ -1,0 +1,275 @@
+/* Bible Backpack 自訂樣式與全站主題系統 (Light / Sepia / Dark) */
+
+:root {
+  --bg-primary: #fcfbf9;
+  --bg-card: #ffffff;
+  --bg-subtle: #f5f5f4;
+  --text-primary: #1c1917;
+  --text-secondary: #57534e;
+  --text-muted: #78716c;
+  --border-color: #e7e5e4;
+  --accent-amber: #b45309;
+}
+
+[data-theme="sepia"] {
+  --bg-primary: #f4ecd8;
+  --bg-card: #faf4e6;
+  --bg-subtle: #efe4ca;
+  --text-primary: #3b2d1d;
+  --text-secondary: #5c4934;
+  --text-muted: #79664f;
+  --border-color: #decfae;
+  --accent-amber: #92400e;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #121214;
+  --bg-card: #1c1c1f;
+  --bg-subtle: #26262b;
+  --text-primary: #f4f4f5;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --border-color: #323238;
+  --accent-amber: #f59e0b;
+}
+
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Hiragino Sans GB", "Microsoft JhengHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ================= 暗黑模式全介面深度覆蓋 (Dark Mode Overrides) ================= */
+[data-theme="dark"] header,
+[data-theme="dark"] .bg-white\/95 {
+  background-color: rgba(24, 24, 28, 0.96) !important;
+  border-color: #2e2e34 !important;
+}
+
+[data-theme="dark"] .bg-white {
+  background-color: #1c1c20 !important;
+  color: #f4f4f5 !important;
+}
+
+[data-theme="dark"] .bg-stone-50,
+[data-theme="dark"] .bg-stone-50\/50 {
+  background-color: #25252b !important;
+  color: #e4e4e7 !important;
+}
+
+[data-theme="dark"] .bg-stone-100,
+[data-theme="dark"] .bg-stone-200,
+[data-theme="dark"] .bg-stone-200\/80 {
+  background-color: #2e2e36 !important;
+  color: #e4e4e7 !important;
+}
+
+[data-theme="dark"] .hover\:bg-stone-50:hover,
+[data-theme="dark"] .hover\:bg-stone-100:hover,
+[data-theme="dark"] .hover\:bg-stone-200:hover {
+  background-color: #383842 !important;
+}
+
+/* 暗黑模式文字色階 */
+[data-theme="dark"] .text-stone-900,
+[data-theme="dark"] .text-stone-800 {
+  color: #f4f4f5 !important;
+}
+
+[data-theme="dark"] .text-stone-700,
+[data-theme="dark"] .text-stone-600 {
+  color: #d4d4d8 !important;
+}
+
+[data-theme="dark"] .text-stone-500,
+[data-theme="dark"] .text-stone-400 {
+  color: #a1a1aa !important;
+}
+
+/* 暗黑模式邊框色階 */
+[data-theme="dark"] .border-stone-100,
+[data-theme="dark"] .border-stone-200,
+[data-theme="dark"] .border-stone-200\/80,
+[data-theme="dark"] .border-stone-200\/60,
+[data-theme="dark"] .border-stone-300 {
+  border-color: #34343c !important;
+}
+
+/* 暗黑模式彩色強調區塊 (Amber / Purple / Blue / Emerald) */
+[data-theme="dark"] .bg-amber-50,
+[data-theme="dark"] .bg-amber-50\/80,
+[data-theme="dark"] .bg-amber-50\/70,
+[data-theme="dark"] .bg-amber-50\/50,
+[data-theme="dark"] .bg-amber-100 {
+  background-color: rgba(180, 83, 9, 0.22) !important;
+  border-color: rgba(217, 119, 6, 0.4) !important;
+  color: #fde68a !important;
+}
+
+[data-theme="dark"] .text-amber-950,
+[data-theme="dark"] .text-amber-900,
+[data-theme="dark"] .text-amber-800,
+[data-theme="dark"] .text-amber-700 {
+  color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .bg-purple-50,
+[data-theme="dark"] .bg-purple-100 {
+  background-color: rgba(126, 34, 206, 0.22) !important;
+  border-color: rgba(168, 85, 247, 0.4) !important;
+  color: #e9d5ff !important;
+}
+
+[data-theme="dark"] .text-purple-900 {
+  color: #e9d5ff !important;
+}
+
+[data-theme="dark"] .bg-blue-50,
+[data-theme="dark"] .bg-blue-50\/70,
+[data-theme="dark"] .bg-blue-100 {
+  background-color: rgba(29, 78, 216, 0.22) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #bfdbfe !important;
+}
+
+[data-theme="dark"] .text-blue-950,
+[data-theme="dark"] .text-blue-900,
+[data-theme="dark"] .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .bg-emerald-50,
+[data-theme="dark"] .bg-emerald-50\/80,
+[data-theme="dark"] .bg-emerald-50\/50 {
+  background-color: rgba(4, 120, 87, 0.22) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #a7f3d0 !important;
+}
+
+[data-theme="dark"] .text-emerald-950,
+[data-theme="dark"] .text-emerald-900,
+[data-theme="dark"] .text-emerald-800 {
+  color: #6ee7b7 !important;
+}
+
+/* 暗黑模式輸入框、下拉選單與按鈕 */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #25252b !important;
+  color: #f4f4f5 !important;
+  border-color: #3f3f46 !important;
+}
+
+[data-theme="dark"] select#book-selector-select {
+  background-color: transparent !important;
+}
+
+[data-theme="dark"] select option,
+[data-theme="dark"] select optgroup {
+  background-color: #1c1c20 !important;
+  color: #f4f4f5 !important;
+}
+
+/* ================= 羊皮紙護眼模式覆蓋 (Sepia Mode Overrides) ================= */
+[data-theme="sepia"] header,
+[data-theme="sepia"] .bg-white\/95 {
+  background-color: rgba(247, 239, 222, 0.96) !important;
+  border-color: #decfae !important;
+}
+
+[data-theme="sepia"] .bg-white {
+  background-color: #faf4e6 !important;
+}
+
+[data-theme="sepia"] .bg-stone-50,
+[data-theme="sepia"] .bg-stone-50\/50 {
+  background-color: #f2e8cf !important;
+}
+
+[data-theme="sepia"] .bg-stone-100,
+[data-theme="sepia"] .bg-stone-200\/80 {
+  background-color: #e8dcc0 !important;
+}
+
+[data-theme="sepia"] .border-stone-100,
+[data-theme="sepia"] .border-stone-200,
+[data-theme="sepia"] .border-stone-300 {
+  border-color: #decfae !important;
+}
+
+/* 觸控目標標準：手機端至少 48px */
+.touch-target {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* 標籤按鈕活躍狀態 */
+.tab-active {
+  background-color: #ffffff !important;
+  color: #1c1917 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-weight: 700;
+}
+
+[data-theme="dark"] .tab-active {
+  background-color: #3f3f46 !important;
+  color: #fafafa !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="sepia"] .tab-active {
+  background-color: #faf4e6 !important;
+  color: #3b2d1d !important;
+}
+
+/* 經文字體大小切換 */
+body.font-size-sm .verse-text { font-size: 0.9375rem; line-height: 1.6; }
+body.font-size-base .verse-text { font-size: 1.0625rem; line-height: 1.7; }
+body.font-size-lg .verse-text { font-size: 1.25rem; line-height: 1.8; }
+body.font-size-xl .verse-text { font-size: 1.375rem; line-height: 1.9; }
+
+/* 滾動條簡約美化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d6d3d1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e;
+}
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+}
+
+/* 字型輔助小字號 */
+.text-2xs {
+  font-size: 0.6875rem;
+}
+
+/* 地圖標籤徽章 (Map Marker Badges) */
+.map-marker-badge {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1.5px solid #b45309 !important;
+  color: #78350f !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+  white-space: nowrap !important;
+}
+
+.leaflet-tooltip-top.map-marker-badge::before {
+  border-top-color: #b45309 !important;
+}
