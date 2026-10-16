@@ -16,6 +16,16 @@ const AIService = {
     const tasteNames = (selectedTastes || []).map(t => `${t.name} (${t.desc || t.category})`).join("、");
     const activeTasteList = (selectedTastes || []).map(t => t.name);
 
+    // 從本地和合本資料庫提取本章完整經文，讓 AI 緊扣經文逐節深入剖析（不再空泛概括）
+    let scriptureContext = "";
+    if (typeof BibleService !== "undefined" && BibleService.bibleData) {
+      const verses = BibleService.getChapterVerses(bookName, chapter);
+      if (verses && verses.length > 0 && !verses[0].text.includes("正在載入")) {
+        const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
+        scriptureContext = `\n【《${bookName}》第 ${chapter} 章和合本經文原文（請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
+      }
+    }
+
     return `
 你現在是「Bible Backpack（聖經行囊）」的【神學內容主管 (Theological Content Director)】。
 請為聖經《${bookName}》第 ${chapter} 章生成一套內容極其豐富、具神學深度、符合正統基督信仰的雙層研經行囊材料。
