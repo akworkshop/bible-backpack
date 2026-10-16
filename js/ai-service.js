@@ -13,42 +13,36 @@ const AIService = {
 
   // 構造單章研經材料 Prompt（注入本地 BibleService 完整經文上下文，確保 Groq 與本地 Ollama 具備與 Gemini 相同的逐節深度釋經能力）
   buildPrompt(bookName, chapter, selectedTastes, customKeyword) {
-    const tasteNames = (selectedTastes || []).map(t => t.name).join("、");
-
-    // 從本地和合本資料庫提取本章完整經文，讓 AI 緊扣經文逐節深入剖析（不再空泛概括）
-    let scriptureContext = "";
-    if (typeof BibleService !== "undefined" && BibleService.bibleData) {
-      const verses = BibleService.getChapterVerses(bookName, chapter);
-      if (verses && verses.length > 0 && !verses[0].text.includes("正在載入")) {
-        const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
-        scriptureContext = `\n【《${bookName}》第 ${chapter} 章和合本經文原文（請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
-      }
-    }
+    const tasteNames = (selectedTastes || []).map(t => `${t.name} (${t.desc || t.category})`).join("、");
+    const activeTasteList = (selectedTastes || []).map(t => t.name);
 
     return `
 你現在是「Bible Backpack（聖經行囊）」的【神學內容主管 (Theological Content Director)】。
 請為聖經《${bookName}》第 ${chapter} 章生成一套內容極其豐富、具神學深度、符合正統基督信仰的雙層研經行囊材料。
 ${scriptureContext}
-【用戶個人喜好與思考模式】：
-- 偏好的視角/口味：${tasteNames || "自然理性、生活應用、正統研經"}
-- 自訂興趣/背景備註：${customKeyword || "無特定"}
+【★用戶選定的個人研經口味與視角風格（必須在討論問題、心靈反思與結語比喻中展現鮮明辨識度，嚴禁千篇一律的公版套話！）】：
+- 核心選定視角：${tasteNames || "自然理性、生活應用、正統研經"}
+- 自訂興趣/專業背景備註：${customKeyword ? `「${customKeyword}」（★極重要指令：請在 Q3 生活反思題、Takeaway 結語與人物剖析中，直接運用此領域的思維模型、生活痛點或專業比喻作深刻呼應！）` : "無特定，請集中發揮上述選定之視角"}
 
-【神學守則與內容豐富度要求 (Strict Depth & Orthodoxy Guardrails)】：
+【神學守則與個人化風格要求 (Depth, Orthodoxy & Taste Customization)】：
 1. 【正統信仰底線】：完全遵循大公教會歷史正統信仰（使徒信經、尼西亞信經、唯獨恩典因信稱義）。嚴厲排斥任何異端、偏激或偏離聖經原意的曲解。
 2. 【★拒絕簡略敷衍，要求極高豐富度與神學深度】：
    - 無論使用哪一款模型，每個欄位的文字都必須**詳實飽滿、引經據典（明確標註第幾節）、具牧養溫度與神學洞察**，絕對不可只寫一兩句話帶過！
-   - 經文分段（outline）必須涵蓋全章並分為 **3 至 4 個詳細段落**。
-   - 討論問題（discussionQuestions）共 4 題，每題的「組長引導提示 (hint)」必須寫滿 **60～100 字**，提供具體經文節數線索、原文或歷史背景切入點。
-   - 人物檔案（characters）必須列出 **2 至 3 位關鍵人物或群體**，每位包含詳盡生平與 **80～120 字的深度心理與屬靈掙扎洞察**。
-   - 疑難解答（difficulties）必須列出 **2 至 3 個深具挑戰性的核心神學/釋經難題**，每題解答（answer）必須達 **120～180 字**。
-3. 【★考古實物與維基百科精準驗證要求 (Visual Artifacts Rule)】：
-   - visualArtifacts 必須列出 **2 項真實存在的博物館館藏考古文物、古代銘文或真實聖經歷史遺址**（嚴禁編造「信心之盾」、「恩典之泉」等抽象比喻詞！）。
+   - 經文分段（outline）必須涵蓋全章並分為 3 至 4 個詳細段落。
+   - 討論問題（discussionQuestions）共 4 題，每題的「組長引導提示 (hint)」必須寫滿 60～100 字，提供具體經文節數線索、原文或歷史背景切入點。
+   - 人物檔案（characters）必須列出 2 至 3 位關鍵人物或群體，每位包含詳盡生平與 80～120 字的深度心理與屬靈掙扎洞察。
+   - 疑難解答（difficulties）必須列出 2 至 3 個深具挑戰性的核心神學/釋經難題，每題解答（answer）必須達 120～180 字。
+3. 【★個人化口味差異化滲透要求 (Making Tastes Feel Unmistakably Distinct)】：
+   - 討論題第 2 題 (Q2)：必須直接聚焦於用戶選定的第 1 項口味（例如選「古代考古/歷史」則問當時條約法理與地緣統治；選「數學邏輯/自然科學」則問因果結構、對稱 Chiasm 與自然規律；選「心理認知」則深究恐懼防禦與認知重構；選「小組導師」則設計具備群體互動張力的切入點），tag 必須自訂反映該口味（如「歷史盟約」、「邏輯因果」、「心靈防禦」、「導師錦囊」）。
+   - 討論題第 3 題 (Q3)：必須直接連結用戶填寫的「自訂背景」（如軟體工程師、管理者、教育、藝術等）或第 2 項口味，設計切中該領域日常痛點與思維模型的深度反思題，tag 標註「專業反思」或「職場應用」。
+   - 今日默想結語 (takeaway)：必須生動融合該口味或自訂背景的鮮明比喻（例如：若用戶是工程師，比喻底層架構與神聖協議；若為心理，比喻卸下內在防衛；若為默想，比喻幽谷清泉），拒絕乾癟的道德教條！
+4. 【★考古實物與維基百科精準驗證要求 (Visual Artifacts Rule)】：
+   - visualArtifacts 必須列出 2 項真實存在的博物館館藏考古文物、古代銘文或真實聖經歷史遺址（嚴禁編造「信心之盾」、「恩典之泉」等抽象比喻詞！）。
    - title 格式必須為「中文名稱 (Official English Name)」，例如：「但丘大衛家石碑 (Tel Dan Stele)」、「居魯士圓柱 (Cyrus Cylinder)」、「死海古卷以賽亞卷 (Dead Sea Scrolls)」、「迦百農古代會堂遺址 (Capernaum Synagogue)」、「梅르內普塔赫石碑 (Merneptah Stele)」、「拉吉浮雕 (Lachish reliefs)」。
-   - searchQuery 必須填寫該文物或遺址在 **English Wikipedia (英文維基百科) 的精確標準條目名稱**（純英文，如 "Tel Dan stele", "Cyrus Cylinder", "Dead Sea Scrolls", "Pool of Bethesda", "Ketef Hinnom scrolls", "Black Obelisk of Shalmaneser III"）。
-4. 【★聖經地理與行軍路線嚴格守則 (Geography & Map Guardrail)】：
+   - searchQuery 必須填寫該文物或遺址在 English Wikipedia (英文維基百科) 的精確標準條目名稱（純英文，如 "Tel Dan stele", "Cyrus Cylinder", "Dead Sea Scrolls", "Pool of Bethesda", "Ketef Hinnom scrolls", "Black Obelisk of Shalmaneser III"）。
+5. 【★聖經地理與行軍路線嚴格守則 (Geography & Map Guardrail)】：
    - geography.isJourneyRoute：只有當本章經文明確記載「實際的行軍移動、出埃及遷徙、曠野行程或使徒宣教旅程」（有明確從 A 地前往 B 地的順序動線）時，才設為 true；若本章為定點事件、創造敘事、詩篇、智慧書或一般書信教導，一律設為 false。
-   - geography.routePoints：只標註經文中明確提及或歷史考證確鑿的真實聖經地點（經緯度座標必須真實準確）；**若地點位置在考古上極度不確定，或本章並無特定地點，切勿亂湊或憑空捏造座標**（無特定地點時可僅列出 1 個核心歷史參照地標如耶路撒冷，或留空陣列 []）。
-5. 【★拒絕生硬強塞 (Taste Rule)】：用戶喜歡特定領域（如科學、數學、歷史等），請作為「思考方式的共鳴與視角啟發」，不要每句話生搬硬套術語。
+   - geography.routePoints：只標註經文中明確提及或歷史考證確鑿的真實聖經地點（經緯度座標必須真實準確）；若地點位置在考古上極度不確定，或本章並無特定地點，切勿亂湊或憑空捏造座標（無特定地點時可僅列出 1 個核心歷史參照地標如耶路撒冷，或留空陣列 []）。
 
 【請輸出嚴格合法的純 JSON 格式】：所有字串內部如有雙引號請使用 \\" 轉義，換行請使用 \\n，絕對禁止未轉義的原始換行或未閉合引號。JSON 結構如下：
 {
@@ -66,21 +60,21 @@ ${scriptureContext}
         "id": "q1",
         "type": "觀察與梳理",
         "tag": "經文細讀",
-        "question": "第1題：結合本章具體節數與經文細節的觀察與脈絡梳理題（40～70字）",
+        "question": "第1題：結合本章具體節數與經文細節的客觀事實與脈絡梳理題（40～70字）",
         "hint": "詳盡組長引導提示（60～100字：指出應留意第幾節的關鍵字詞、人物動作對比與上下文線索）"
       },
       {
         "id": "q2",
         "type": "理解與洞察",
-        "tag": "神學視角",
-        "question": "第2題：深入探討經文背後的神學涵義、神的屬性與救恩心意（40～70字，自然融入思考視角）",
-        "hint": "詳盡組長引導提示（60～100字：解析經文背後的聖約意義、神學轉折與組員常見迷思）"
+        "tag": "【依所選第1口味自訂標籤】",
+        "question": "第2題：深度貫穿【${activeTasteList[0] || '神學視角'}】的經文洞察題（40～70字，視角鮮明、打破常規）",
+        "hint": "詳盡組長引導提示（60～100字：解析經文背後的神學涵義、聖約意義與啟發切入點）"
       },
       {
         "id": "q3",
         "type": "生活與信心應用",
-        "tag": "生命反思",
-        "question": "第3題：將經文真理連結至現代職場、家庭困境或信仰抉擇的深度反思題（40～70字）",
+        "tag": "【依自訂背景或第2口味標籤】",
+        "question": "第3題：緊密結合【${customKeyword || activeTasteList[1] || '生活反思'}】的深度應用題（40～70字，生動共鳴）",
         "hint": "詳盡組長引導提示（60～100字：引導組員從表面道德教訓進入內心偶像省察與恩典依靠）"
       },
       {
@@ -91,8 +85,8 @@ ${scriptureContext}
         "hint": "詳盡組長引導提示（60～100字：提供具體可落實的本週操練建議與小組代禱方向）"
       }
     ],
-    "takeaway": "今日核心默想結語（80～120字：精闢、深刻、充滿福音盼望與牧養力量）",
-    "prayer": "總結禱告詞（80～120字：呼應本章經文真理、誠摯優美的牧養禱文）"
+    "takeaway": "今日核心默想結語（80～120字：融合所選口味之鮮活比喻、深刻、充滿福音盼望與牧養力量）",
+    "prayer": "總結禱告詞（80～120字：呼應本章經文真理與所選視角之誠摯優美禱文）"
   },
   "tier2_dossier": {
     "title": "${bookName}第${chapter}章 · 深度研經行囊",
@@ -488,7 +482,7 @@ ${scriptureContext}
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         const generationConfig = {
-          temperature: 0.2,
+          temperature: 0.45,
           maxOutputTokens: 8192,
           responseMimeType: "application/json"
         };
@@ -672,7 +666,7 @@ ${scriptureContext}
           format: "json",
           stream: false,
           options: {
-            temperature: 0.25,
+            temperature: 0.45,
             num_ctx: 16384,
             num_predict: 8192
           }
@@ -693,7 +687,7 @@ ${scriptureContext}
           model: model,
           messages: messages,
           think: false,
-          temperature: 0.25,
+          temperature: 0.45,
           max_tokens: 8192,
           options: {
             num_ctx: 16384,
@@ -766,7 +760,7 @@ ${scriptureContext}
           },
           { role: "user", content: promptText }
         ],
-        temperature: 0.25,
+        temperature: 0.45,
         max_tokens: 8000,
         response_format: { type: "json_object" }
       })
