@@ -11,8 +11,8 @@ const AIService = {
     "gemini-2.0-flash"
   ],
 
-  // 構造單章研經材料 Prompt（注入本地 BibleService 完整經文上下文，確保 Groq 與本地 Ollama 具備與 Gemini 相同的逐節深度釋經能力）
-  buildPrompt(bookName, chapter, selectedTastes, customKeyword) {
+  // 構造單章研經材料 Prompt（注入本地 BibleService 完整經文上下文，支援注入小組主題課程之堂數、主題與討論核心）
+  buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext = null) {
     const tasteNames = (selectedTastes || []).map(t => `${t.name} (${t.desc || t.category})`).join("、");
     const activeTasteList = (selectedTastes || []).map(t => t.name);
 
@@ -26,10 +26,34 @@ const AIService = {
       }
     }
 
+    let curriculumInstruction = "";
+    if (curriculumContext) {
+      curriculumInstruction = `
+【★★極重要指令：本單張為小組主題系列課程專屬研經材料★★】：
+- 本套系列主題：《${curriculumContext.packTitle || "小組主題課程"}》
+- 本次課堂：第 ${curriculumContext.sessionNum || 1} 堂「${curriculumContext.sessionTitle || ""}」（聚焦經文範圍：${curriculumContext.passageRange || `${bookName} 第 ${chapter} 章`}）
+- 本堂核心信息主旨：${curriculumContext.coreMessage || "無"}
+- 小組討論焦點方向：${curriculumContext.discussionTheme || "無"}
+- 指定小組破冰方向：${curriculumContext.icebreaker || "無"}
+- 指定生活實踐操練：${curriculumContext.lifeAction || "無"}
+
+【課程連貫性與深度整合要求】：
+1. 標題與副標題：tier1_sheet.title 請標註為「《${curriculumContext.packTitle || "小組主題"}》第 ${curriculumContext.sessionNum || 1} 堂 · ${curriculumContext.sessionTitle || ""}」，副標題深刻點出本堂主題。
+2. 核心聚焦：經文快照 (snapshot)、經文分段 (outline)、人物檔案與神學剖析，必須強烈圍繞本堂核心信息「${curriculumContext.coreMessage || ""}」進行深度釋經。
+3. 討論問題專屬客製化：
+   - Q1 (經文細讀)：結合本堂聚焦經文細節。
+   - Q2 (主題討論)：必須精準對接本堂「小組討論焦點方向：${curriculumContext.discussionTheme || ""}」，tag 標註「主題探討」。
+   - Q3 (生活應用)：必須緊扣本堂「指定生活實踐操練：${curriculumContext.lifeAction || ""}」，引導組員具體落地。
+   - Q4 (團契代禱)：結合本堂主題引導組員彼此代禱。
+4. 破冰與組長提示：tier2_dossier.leaderGuide.icebreaker 請直接融入或深化本課堂指定之破冰「${curriculumContext.icebreaker || ""}」；flowTips 提供組長帶領本主題時的控場與牧養叮嚀。
+`;
+    }
+
     return `
 你現在是「Bible Backpack（聖經行囊）」的【神學內容主管 (Theological Content Director)】。
 請為聖經《${bookName}》第 ${chapter} 章生成一套內容極其豐富、具神學深度、符合正統基督信仰的雙層研經行囊材料。
 ${scriptureContext}
+${curriculumInstruction}
 【★用戶選定的個人研經口味與視角風格（必須在討論問題、心靈反思與結語比喻中展現鮮明辨識度，嚴禁千篇一律的公版套話！）】：
 - 核心選定視角：${tasteNames || "自然理性、生活應用、正統研經"}
 - 自訂興趣/專業背景備註：${customKeyword ? `「${customKeyword}」（★極重要指令：請在 Q3 生活反思題、Takeaway 結語與人物剖析中，直接運用此領域的思維模型、生活痛點或專業比喻作深刻呼應！）` : "無特定，請集中發揮上述選定之視角"}
@@ -436,21 +460,24 @@ ${scriptureContext}
     return JSON.parse(repaired);
   },
 
-  // 向 AI 發起單章研經請求（內建本地快取 + Groq/Gemini 雙通道 + 多模型自動故障轉移）
-  async generateStudyPack(bookName, chapter, selectedTastes, customKeyword, onStatusUpdate = null, bypassCache = false) {
-    const tasteHash = (selectedTastes || []).map(t => t.id).sort().join("-") + (customKeyword ? `-${customKeyword}` : "");
+  // 向 AI 發起單章研經請求（內建本地快取 + Groq/Gemini 雙通道 + 多模型自動故障轉移 + 支援小組主題課程上下文）
+  async generateStudyPack(bookName, chapter, selectedTastes, customKeyword, onStatusUpdate = null, bypassCache = false, curriculumContext = null) {
+    let tasteHash = (selectedTastes || []).map(t => t.id).sort().join("-") + (customKeyword ? `-${customKeyword}` : "");
+    if (curriculumContext) {
+      tasteHash += `-curriculum-${curriculumContext.packId || 'pack'}-${curriculumContext.sessionNum || 1}`;
+    }
     
     // 1. 若非強制重新調配，優先檢查本地快取，0 毫秒極速載入
     if (!bypassCache) {
       const cached = BackpackStore.getCachedPack(bookName, chapter, tasteHash);
       if (cached) {
-        console.log(`⚡ 從本地持久快取載入【${bookName} 第 ${chapter} 章】研經材料！`);
+        console.log(`⚡ 從本地持久快取載入【${bookName} 第 ${chapter} 章】${curriculumContext ? '主題課程' : ''}研經材料！`);
         return cached;
       }
     }
 
     const provider = BackpackStore.getProvider();
-    const promptText = this.buildPrompt(bookName, chapter, selectedTastes, customKeyword);
+    const promptText = this.buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext);
 
     // 2. 若選擇本地離線 AI (Ollama / LM Studio)
     if (provider === "local") {

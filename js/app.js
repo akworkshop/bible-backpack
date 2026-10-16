@@ -4,6 +4,38 @@ let currentBook = "創世記";
 let currentChapter = 1;
 let currentActiveTier = "tier1"; // "tier1" (靈修單張) 或 "tier2" (深度行囊)
 let activeStudyData = typeof GENESIS_1_DATA !== "undefined" ? GENESIS_1_DATA : JOSHUA_1_DATA;
+let activeCurriculumContext = null; // 當前正在研讀的小組主題課程上下文（若非 null 則處於主題課程研讀模式）
+
+// 渲染主題課程模式橫幅
+function renderCurriculumBanner() {
+  const banner = document.getElementById("curriculum-session-banner");
+  if (!banner) return;
+  if (!activeCurriculumContext) {
+    banner.classList.add("hidden");
+    return;
+  }
+  banner.classList.remove("hidden");
+  const titleEl = document.getElementById("curriculum-banner-title");
+  const sessionEl = document.getElementById("curriculum-banner-session");
+  const themeEl = document.getElementById("curriculum-banner-theme");
+  if (titleEl) titleEl.textContent = activeCurriculumContext.packTitle || "小組主題課程";
+  if (sessionEl) sessionEl.textContent = `第 ${activeCurriculumContext.sessionNum || 1} 堂 · ${activeCurriculumContext.sessionTitle || ""}`;
+  if (themeEl) {
+    const parts = [];
+    if (activeCurriculumContext.passageRange) parts.push(`📖 ${activeCurriculumContext.passageRange}`);
+    if (activeCurriculumContext.coreMessage) parts.push(`💡 ${activeCurriculumContext.coreMessage}`);
+    if (activeCurriculumContext.discussionTheme) parts.push(`💬 ${activeCurriculumContext.discussionTheme}`);
+    themeEl.textContent = parts.join("  |  ");
+  }
+}
+
+// 退出主題課程模式
+function exitCurriculumMode() {
+  activeCurriculumContext = null;
+  renderCurriculumBanner();
+  showToast("已退出小組主題模式，返回單章通用研經。");
+  handleBookOrChapterChange(false);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   initApp();
@@ -1187,6 +1219,12 @@ function setupEventListeners() {
 }
 
 function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = false) {
+  // 若切換了與當前主題課堂不同的書卷或章節，自動退出主題模式
+  if (activeCurriculumContext && (activeCurriculumContext.bookName !== currentBook || activeCurriculumContext.chapter !== currentChapter)) {
+    activeCurriculumContext = null;
+  }
+  renderCurriculumBanner();
+
   // 更新章節選擇器上限與合法範圍
   const bookMeta = typeof BIBLE_BOOKS !== "undefined" ? BIBLE_BOOKS.find(b => b.name === currentBook) : null;
   const chapInput = document.getElementById("chapter-selector-input");
@@ -1214,20 +1252,25 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
   // ★ 關鍵：無論如何立即依本地全本聖經庫渲染左側經文，實現 0 毫秒極速閱讀跳轉！
   renderScripture();
 
-  // 1. 優先檢查是否命中預載經典包 (創世記 1, 約書亞記 1, 詩篇 23, 羅馬書 8)
-  const preset = typeof getPresetPack === "function" ? getPresetPack(currentBook, currentChapter) : null;
-  if (preset && !forceRegenerate) {
-    activeStudyData = preset;
-    renderActiveTierContent();
-    if (!isInitialLoad) {
-      showToast(`✨ 已載入經典預載研經包：【${currentBook} 第 ${currentChapter} 章】！`);
+  // 1. 若非處於主題課程模式，優先檢查是否命中預載經典包 (創世記 1, 約書亞記 1, 詩篇 23, 羅馬書 8)
+  if (!activeCurriculumContext) {
+    const preset = typeof getPresetPack === "function" ? getPresetPack(currentBook, currentChapter) : null;
+    if (preset && !forceRegenerate) {
+      activeStudyData = preset;
+      renderActiveTierContent();
+      if (!isInitialLoad) {
+        showToast(`✨ 已載入經典預載研經包：【${currentBook} 第 ${currentChapter} 章】！`);
+      }
+      return;
     }
-    return;
   }
 
-  // 2. 檢查本地持久快取中是否已有先前調配過的材料
+  // 2. 檢查本地持久快取中是否已有先前調配過的材料（若為主題課程，特徵 hash 包含課程 ID 與課堂序號）
   const selectedTasteIds = BackpackStore.getTastes();
-  const tasteHash = (selectedTasteIds || []).sort().join("-") + (BackpackStore.getCustomTaste() ? `-${BackpackStore.getCustomTaste()}` : "");
+  let tasteHash = (selectedTasteIds || []).sort().join("-") + (BackpackStore.getCustomTaste() ? `-${BackpackStore.getCustomTaste()}` : "");
+  if (activeCurriculumContext) {
+    tasteHash += `-curriculum-${activeCurriculumContext.packId || 'pack'}-${activeCurriculumContext.sessionNum || 1}`;
+  }
   const cached = BackpackStore.getCachedPack(currentBook, currentChapter, tasteHash);
   if (cached && !forceRegenerate) {
     activeStudyData = {
@@ -1240,7 +1283,7 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
     };
     renderActiveTierContent();
     if (!isInitialLoad) {
-      showToast(`⚡ 已從快取載入【${currentBook} 第 ${currentChapter} 章】研經材料！`);
+      showToast(`⚡ 已從快取載入【${activeCurriculumContext ? activeCurriculumContext.sessionTitle : currentBook + ' 第 ' + currentChapter + ' 章'}】研經材料！`);
     }
     return;
   }
@@ -1266,24 +1309,39 @@ function renderEmptyChapterPrompt(book = currentBook, chapter = currentChapter, 
   const selectedTastes = BackpackStore.AVAILABLE_TASTES.filter(t => selectedTasteIds.includes(t.id));
   const tastesLabel = selectedTastes.map(t => t.name).join("、") || "綜合思考";
 
+  const isCurriculum = !!activeCurriculumContext;
   const isTier1 = tier === "tier1";
-  const title = isTier1
-    ? `《${book}》第 ${chapter} 章 · 靈修材料尚未製作`
-    : `《${book}》第 ${chapter} 章 · 深度研經行囊尚未製作`;
-  const desc = isTier1
-    ? `左側全本經文已就緒。隨時點擊下方按鈕，AI 神學主管將根據您設定的口味視角，為本章專屬調配【靈修查經單張】（約 1~2 頁 A4，適合個人靈修與小組聚會）。`
-    : `包含：歷史地理考證地圖、出土文物考古圖解、神學難題解答與小組長破冰指南。`;
+  const title = isCurriculum
+    ? `《${activeCurriculumContext.packTitle}》第 ${activeCurriculumContext.sessionNum} 堂 · 專屬材料尚未調配`
+    : (isTier1
+      ? `《${book}》第 ${chapter} 章 · 靈修材料尚未製作`
+      : `《${book}》第 ${chapter} 章 · 深度研經行囊尚未製作`);
+
+  const desc = isCurriculum
+    ? `本堂主題【${activeCurriculumContext.sessionTitle}】（焦點：${activeCurriculumContext.passageRange || `${book} 第 ${chapter} 章`}）。點擊下方按鈕，AI 神學主管將直接緊扣「${activeCurriculumContext.coreMessage || '本堂核心信息'}」與破冰焦點，專屬調配【靈修單張】與【組長手冊】！`
+    : (isTier1
+      ? `左側全本經文已就緒。隨時點擊下方按鈕，AI 神學主管將根據您設定的口味視角，為本章專屬調配【靈修查經單張】（約 1~2 頁 A4，適合個人靈修與小組聚會）。`
+      : `包含：歷史地理考證地圖、出土文物考古圖解、神學難題解答與小組長破冰指南。`);
+
+  const btnText = isCurriculum
+    ? `一鍵為【${activeCurriculumContext.sessionTitle}】調配專屬小組材料`
+    : `一鍵製作《${escapeHtml(book)} 第 ${chapter} 章》靈修材料`;
 
   container.innerHTML = `
     <div class="py-16 px-4 text-center space-y-4 max-w-lg mx-auto animate-fade-in my-auto">
       <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-3xl shadow-sm">
-        ${isTier1 ? "🎒" : "📚"}
+        ${isCurriculum ? "🎯" : (isTier1 ? "🎒" : "📚")}
       </div>
       <div>
         <h2 class="font-bold text-stone-900 text-base md:text-lg">${escapeHtml(title)}</h2>
         <p class="text-xs text-stone-500 mt-1.5 leading-relaxed max-w-md mx-auto">
           ${escapeHtml(desc)}
         </p>
+        ${isCurriculum && activeCurriculumContext.discussionTheme ? `
+          <div class="mt-2 text-2xs text-amber-800 bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 rounded-lg max-w-md mx-auto inline-block text-left">
+            <strong>💬 討論焦點預覽：</strong>${escapeHtml(activeCurriculumContext.discussionTheme)}
+          </div>
+        ` : ''}
       </div>
       
       <!-- 當前口味標籤 -->
@@ -1296,7 +1354,7 @@ function renderEmptyChapterPrompt(book = currentBook, chapter = currentChapter, 
       <div class="pt-2">
         <button onclick="generateWithCurrentTastes(true)" class="px-6 py-3 bg-amber-800 hover:bg-amber-900 active:scale-95 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer">
           <span>✨</span>
-          <span>一鍵製作《${escapeHtml(book)} 第 ${chapter} 章》靈修材料</span>
+          <span>${btnText}</span>
         </button>
       </div>
 
@@ -1304,10 +1362,17 @@ function renderEmptyChapterPrompt(book = currentBook, chapter = currentChapter, 
         <button onclick="openSettingsModal()" class="hover:text-stone-800 underline flex items-center gap-1">
           <span>⚙️ API 設置與模型切換</span>
         </button>
-        <span>·</span>
-        <button onclick="loadDefaultPreset()" class="hover:text-stone-800 underline flex items-center gap-1">
-          <span>📖 查看經典預載書卷 (創世記 1)</span>
-        </button>
+        ${isCurriculum ? `
+          <span>·</span>
+          <button onclick="exitCurriculumMode()" class="hover:text-stone-800 underline flex items-center gap-1">
+            <span>✕ 退出主題模式</span>
+          </button>
+        ` : `
+          <span>·</span>
+          <button onclick="loadDefaultPreset()" class="hover:text-stone-800 underline flex items-center gap-1">
+            <span>📖 查看經典預載書卷 (創世記 1)</span>
+          </button>
+        `}
       </div>
     </div>
   `;
@@ -1382,13 +1447,17 @@ async function generateWithCurrentTastes(forceFresh = true) {
   const isLocal = provider === "local";
   const timerLabel = isLocal ? "本地離線運算中（180 秒守護）" : "深度生成中（設定 90 秒超時保護）";
 
+  const curriculumDesc = activeCurriculumContext
+    ? `正在為《${escapeHtml(activeCurriculumContext.packTitle)}》第 ${activeCurriculumContext.sessionNum} 堂【${escapeHtml(activeCurriculumContext.sessionTitle)}】專屬調配小組主題研經材料...`
+    : `正在調配《${currentBook}》第 ${currentChapter} 章 · 融入視角啟發 · 嚴守歷史正統神學 · 拒絕生硬強塞`;
+
   container.innerHTML = `
     <div class="py-16 text-center space-y-3">
-      <div class="inline-block animate-spin text-4xl mb-2">🎒</div>
-      <div class="font-bold text-stone-900 text-base" id="ai-gen-status">${isLocal ? '本地離線 AI 正在運算調配行囊...' : 'AI 神學主管正在根據您的口味調配行囊...'}</div>
+      <div class="inline-block animate-spin text-4xl mb-2">${activeCurriculumContext ? "🎯" : "🎒"}</div>
+      <div class="font-bold text-stone-900 text-base" id="ai-gen-status">${isLocal ? '本地離線 AI 正在運算調配行囊...' : (activeCurriculumContext ? 'AI 神學主管正在為主題課程調配專屬材料...' : 'AI 神學主管正在根據您的口味調配行囊...')}</div>
       <div class="text-2xs text-stone-500 font-mono" id="ai-gen-timer">已耗時 0 秒 · ${timerLabel}</div>
       <div class="text-xs text-stone-500 max-w-md mx-auto leading-relaxed">
-        正在調配《${currentBook}》第 ${currentChapter} 章 · 融入視角啟發 · 嚴守歷史正統神學 · 拒絕生硬強塞
+        ${curriculumDesc}
       </div>
       <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-2xs text-amber-800 font-medium">
         <span>✨ 當前口味：${selectedTastes.map(t => t.name).join("、") || "綜合思考"}</span>
@@ -1411,7 +1480,7 @@ async function generateWithCurrentTastes(forceFresh = true) {
       if (el) el.textContent = statusText;
     };
 
-    const generated = await AIService.generateStudyPack(currentBook, currentChapter, selectedTastes, customKeyword, onStatus, forceFresh);
+    const generated = await AIService.generateStudyPack(currentBook, currentChapter, selectedTastes, customKeyword, onStatus, forceFresh, activeCurriculumContext);
     clearInterval(timerInterval);
     
     const bookMeta = typeof BIBLE_BOOKS !== "undefined" ? BIBLE_BOOKS.find(b => b.name === currentBook) : null;
@@ -1429,7 +1498,7 @@ async function generateWithCurrentTastes(forceFresh = true) {
     // 同步更新左側經文區與右側材料區
     renderScripture();
     renderActiveTierContent();
-    showToast(forceFresh ? "✨ 已重新調配並生成最新研經行囊！" : "✨ 專屬研經行囊已就緒！");
+    showToast(activeCurriculumContext ? `✨ 已生成【${activeCurriculumContext.sessionTitle}】專屬主題研經行囊！` : (forceFresh ? "✨ 已重新調配並生成最新研經行囊！" : "✨ 專屬研經行囊已就緒！"));
   } catch (err) {
     clearInterval(timerInterval);
     console.error("生成行囊出錯:", err);
@@ -1971,24 +2040,43 @@ function renderStudyPacks() {
           <!-- 各堂課程大綱列表 -->
           <div class="space-y-2">
             <span class="text-2xs font-bold text-stone-500 uppercase tracking-wider block">✦ 課堂章程與經文進度</span>
-            ${sessions.map((s, idx) => `
-              <div class="p-2.5 bg-white rounded-xl border border-stone-200/80 hover:border-amber-300 transition-colors flex items-center justify-between gap-2 text-xs">
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-stone-900 text-xs flex items-center gap-1.5 truncate">
-                    <span class="w-4 h-4 rounded-full bg-stone-100 text-stone-700 text-2xs inline-flex items-center justify-center font-bold flex-shrink-0">${s.sessionNum || (idx+1)}</span>
-                    <span class="truncate">${escapeHtml(s.title || `第 ${idx+1} 堂`)}</span>
+            ${sessions.map((s, idx) => {
+              const sessionNum = s.sessionNum || (idx + 1);
+              const selectedTasteIds = BackpackStore.getTastes();
+              const tasteHash = (selectedTasteIds || []).sort().join("-") + (BackpackStore.getCustomTaste() ? `-${BackpackStore.getCustomTaste()}` : "") + `-curriculum-${pack.id}-${sessionNum}`;
+              const isCached = !!BackpackStore.getCachedPack(s.bookName, s.chapter || 1, tasteHash);
+
+              return `
+              <div class="p-3 bg-white rounded-xl border border-stone-200/80 hover:border-amber-400 transition-all text-xs shadow-2xs">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex-1 min-w-0 cursor-pointer select-none" onclick="toggleCurriculumSessionDetails('${pack.id}', ${idx})" title="點擊展開/收合本堂詳情">
+                    <div class="font-bold text-stone-900 text-xs flex items-center gap-1.5 truncate">
+                      <span class="w-5 h-5 rounded-full bg-stone-100 text-stone-700 text-2xs inline-flex items-center justify-center font-bold flex-shrink-0">${sessionNum}</span>
+                      <span class="truncate">${escapeHtml(s.title || `第 ${sessionNum} 堂`)}</span>
+                      <span class="text-2xs text-stone-400 font-normal">▼ 詳情</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-1 text-2xs flex-wrap">
+                      <span class="font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 flex-shrink-0">${escapeHtml(s.passageRange || `${s.bookName} 第 ${s.chapter || 1} 章`)}</span>
+                      ${isCached ? `<span class="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium text-3xs">✓ 材料已就緒</span>` : ''}
+                      <span class="text-stone-500 truncate">${escapeHtml(s.coreMessage || s.focus || '')}</span>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-2 mt-0.5 text-2xs">
-                    <span class="font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-100 flex-shrink-0">${escapeHtml(s.passageRange || `${s.bookName} 第 ${s.chapter} 章`)}</span>
-                    <span class="text-stone-500 truncate">${escapeHtml(s.coreMessage || s.focus || '')}</span>
-                  </div>
+                  <button onclick="jumpToCurriculumSession('${pack.id}', ${sessionNum})" class="px-3 py-1.5 text-2xs ${isCached ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-amber-800 hover:bg-amber-900'} text-white rounded-lg font-medium whitespace-nowrap transition-colors flex items-center gap-1 flex-shrink-0 shadow-xs cursor-pointer" title="攜帶本堂主題進入研經工作台">
+                    <span>📖</span>
+                    <span>${isCached ? '即刻研讀' : '前往研讀'}</span>
+                  </button>
                 </div>
-                <button onclick="jumpToCurriculumSession('${escapeHtml(s.bookName)}', ${s.chapter || 1})" class="px-2.5 py-1 text-2xs bg-stone-100 hover:bg-amber-100 text-stone-700 hover:text-amber-900 rounded-lg font-medium whitespace-nowrap transition-colors flex items-center gap-1 flex-shrink-0">
-                  <span>📖</span>
-                  <span>前往研讀</span>
-                </button>
+
+                <!-- 展開式課堂詳情 -->
+                <div id="session-detail-${pack.id}-${idx}" class="hidden mt-2.5 pt-2.5 border-t border-stone-100 space-y-1.5 text-2xs text-stone-600 animate-fade-in">
+                  ${s.coreMessage ? `<div class="leading-relaxed"><strong class="text-stone-800">💡 核心信息：</strong>${escapeHtml(s.coreMessage)}</div>` : ''}
+                  ${s.discussionTheme ? `<div class="leading-relaxed"><strong class="text-stone-800">💬 討論焦點：</strong>${escapeHtml(s.discussionTheme)}</div>` : ''}
+                  ${s.icebreaker ? `<div class="leading-relaxed"><strong class="text-stone-800">🧊 小組破冰：</strong>${escapeHtml(s.icebreaker)}</div>` : ''}
+                  ${s.lifeAction ? `<div class="leading-relaxed"><strong class="text-stone-800">🎯 本週操練：</strong>${escapeHtml(s.lifeAction)}</div>` : ''}
+                </div>
               </div>
-            `).join("")}
+            `;
+            }).join("")}
           </div>
         </div>
 
@@ -2177,15 +2265,50 @@ async function startGenerateCurriculum() {
   }
 }
 
-// 跳轉到特定課堂經文查經
-function jumpToCurriculumSession(bookName, chapter) {
+// 展開/收合主題課程特定堂數詳情
+function toggleCurriculumSessionDetails(packId, idx) {
+  const el = document.getElementById(`session-detail-${packId}-${idx}`);
+  if (el) el.classList.toggle("hidden");
+}
+
+// 跳轉到特定課堂經文查經，並注入主題課程上下文
+function jumpToCurriculumSession(packId, sessionNum) {
+  const packs = BackpackStore.getStudyPacks();
+  const pack = packs.find(p => p.id === packId);
+  if (!pack) {
+    showToast("查無該套裝課程");
+    return;
+  }
+  const session = (pack.sessions || []).find(s => s.sessionNum === sessionNum) || (pack.sessions && pack.sessions[sessionNum - 1]);
+  if (!session) {
+    showToast("查無該堂課堂資訊");
+    return;
+  }
+
+  activeCurriculumContext = {
+    packId: pack.id,
+    packTitle: pack.title,
+    sessionNum: session.sessionNum || sessionNum,
+    sessionTitle: session.title || `第 ${sessionNum} 堂`,
+    bookName: session.bookName,
+    chapter: session.chapter || 1,
+    passageRange: session.passageRange || `${session.bookName} 第 ${session.chapter || 1} 章`,
+    coreMessage: session.coreMessage || session.focus || "",
+    discussionTheme: session.discussionTheme || "",
+    icebreaker: session.icebreaker || "",
+    lifeAction: session.lifeAction || ""
+  };
+
   navigateTo('study');
-  currentBook = bookName;
-  currentChapter = chapter;
+  currentBook = session.bookName;
+  currentChapter = session.chapter || 1;
+
   const bookSelect = document.getElementById("book-selector-select");
   const chapInput = document.getElementById("chapter-selector-input");
-  if (bookSelect) bookSelect.value = bookName;
-  if (chapInput) chapInput.value = chapter;
+  if (bookSelect) bookSelect.value = currentBook;
+  if (chapInput) chapInput.value = currentChapter;
+
+  renderCurriculumBanner();
   handleBookOrChapterChange(false);
 }
 
