@@ -341,8 +341,8 @@
 
         <div class="pt-2 border-t border-stone-100">
           <label class="text-xs font-bold text-stone-700 block mb-1">自訂興趣或專業領域（選填）：</label>
-          <input type="text" id="custom-taste-input" placeholder="例如：我是軟體工程師、喜歡天文學、愛看科幻小說..." class="w-full text-xs p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700">
-          <p class="text-2xs text-stone-500 mt-1">AI 會在生成時作為背景參考，以引起共鳴的恰當視角作比喻。</p>
+          <input type="text" id="custom-taste-input" placeholder="例如：國小三年級主日學、校園同儕相處、軟體工程師、喜歡天文學..." class="w-full text-xs p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700">
+          <p class="text-2xs text-stone-500 mt-1">AI 會在生成時作為背景參考，以引起共鳴的恰當視角作比喻（亦可填入孩子年級或學校情境）。</p>
         </div>
       </div>
 
@@ -632,6 +632,7 @@
           <!-- 快捷靈感標籤 -->
           <div class="flex items-center gap-1.5 flex-wrap mt-2">
             <span class="text-2xs text-stone-400">熱門靈感：</span>
+            <button type="button" onclick="setCurriculumTopic('校園小勇士：聖經英雄的勇氣與抉擇')" class="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-2xs font-medium">🎒 校園小勇士 (兒少系列)</button>
             <button type="button" onclick="setCurriculumTopic('職場中的信仰與抉擇')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">💼 職場信仰與抉擇</button>
             <button type="button" onclick="setCurriculumTopic('走過人生幽谷與信心重建')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🌿 走過人生幽谷</button>
             <button type="button" onclick="setCurriculumTopic('八福與天國價值觀')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🕊️ 八福與天國價值</button>
@@ -656,6 +657,7 @@
             <label class="font-bold text-stone-800 block mb-1">目標對象：</label>
             <select id="curriculum-target-select" class="w-full p-2 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800">
               <option value="職場上班族 / 青年團契" selected>職場上班族 / 青年團契</option>
+              <option value="兒童主日學 / 兒少團契 (Kids & School)">兒童主日學 / 兒少團契 (Kids & School)</option>
               <option value="大專學生 / 青年小組">大專學生 / 青年小組</option>
               <option value="家庭夫妻 / 父母團契">家庭夫妻 / 父母團契</option>
               <option value="初信信徒 / 門徒班">初信信徒 / 門徒班</option>

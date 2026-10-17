@@ -3,6 +3,7 @@
 const BackpackStore = {
   // 默認研經口味標籤庫
   AVAILABLE_TASTES: [
+    { id: "kids", name: "兒少校園", category: "年齡應用", icon: "🎒", desc: "學校生活比喻、同儕相處、勇氣挑戰與趣味互動" },
     { id: "archaeology", name: "古代考古", category: "學科視角", icon: "🏺", desc: "發掘現場、出土文物與古城實貌" },
     { id: "history", name: "歷史政經", category: "學科視角", icon: "🏛️", desc: "時代帝國背景與古代近東盟約法理" },
     { id: "science", name: "自然科學", category: "學科視角", icon: "🔬", desc: "水文地貌、生態環境與客觀規律" },
