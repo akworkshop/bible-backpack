@@ -141,8 +141,8 @@ function renderTasteBadges() {
   const customKeyword = BackpackStore.getCustomTaste();
 
   let html = activeTastes.map(t => {
-    const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t.id) : t;
-    const name = isEn ? (info.nameEn || t.name) : t.name;
+    const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t) : t;
+    const name = info.name || t.name;
     return `
       <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 border border-stone-200">
         <span>${t.icon}</span>
@@ -1164,33 +1164,38 @@ function switchTier(tier) {
 
 // 收藏整個單張
 function toggleSaveCurrentSheet() {
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const bName = typeof I18n !== "undefined" ? I18n.getBookName(activeStudyData.bookName) : activeStudyData.bookName;
   const item = {
     id: `sheet-${activeStudyData.bookId}-${activeStudyData.chapter}`,
     type: "靈修單張",
-    title: `${activeStudyData.bookName} 第 ${activeStudyData.chapter} 章 單張`,
+    title: isEn ? `${bName} Ch. ${activeStudyData.chapter} Study Sheet` : `${activeStudyData.bookName} 第 ${activeStudyData.chapter} 章 單張`,
     desc: activeStudyData.tier1_sheet.subtitle
   };
 
   const added = BackpackStore.toggleSaveItem(item);
   renderActiveTierContent();
   updateBackpackBadge();
-  showToast(added ? "已成功存入您的背包！" : "已從背包中移除");
+  showToast(added ? (isEn ? "Saved to your Backpack!" : "已成功存入您的背包！") : (isEn ? "Removed from Backpack" : "已從背包中移除"));
 }
 
 // 收藏特定卡片到背包
 function saveCardToBackpack(type, title) {
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const bName = typeof I18n !== "undefined" ? I18n.getBookName(activeStudyData.bookName) : activeStudyData.bookName;
   const item = {
     id: `card-${Date.now()}`,
     type,
-    title: `${activeStudyData.bookName} · ${title}`,
-    desc: `${activeStudyData.bookName} 第 ${activeStudyData.chapter} 章`
+    title: `${bName} · ${title}`,
+    desc: isEn ? `${bName} Chapter ${activeStudyData.chapter}` : `${activeStudyData.bookName} 第 ${activeStudyData.chapter} 章`
   };
   BackpackStore.toggleSaveItem(item);
   updateBackpackBadge();
-  showToast(`已收藏【${type}】到背包！`);
+  showToast(isEn ? `Saved to your Backpack!` : `已收藏【${type}】到背包！`);
 }
 
 function updateBackpackBadge() {
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
   const items = BackpackStore.getSavedItems();
   const badge = document.getElementById("backpack-count-badge");
   const navCount = document.getElementById("nav-backpack-count");
@@ -1204,7 +1209,7 @@ function updateBackpackBadge() {
     navCount.textContent = items.length;
   }
   if (hubTotal) {
-    hubTotal.textContent = `${items.length} 個項目`;
+    hubTotal.textContent = isEn ? `${items.length} items` : `${items.length} 個項目`;
   }
 }
 
@@ -1219,6 +1224,21 @@ function renderBookSelector() {
   if (!select || typeof BIBLE_BOOKS === "undefined") return;
 
   const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const sectionEnMap = {
+    "摩西五經": "Pentateuch (Law)",
+    "歷史書": "Historical Books",
+    "詩歌智慧書": "Poetry & Wisdom",
+    "大先知書": "Major Prophets",
+    "小先知書": "Minor Prophets",
+    "四福音與使徒行傳": "Gospels & Acts",
+    "福音書": "Gospels",
+    "歷史": "History (Acts)",
+    "保羅書信": "Pauline Epistles",
+    "普通書信": "General Epistles",
+    "普通書信與啟示錄": "General Epistles & Revelation",
+    "預言書": "Prophecy (Revelation)"
+  };
+
   let html = "";
   let currentSec = "";
 
@@ -1226,8 +1246,9 @@ function renderBookSelector() {
     if (book.section !== currentSec) {
       if (currentSec !== "") html += `</optgroup>`;
       currentSec = book.section;
+      const enSec = sectionEnMap[currentSec] || currentSec;
       const secLabel = isEn 
-        ? `${book.testament === 'OT' ? 'Old Testament' : 'New Testament'} · ${book.section}` 
+        ? `${book.testament === 'OT' ? 'Old Testament' : 'New Testament'} · ${enSec}` 
         : `${book.testament === 'OT' ? '舊約' : '新約'} · ${currentSec}`;
       html += `<optgroup label="—— ${secLabel} ——">`;
     }
@@ -1695,31 +1716,38 @@ async function generateWithCurrentTastes(forceFresh = true) {
 }
 
 // 彈窗模態框控制 (Modal Controls)
-function openTasteModal() {
-  const modal = document.getElementById("taste-modal");
-  if (!modal) return;
-
-  const currentTastes = BackpackStore.getTastes();
+function renderTasteOptionsList() {
   const container = document.getElementById("taste-options-list");
-  
+  if (!container) return;
+  const currentTastes = BackpackStore.getTastes();
+
   container.innerHTML = BackpackStore.AVAILABLE_TASTES.map(t => {
     const checked = currentTastes.includes(t.id) ? "checked" : "";
+    const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t) : t;
     return `
       <label class="flex items-start gap-3 p-3 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer select-none transition-colors">
         <input type="checkbox" name="taste_opt" value="${t.id}" ${checked} class="mt-1 rounded text-amber-800 focus:ring-amber-800">
         <div>
-          <div class="text-sm font-semibold text-stone-900 flex items-center gap-1.5">
+          <div class="text-sm font-semibold text-stone-900 flex items-center gap-1.5 flex-wrap">
             <span>${t.icon}</span>
-            <span>${t.name}</span>
-            <span class="text-2xs text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-normal">${t.category}</span>
+            <span>${escapeHtml(info.name)}</span>
+            <span class="text-2xs text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-normal">${escapeHtml(info.category)}</span>
           </div>
-          <p class="text-xs text-stone-600 mt-0.5">${t.desc}</p>
+          <p class="text-xs text-stone-600 mt-0.5">${escapeHtml(info.desc)}</p>
         </div>
       </label>
     `;
   }).join("");
+}
 
-  document.getElementById("custom-taste-input").value = BackpackStore.getCustomTaste();
+function openTasteModal() {
+  const modal = document.getElementById("taste-modal");
+  if (!modal) return;
+
+  renderTasteOptionsList();
+
+  const customInput = document.getElementById("custom-taste-input");
+  if (customInput) customInput.value = BackpackStore.getCustomTaste();
   modal.classList.remove("hidden");
 }
 
@@ -1727,6 +1755,7 @@ function saveTasteModal() {
   const checkboxes = document.querySelectorAll("input[name='taste_opt']:checked");
   const selectedIds = Array.from(checkboxes).map(c => c.value);
   const customKeyword = document.getElementById("custom-taste-input").value.trim();
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   BackpackStore.saveTastes(selectedIds, customKeyword);
   closeTasteModal();
@@ -1734,11 +1763,11 @@ function saveTasteModal() {
   
   const provider = BackpackStore.getProvider();
   const apiKey = provider === "groq" ? BackpackStore.getGroqKey() : BackpackStore.getApiKey();
-  if (apiKey) {
-    showToast("口味設定已更新，正在重新調配最新材料...");
+  if (apiKey || provider === "local") {
+    showToast(isEn ? "Study taste preferences updated! Regenerating materials..." : "口味設定已更新，正在重新調配最新材料...");
     generateWithCurrentTastes(true);
   } else {
-    showToast("口味設定已更新！");
+    showToast(isEn ? "Study taste preferences updated!" : "口味設定已更新！");
   }
 }
 
@@ -1752,21 +1781,21 @@ function openBackpackModal() {
   if (!modal || !container) return;
 
   const items = BackpackStore.getSavedItems();
-  const packs = BackpackStore.getStudyPacks();
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   if (items.length === 0) {
     container.innerHTML = `
       <div class="py-12 text-center text-stone-400">
         <div class="text-3xl mb-2">🎒</div>
-        <p class="text-sm">背包還是空的</p>
-        <p class="text-xs text-stone-400 mt-1">研經時隨時點擊「存入背包」，收納喜歡的單張與材料卡</p>
+        <p class="text-sm">${isEn ? "Your backpack is empty" : "背包還是空的"}</p>
+        <p class="text-xs text-stone-400 mt-1">${isEn ? "Click \"Save to Backpack\" while studying to collect your favorite study sheets and cards" : "研經時隨時點擊「存入背包」，收納喜歡的單張與材料卡"}</p>
       </div>
     `;
   } else {
     container.innerHTML = `
       <div class="mb-4 flex items-center justify-between pb-2 border-b border-stone-100">
-        <span class="text-xs font-bold text-stone-600">已收納材料 (${items.length})</span>
-        <button onclick="clearBackpack()" class="text-xs text-red-600 hover:underline">清空背包</button>
+        <span class="text-xs font-bold text-stone-600">${isEn ? `Saved Items (${items.length})` : `已收納材料 (${items.length})`}</span>
+        <button onclick="clearBackpack()" class="text-xs text-red-600 hover:underline">${isEn ? "Clear All" : "清空背包"}</button>
       </div>
       <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
         ${items.map(item => `
@@ -1798,7 +1827,8 @@ function removeBackpackItem(id) {
 }
 
 function clearBackpack() {
-  if (confirm("確定要清空背包中已收藏的所有材料嗎？")) {
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  if (confirm(isEn ? "Are you sure you want to clear all saved items in your backpack?" : "確定要清空背包中已收藏的所有材料嗎？")) {
     localStorage.removeItem("bible_backpack_saved_items");
     openBackpackModal();
     updateBackpackBadge();
@@ -1809,6 +1839,9 @@ function clearBackpack() {
 async function syncLocalModelsDropdown(endpointUrl) {
   const selectEl = document.getElementById("local-model-input");
   if (!selectEl) return;
+
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const installedPrefix = isEn ? "✅ [Installed]" : "✅ [本機已安裝]";
 
   const cleanEndpoint = (endpointUrl || BackpackStore.getLocalEndpoint() || "http://localhost:11434/v1").trim().replace(/\/+$/, "");
   const baseUrl = cleanEndpoint.replace(/\/v1$/i, "").replace(/\/api\/chat$/i, "").replace(/\/api$/i, "");
@@ -1832,9 +1865,9 @@ async function syncLocalModelsDropdown(endpointUrl) {
 
     // 1. 為現有選項加上已安裝標記
     existingOptions.forEach(opt => {
-      const baseText = opt.textContent.replace(/^✅ \[本機已安裝\]\s*/, "");
+      const baseText = opt.textContent.replace(/^✅ \[(本機已安裝|Installed)\]\s*/, "");
       if (installedIds.includes(opt.value)) {
-        opt.textContent = `✅ [本機已安裝] ${baseText}`;
+        opt.textContent = `${installedPrefix} ${baseText}`;
       } else {
         opt.textContent = baseText;
       }
@@ -1845,7 +1878,7 @@ async function syncLocalModelsDropdown(endpointUrl) {
       if (!existingValues.includes(id)) {
         const newOpt = document.createElement("option");
         newOpt.value = id;
-        newOpt.textContent = `✅ [本機已安裝] ${id}`;
+        newOpt.textContent = `${installedPrefix} ${id}`;
         selectEl.insertBefore(newOpt, selectEl.firstChild);
       }
     });
@@ -1972,6 +2005,7 @@ async function testCurrentApiKey(targetProvider) {
   const currentProvider = BackpackStore.getProvider();
   const selectedProviderRadio = document.querySelector('input[name="ai_provider"]:checked');
   const provider = targetProvider || (selectedProviderRadio ? selectedProviderRadio.value : currentProvider);
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   if (provider === "local") {
     const localEndpointInput = document.getElementById("local-endpoint-input");
@@ -1982,7 +2016,7 @@ async function testCurrentApiKey(targetProvider) {
     const model = (localModelInput?.value || BackpackStore.getLocalModel() || "qwen3.5:9b").trim();
 
     statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> 正在連線測試本地端點 (${escapeHtml(endpoint)})...`;
+    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> ${isEn ? `Testing connection to local endpoint (${escapeHtml(endpoint)})...` : `正在連線測試本地端點 (${escapeHtml(endpoint)})...`}`;
 
     await syncLocalModelsDropdown(endpoint);
     const result = await AIService.testApiKey("", localModelInput?.value || model, "local", endpoint);
@@ -2006,12 +2040,14 @@ async function testCurrentApiKey(targetProvider) {
 
     if (!key) {
       statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-      statusEl.innerHTML = "⚠️ 請先輸入 Groq API Key (如 gsk_...) 再進行連線測試";
+      statusEl.innerHTML = isEn
+        ? "⚠️ Please enter a Groq API Key (e.g., gsk_...) before testing"
+        : "⚠️ 請先輸入 Groq API Key (如 gsk_...) 再進行連線測試";
       return;
     }
 
     statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> 正在連線測試 Groq LPU API (${model})...`;
+    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> ${isEn ? `Testing Groq LPU API (${model})...` : `正在連線測試 Groq LPU API (${model})...`}`;
 
     const result = await AIService.testApiKey(key, model, "groq");
     if (result.ok) {
@@ -2035,12 +2071,14 @@ async function testCurrentApiKey(targetProvider) {
 
   if (!key) {
     statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-    statusEl.innerHTML = "⚠️ 請先輸入 Google Gemini API Key 再進行連線測試";
+    statusEl.innerHTML = isEn
+      ? "⚠️ Please enter a Google Gemini API Key before testing"
+      : "⚠️ 請先輸入 Google Gemini API Key 再進行連線測試";
     return;
   }
 
   statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-  statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> 正在連線測試 Google Gemini API (${model})...`;
+  statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> ${isEn ? `Testing Google Gemini API (${model})...` : `正在連線測試 Google Gemini API (${model})...`}`;
 
   const result = await AIService.testApiKey(key, model, "gemini");
   if (result.ok) {
@@ -2069,6 +2107,7 @@ function saveSettingsModal() {
   const nivId = document.getElementById("apibible-id-niv")?.value;
   const nirvId = document.getElementById("apibible-id-nirv")?.value;
   const cevId = document.getElementById("apibible-id-cev")?.value;
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   BackpackStore.setProvider(provider);
   BackpackStore.setApiKey(geminiKey);
@@ -2090,13 +2129,13 @@ function saveSettingsModal() {
     activeDesc = `⚡ Groq (${BackpackStore.getGroqModel()})`;
     hasValidConfig = !!groqKey;
   } else if (provider === "local") {
-    activeDesc = `💻 本地離線 (${BackpackStore.getLocalModel()})`;
+    activeDesc = `💻 ${isEn ? "Local AI" : "本地離線"} (${BackpackStore.getLocalModel()})`;
     hasValidConfig = !!BackpackStore.getLocalEndpoint();
   } else {
     activeDesc = `🌟 Google Gemini (${BackpackStore.getModelName()})`;
     hasValidConfig = !!geminiKey;
   }
-  showToast(`設置已保存！當前通道：${activeDesc}`);
+  showToast(isEn ? `Settings saved! Active channel: ${activeDesc}` : `設置已保存！當前通道：${activeDesc}`);
   renderScripture();
 
   // 若先前有點選等待生成的書卷或用戶正要調配，立即自動觸發生成
@@ -2119,18 +2158,19 @@ async function testApiBibleKey() {
   const keyInput = document.getElementById("api-bible-key-input");
   const statusEl = document.getElementById("apibible-test-status");
   const apiKey = (keyInput ? keyInput.value : "").trim();
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   if (!apiKey) {
     if (statusEl) {
       statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-      statusEl.textContent = "⚠️ 請先填寫 API.Bible API Key 再進行驗證。";
+      statusEl.textContent = isEn ? "⚠️ Please enter an API.Bible API Key first." : "⚠️ 請先填寫 API.Bible API Key 再進行驗證。";
     }
     return;
   }
 
   if (statusEl) {
     statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
-    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> 正在向 API.Bible 驗證金鑰並掃描可用聖經譯本 (NIV, NIrV, CEV)...`;
+    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> ${isEn ? "Verifying API.Bible key & scanning translations (NIV, NIrV, CEV)..." : "正在向 API.Bible 驗證金鑰並掃描可用聖經譯本 (NIV, NIrV, CEV)..."}`;
   }
 
   try {
@@ -2154,14 +2194,14 @@ async function testApiBibleKey() {
 
     if (statusEl) {
       statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 block font-medium";
-      statusEl.innerHTML = `<span>✅ 驗證成功！已自動偵測：${detectedNames.join("、") || "相關英文譯本"}</span>`;
+      statusEl.innerHTML = `<span>✅ ${isEn ? `Verified! Auto-detected: ${detectedNames.join(", ") || "English Bible versions"}` : `驗證成功！已自動偵測：${detectedNames.join("、") || "相關英文譯本"}`}</span>`;
     }
     BackpackStore.setApiBibleKey(apiKey);
     renderScripture();
   } catch (err) {
     if (statusEl) {
       statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-red-50 text-red-800 border border-red-200 block";
-      statusEl.innerHTML = `<span>❌ 驗證失敗：${escapeHtml(err.message)}</span>`;
+      statusEl.innerHTML = `<span>❌ ${isEn ? "Verification failed: " : "驗證失敗："}${escapeHtml(err.message)}</span>`;
     }
   }
 }
@@ -2250,13 +2290,14 @@ function renderStudyPacks() {
   if (!container) return;
 
   const packs = BackpackStore.getStudyPacks();
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   if (!packs || packs.length === 0) {
     container.innerHTML = `
       <div class="col-span-full py-8 text-center text-stone-400 bg-stone-50 rounded-xl border border-dashed border-stone-200 p-4">
-        <p class="text-xs">尚無主題查經課程套裝</p>
+        <p class="text-xs">${isEn ? "No thematic curriculum study packs yet" : "尚無主題查經課程套裝"}</p>
         <button onclick="openCurriculumStudioModal()" class="mt-2 text-xs text-amber-800 font-bold hover:underline">
-          + 點擊由 AI 規劃一套 4~8 堂小組查經系列
+          ${isEn ? "+ Click to design a 4–8 session small group study series with AI" : "+ 點擊由 AI 規劃一套 4~8 堂小組查經系列"}
         </button>
       </div>
     `;
@@ -2273,10 +2314,10 @@ function renderStudyPacks() {
             <div>
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
-                  ${escapeHtml(pack.target || '小組團契')}
+                  ${escapeHtml(pack.target || (isEn ? 'Small Group' : '小組團契'))}
                 </span>
                 <span class="text-2xs text-stone-500 font-medium">
-                  共 ${sessions.length || pack.sessionCount || 0} 堂課 · ${escapeHtml(pack.createdAt || '')}
+                  ${isEn ? `${sessions.length || pack.sessionCount || 0} Sessions` : `共 ${sessions.length || pack.sessionCount || 0} 堂課`} · ${escapeHtml(pack.createdAt || '')}
                 </span>
               </div>
               <h3 class="font-bold text-stone-900 text-sm sm:text-base mt-1.5 flex items-center gap-1.5">
@@ -2285,7 +2326,7 @@ function renderStudyPacks() {
               </h3>
               ${pack.subtitle ? `<p class="text-xs text-stone-600 mt-0.5">${escapeHtml(pack.subtitle)}</p>` : ''}
             </div>
-            <button onclick="deleteCurriculumPack('${pack.id}')" class="text-stone-400 hover:text-red-600 text-xs p-1" title="刪除套裝">✕</button>
+            <button onclick="deleteCurriculumPack('${pack.id}')" class="text-stone-400 hover:text-red-600 text-xs p-1" title="${isEn ? 'Delete Pack' : '刪除套裝'}">✕</button>
           </div>
 
           ${pack.overview ? `
@@ -2296,7 +2337,7 @@ function renderStudyPacks() {
 
           <!-- 各堂課程大綱列表 -->
           <div class="space-y-2">
-            <span class="text-2xs font-bold text-stone-500 uppercase tracking-wider block">✦ 課堂章程與經文進度</span>
+            <span class="text-2xs font-bold text-stone-500 uppercase tracking-wider block">${isEn ? "✦ Session Syllabus & Passages" : "✦ 課堂章程與經文進度"}</span>
             ${sessions.map((s, idx) => {
               const sessionNum = s.sessionNum || (idx + 1);
               const selectedTasteIds = BackpackStore.getTastes();
@@ -2306,30 +2347,30 @@ function renderStudyPacks() {
               return `
               <div class="p-3 bg-white rounded-xl border border-stone-200/80 hover:border-amber-400 transition-all text-xs shadow-2xs">
                 <div class="flex items-center justify-between gap-2">
-                  <div class="flex-1 min-w-0 cursor-pointer select-none" onclick="toggleCurriculumSessionDetails('${pack.id}', ${idx})" title="點擊展開/收合本堂詳情">
+                  <div class="flex-1 min-w-0 cursor-pointer select-none" onclick="toggleCurriculumSessionDetails('${pack.id}', ${idx})" title="${isEn ? 'Click to toggle session details' : '點擊展開/收合本堂詳情'}">
                     <div class="font-bold text-stone-900 text-xs flex items-center gap-1.5 truncate">
                       <span class="w-5 h-5 rounded-full bg-stone-100 text-stone-700 text-2xs inline-flex items-center justify-center font-bold flex-shrink-0">${sessionNum}</span>
-                      <span class="truncate">${escapeHtml(s.title || `第 ${sessionNum} 堂`)}</span>
-                      <span class="text-2xs text-stone-400 font-normal">▼ 詳情</span>
+                      <span class="truncate">${escapeHtml(s.title || (isEn ? `Session ${sessionNum}` : `第 ${sessionNum} 堂`))}</span>
+                      <span class="text-2xs text-stone-400 font-normal">${isEn ? "▼ Details" : "▼ 詳情"}</span>
                     </div>
                     <div class="flex items-center gap-2 mt-1 text-2xs flex-wrap">
-                      <span class="font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 flex-shrink-0">${escapeHtml(s.passageRange || `${s.bookName} 第 ${s.chapter || 1} 章`)}</span>
-                      ${isCached ? `<span class="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium text-3xs">✓ 材料已就緒</span>` : ''}
+                      <span class="font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/80 flex-shrink-0">${escapeHtml(s.passageRange || `${s.bookName} ${s.chapter || 1}`)}</span>
+                      ${isCached ? `<span class="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-medium text-3xs">${isEn ? "✓ Ready" : "✓ 材料已就緒"}</span>` : ''}
                       <span class="text-stone-500 truncate">${escapeHtml(s.coreMessage || s.focus || '')}</span>
                     </div>
                   </div>
-                  <button onclick="jumpToCurriculumSession('${pack.id}', ${sessionNum})" class="px-3 py-1.5 text-2xs ${isCached ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-amber-800 hover:bg-amber-900'} text-white rounded-lg font-medium whitespace-nowrap transition-colors flex items-center gap-1 flex-shrink-0 shadow-xs cursor-pointer" title="攜帶本堂主題進入研經工作台">
+                  <button onclick="jumpToCurriculumSession('${pack.id}', ${sessionNum})" class="px-3 py-1.5 text-2xs ${isCached ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-amber-800 hover:bg-amber-900'} text-white rounded-lg font-medium whitespace-nowrap transition-colors flex items-center gap-1 flex-shrink-0 shadow-xs cursor-pointer" title="${isEn ? 'Open session in Study Desk' : '攜帶本堂主題進入研經工作台'}">
                     <span>📖</span>
-                    <span>${isCached ? '即刻研讀' : '前往研讀'}</span>
+                    <span>${isCached ? (isEn ? 'Study Now' : '即刻研讀') : (isEn ? 'Open Study' : '前往研讀')}</span>
                   </button>
                 </div>
 
                 <!-- 展開式課堂詳情 -->
                 <div id="session-detail-${pack.id}-${idx}" class="hidden mt-2.5 pt-2.5 border-t border-stone-100 space-y-1.5 text-2xs text-stone-600 animate-fade-in">
-                  ${s.coreMessage ? `<div class="leading-relaxed"><strong class="text-stone-800">💡 核心信息：</strong>${escapeHtml(s.coreMessage)}</div>` : ''}
-                  ${s.discussionTheme ? `<div class="leading-relaxed"><strong class="text-stone-800">💬 討論焦點：</strong>${escapeHtml(s.discussionTheme)}</div>` : ''}
-                  ${s.icebreaker ? `<div class="leading-relaxed"><strong class="text-stone-800">🧊 小組破冰：</strong>${escapeHtml(s.icebreaker)}</div>` : ''}
-                  ${s.lifeAction ? `<div class="leading-relaxed"><strong class="text-stone-800">🎯 本週操練：</strong>${escapeHtml(s.lifeAction)}</div>` : ''}
+                  ${s.coreMessage ? `<div class="leading-relaxed"><strong class="text-stone-800">💡 ${isEn ? 'Core Message: ' : '核心信息：'}</strong>${escapeHtml(s.coreMessage)}</div>` : ''}
+                  ${s.discussionTheme ? `<div class="leading-relaxed"><strong class="text-stone-800">💬 ${isEn ? 'Discussion Focus: ' : '討論焦點：'}</strong>${escapeHtml(s.discussionTheme)}</div>` : ''}
+                  ${s.icebreaker ? `<div class="leading-relaxed"><strong class="text-stone-800">🧊 ${isEn ? 'Icebreaker: ' : '小組破冰：'}</strong>${escapeHtml(s.icebreaker)}</div>` : ''}
+                  ${s.lifeAction ? `<div class="leading-relaxed"><strong class="text-stone-800">🎯 ${isEn ? 'Weekly Action: ' : '本週操練：'}</strong>${escapeHtml(s.lifeAction)}</div>` : ''}
                 </div>
               </div>
             `;
@@ -2339,10 +2380,10 @@ function renderStudyPacks() {
 
         <!-- 底部操作列 -->
         <div class="pt-3 border-t border-stone-200/80 flex items-center justify-between">
-          <span class="text-2xs text-stone-500">適合組長備課與每週聚會分發</span>
+          <span class="text-2xs text-stone-500">${isEn ? "Great for group leaders & weekly fellowship handouts" : "適合組長備課與每週聚會分發"}</span>
           <div class="flex items-center gap-2">
             <button onclick="printCurriculumSyllabus('${pack.id}')" class="px-3 py-1.5 text-2xs bg-stone-900 hover:bg-black text-white rounded-lg font-medium flex items-center gap-1 shadow-sm transition-colors">
-              <span>🖨️ 列印課程總表</span>
+              <span>${isEn ? "🖨️ Print Syllabus" : "🖨️ 列印課程總表"}</span>
             </button>
           </div>
         </div>
@@ -2357,6 +2398,7 @@ function renderBackpackCards() {
   if (!grid) return;
 
   let items = BackpackStore.getSavedItems();
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   // 分類篩選
   if (currentBackpackFilter !== "all") {
@@ -2377,12 +2419,12 @@ function renderBackpackCards() {
     grid.innerHTML = `
       <div class="col-span-full py-16 text-center text-stone-400 bg-white rounded-2xl border border-dashed border-stone-200 p-8">
         <div class="text-4xl mb-3">🎒</div>
-        <div class="font-bold text-stone-700 text-sm">目前此分類下沒有材料</div>
+        <div class="font-bold text-stone-700 text-sm">${isEn ? "No saved materials in this category" : "目前此分類下沒有材料"}</div>
         <p class="text-xs text-stone-400 mt-1 max-w-sm mx-auto">
-          在讀經工作台中點擊「存入背包」，或收藏任何一張人物卡、地理路線或靈修單張，便會在此永久保存。
+          ${isEn ? "Click \"Save to Backpack\" in the Study Desk to bookmark character cards, geography routes, or devotional study sheets." : "在讀經工作台中點擊「存入背包」，或收藏任何一張人物卡、地理路線或靈修單張，便會在此永久保存。"}
         </p>
         <button onclick="navigateTo('study')" class="mt-4 px-4 py-2 text-xs bg-amber-800 text-white rounded-xl hover:bg-amber-900 transition-colors shadow-sm font-medium">
-          前往讀經工作台探索
+          ${isEn ? "Explore Study Desk" : "前往讀經工作台探索"}
         </button>
       </div>
     `;
@@ -2397,7 +2439,7 @@ function renderBackpackCards() {
             ${escapeHtml(item.type)}
           </span>
           <span class="text-2xs text-stone-400 font-mono">
-            ${item.savedAt ? new Date(item.savedAt).toLocaleDateString() : '已收藏'}
+            ${item.savedAt ? new Date(item.savedAt).toLocaleDateString() : (isEn ? 'Saved' : '已收藏')}
           </span>
         </div>
         <h3 class="font-bold text-stone-900 text-sm leading-snug mb-1">${escapeHtml(item.title)}</h3>
@@ -2406,13 +2448,13 @@ function renderBackpackCards() {
 
       <div class="pt-3 mt-3 border-t border-stone-100 flex items-center justify-between">
         <button onclick="navigateTo('study')" class="text-xs text-amber-800 font-medium hover:underline flex items-center gap-1">
-          <span>📖 進入查閱</span>
+          <span>${isEn ? "📖 Open in Study Desk" : "📖 進入查閱"}</span>
         </button>
         <div class="flex items-center gap-1.5">
-          <button onclick="triggerPrint()" class="p-1.5 text-stone-500 hover:text-stone-900 rounded hover:bg-stone-100 text-xs" title="列印此單張">
+          <button onclick="triggerPrint()" class="p-1.5 text-stone-500 hover:text-stone-900 rounded hover:bg-stone-100 text-xs" title="${isEn ? 'Print Sheet' : '列印此單張'}">
             🖨️
           </button>
-          <button onclick="removeBackpackCardItem('${item.id}')" class="p-1.5 text-red-500 hover:text-red-700 rounded hover:bg-red-50 text-xs" title="移出背包">
+          <button onclick="removeBackpackCardItem('${item.id}')" class="p-1.5 text-red-500 hover:text-red-700 rounded hover:bg-red-50 text-xs" title="${isEn ? 'Remove from Backpack' : '移出背包'}">
             🗑️
           </button>
         </div>
@@ -2423,10 +2465,14 @@ function renderBackpackCards() {
 
 function getItemTypeBadgeClass(type) {
   switch (type) {
-    case "靈修單張": return "bg-amber-100 text-amber-900 border border-amber-200";
-    case "人物檔案": return "bg-purple-100 text-purple-900 border border-purple-200";
-    case "地理水文": return "bg-blue-100 text-blue-900 border border-blue-200";
-    case "歷史考證": return "bg-orange-100 text-orange-900 border border-orange-200";
+    case "靈修單張":
+    case "Study Sheet": return "bg-amber-100 text-amber-900 border border-amber-200";
+    case "人物檔案":
+    case "Characters": return "bg-purple-100 text-purple-900 border border-purple-200";
+    case "地理水文":
+    case "Geography": return "bg-blue-100 text-blue-900 border border-blue-200";
+    case "歷史考證":
+    case "Archaeology": return "bg-orange-100 text-orange-900 border border-orange-200";
     default: return "bg-stone-100 text-stone-700 border border-stone-200";
   }
 }

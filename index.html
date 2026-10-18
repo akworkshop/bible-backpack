@@ -148,7 +148,7 @@
           <div class="flex items-center gap-2">
             <h2 id="scripture-title" class="font-bold text-stone-900 text-base">創世記 第 1 章</h2>
             <select id="bible-version-select" onchange="switchBibleVersion(this.value)" class="text-2xs px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 font-medium focus:outline-none cursor-pointer">
-              <option value="cuv">和合本 (CUV)</option>
+              <option value="cuv" data-i18n="versionCuv">和合本 (CUV)</option>
               <option value="niv">NIV</option>
               <option value="nirv">NIrV</option>
               <option value="cev">CEV</option>
@@ -156,9 +156,9 @@
           </div>
           <!-- 字級調整 -->
           <div class="flex items-center gap-1 text-xs text-stone-500">
-            <button onclick="BackpackStore.setFontSize('sm'); applyThemeAndFont()" class="px-1.5 py-0.5 hover:bg-stone-100 rounded">小</button>
-            <button onclick="BackpackStore.setFontSize('base'); applyThemeAndFont()" class="px-1.5 py-0.5 hover:bg-stone-100 rounded font-bold">中</button>
-            <button onclick="BackpackStore.setFontSize('lg'); applyThemeAndFont()" class="px-1.5 py-0.5 hover:bg-stone-100 rounded text-sm font-bold">大</button>
+            <button onclick="BackpackStore.setFontSize('sm'); applyThemeAndFont()" class="px-1.5 py-0.5 hover:bg-stone-100 rounded" data-i18n="fontSizeSm">小</button>
+            <button onclick="BackpackStore.setFontSize('base'); applyThemeAndFont()" class="px-1.5 py-0.5 hover:bg-stone-100 rounded font-bold" data-i18n="fontSizeBase">中</button>
+            <button onclick="BackpackStore.setFontSize('lg'); applyThemeAndFont()" class="px-1.5 py-0.5 hover:bg-stone-100 rounded text-sm font-bold" data-i18n="fontSizeLg">大</button>
           </div>
         </div>
 
@@ -335,31 +335,31 @@
         <div>
           <h3 class="font-bold text-stone-900 text-base flex items-center gap-1.5">
             <span>🎨</span>
-            <span>自選研經口味 (Study Taste Mixer)</span>
+            <span data-i18n="tasteModalTitle">自選研經口味 (Study Taste Mixer)</span>
           </h3>
-          <p class="text-xs text-stone-500 mt-0.5">配合您的思考習慣與興趣，啟發研經視角，自然不生硬</p>
+          <p class="text-xs text-stone-500 mt-0.5" data-i18n="tasteModalDesc">配合您的思考習慣與興趣，啟發研經視角，自然不生硬</p>
         </div>
         <button onclick="closeTasteModal()" class="text-stone-400 hover:text-stone-700 text-lg p-1">✕</button>
       </div>
 
       <div class="p-4 overflow-y-auto space-y-4 flex-1">
         <div>
-          <span class="text-xs font-bold text-stone-700 uppercase tracking-wider block mb-2">多維度視角選擇（可多選）：</span>
+          <span class="text-xs font-bold text-stone-700 uppercase tracking-wider block mb-2" data-i18n="tasteCategoryLabel">多維度視角選擇（可多選）：</span>
           <div id="taste-options-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <!-- 由 app.js 動態渲染 -->
           </div>
         </div>
 
         <div class="pt-2 border-t border-stone-100">
-          <label class="text-xs font-bold text-stone-700 block mb-1">自訂興趣或專業領域（選填）：</label>
-          <input type="text" id="custom-taste-input" placeholder="例如：國小三年級主日學、校園同儕相處、軟體工程師、喜歡天文學..." class="w-full text-xs p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700">
-          <p class="text-2xs text-stone-500 mt-1">AI 會在生成時作為背景參考，以引起共鳴的恰當視角作比喻（亦可填入孩子年級或學校情境）。</p>
+          <label class="text-xs font-bold text-stone-700 block mb-1" data-i18n="customTasteLabel">自訂興趣或專業領域（選填）：</label>
+          <input type="text" id="custom-taste-input" data-i18n-placeholder="customTastePlaceholder" placeholder="例如：國小三年級主日學、校園同儕相處、軟體工程師、喜歡天文學..." class="w-full text-xs p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700">
+          <p class="text-2xs text-stone-500 mt-1" data-i18n="customTasteHelp">AI 會在生成時作為背景參考，以引起共鳴的恰當視角作比喻（亦可填入孩子年級或學校情境）。</p>
         </div>
       </div>
 
       <div class="p-3 bg-stone-50 border-t border-stone-200 flex items-center justify-end gap-2">
-        <button onclick="closeTasteModal()" class="px-4 py-2 text-xs text-stone-600 hover:bg-stone-200 rounded-lg">取消</button>
-        <button onclick="saveTasteModal()" class="px-4 py-2 text-xs bg-amber-800 text-white font-medium hover:bg-amber-900 rounded-lg shadow-sm">保存口味設定</button>
+        <button onclick="closeTasteModal()" class="px-4 py-2 text-xs text-stone-600 hover:bg-stone-200 rounded-lg" data-i18n="cancel">取消</button>
+        <button onclick="saveTasteModal()" class="px-4 py-2 text-xs bg-amber-800 text-white font-medium hover:bg-amber-900 rounded-lg shadow-sm" data-i18n="saveTasteSettings">保存口味設定</button>
       </div>
 
     </div>
@@ -373,8 +373,8 @@
         <div class="flex items-center gap-2">
           <span class="text-xl">🎒</span>
           <div>
-            <h3 class="font-bold text-sm">我的研經背包 (My Backpack)</h3>
-            <p class="text-2xs text-amber-200">隨身收納的單張、人物卡與查經資料</p>
+            <h3 class="font-bold text-sm" data-i18n="backpackModalTitle">我的研經背包 (My Backpack)</h3>
+            <p class="text-2xs text-amber-200" data-i18n="backpackModalDesc">隨身收納的單張、人物卡與查經資料</p>
           </div>
         </div>
         <button onclick="closeBackpackModal()" class="text-amber-200 hover:text-white text-lg p-1">✕</button>
@@ -385,8 +385,8 @@
       </div>
 
       <div class="p-3 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs">
-        <span class="text-stone-500 text-2xs">本地安全儲存，隨時離線翻閱</span>
-        <button onclick="closeBackpackModal()" class="px-4 py-1.5 bg-stone-900 text-white rounded-lg">關閉</button>
+        <span class="text-stone-500 text-2xs" data-i18n="backpackModalFooter">本地安全儲存，隨時離線翻閱</span>
+        <button onclick="closeBackpackModal()" class="px-4 py-1.5 bg-stone-900 text-white rounded-lg" data-i18n="closeBtn">關閉</button>
       </div>
 
     </div>
@@ -394,42 +394,42 @@
 
   <!-- ================= 彈窗 3：設置與免費 API Key (Settings Modal) ================= -->
   <div id="settings-modal" class="no-print hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
       
       <div class="p-4 border-b border-stone-200 flex items-center justify-between">
         <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
           <span>⚙️</span>
-          <span>應用設置 (Settings)</span>
+          <span data-i18n="settingsTitle">應用設置 (Settings)</span>
         </h3>
         <button onclick="closeSettingsModal()" class="text-stone-400 hover:text-stone-700 text-lg p-1">✕</button>
       </div>
 
-      <div class="p-4 space-y-4 text-xs">
+      <div class="p-4 overflow-y-auto space-y-4 text-xs flex-1">
         <div id="settings-notice" class="p-2.5 bg-amber-50 border border-amber-200 rounded text-amber-900 text-xs hidden"></div>
 
         <!-- AI 供應商選擇 -->
         <div>
-          <label class="font-bold text-stone-800 block mb-1">AI 服務通道 (AI Engine Provider)：</label>
+          <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_provider_label">AI 服務通道 (AI Engine Provider)：</label>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
             <label class="p-2.5 rounded-xl border border-stone-200 hover:border-amber-700 cursor-pointer flex items-center gap-2 bg-stone-50 has-[:checked]:bg-amber-50 has-[:checked]:border-amber-800 transition-all">
               <input type="radio" name="ai_provider" value="gemini" onchange="toggleProviderSettings('gemini')" class="text-amber-800" checked>
               <div>
                 <div class="font-bold text-xs text-stone-900">🌟 Google Gemini</div>
-                <div class="text-2xs text-stone-500">官方免費 · 多模型容錯</div>
+                <div class="text-2xs text-stone-500" data-i18n="settings_gemini_sub">官方免費 · 多模型容錯</div>
               </div>
             </label>
             <label class="p-2.5 rounded-xl border border-stone-200 hover:border-amber-700 cursor-pointer flex items-center gap-2 bg-stone-50 has-[:checked]:bg-amber-50 has-[:checked]:border-amber-800 transition-all">
               <input type="radio" name="ai_provider" value="groq" onchange="toggleProviderSettings('groq')" class="text-amber-800">
               <div>
-                <div class="font-bold text-xs text-stone-900">⚡ Groq (推薦通道)</div>
-                <div class="text-2xs text-stone-500">超極速 500t/s · 永不塞車</div>
+                <div class="font-bold text-xs text-stone-900" data-i18n="settings_groq_title">⚡ Groq (推薦通道)</div>
+                <div class="text-2xs text-stone-500" data-i18n="settings_groq_sub">超極速 500t/s · 永不塞車</div>
               </div>
             </label>
             <label class="p-2.5 rounded-xl border border-stone-200 hover:border-amber-700 cursor-pointer flex items-center gap-2 bg-stone-50 has-[:checked]:bg-amber-50 has-[:checked]:border-amber-800 transition-all">
               <input type="radio" name="ai_provider" value="local" onchange="toggleProviderSettings('local')" class="text-amber-800">
               <div>
-                <div class="font-bold text-xs text-stone-900">💻 本地離線 AI</div>
-                <div class="text-2xs text-stone-500">Ollama / LM Studio · 零依賴</div>
+                <div class="font-bold text-xs text-stone-900" data-i18n="settings_local_title">💻 本地離線 AI</div>
+                <div class="text-2xs text-stone-500" data-i18n="settings_local_sub">Ollama / LM Studio · 零依賴</div>
               </div>
             </label>
           </div>
@@ -438,28 +438,28 @@
         <!-- Google Gemini 設置群 -->
         <div id="provider-gemini-box" class="space-y-3">
           <div>
-            <label class="font-bold text-stone-800 block mb-1">Google Gemini API Key (免費)：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_gemini_key_label">Google Gemini API Key (免費)：</label>
             <div class="flex gap-2">
               <input type="password" id="api-key-input" placeholder="AIzaSy..." class="flex-1 p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs">
               <button type="button" onclick="testCurrentApiKey('gemini')" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-1">
                 <span>⚡</span>
-                <span>測試連線</span>
+                <span data-i18n="settings_test_btn">測試連線</span>
               </button>
             </div>
             <div id="api-test-status" class="mt-1.5 text-2xs hidden"></div>
-            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed">
+            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed" data-i18n="settings_gemini_help">
               • 可在 <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-amber-800 underline font-semibold">Google AI Studio</a> 免費申請。<br>
               • 系統已內建 <strong>5 款備用模型自動轉移機制</strong>（若單一模型繁忙，自動無縫切換備用模型）。
             </p>
           </div>
 
           <div>
-            <label class="font-bold text-stone-800 block mb-1">調用首選模型 (Primary Model)：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_primary_model">調用首選模型 (Primary Model)：</label>
             <select id="model-select-input" class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800 font-mono">
-              <option value="gemini-2.5-flash" selected>gemini-2.5-flash (推薦 · 穩定高可用不易繁忙)</option>
-              <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite (高吞吐輕量)</option>
-              <option value="gemini-1.5-flash">gemini-1.5-flash (備用)</option>
-              <option value="gemini-3.8-flash">gemini-3.8-flash (2026 最新)</option>
+              <option value="gemini-2.5-flash" data-i18n="model_gemini_25_flash" selected>gemini-2.5-flash (推薦 · 穩定高可用不易繁忙)</option>
+              <option value="gemini-2.5-flash-lite" data-i18n="model_gemini_25_lite">gemini-2.5-flash-lite (高吞吐輕量)</option>
+              <option value="gemini-1.5-flash" data-i18n="model_gemini_15_flash">gemini-1.5-flash (備用)</option>
+              <option value="gemini-3.8-flash" data-i18n="model_gemini_38_flash">gemini-3.8-flash (2026 最新)</option>
             </select>
           </div>
         </div>
@@ -467,16 +467,16 @@
         <!-- Groq 設置群 -->
         <div id="provider-groq-box" class="space-y-3 hidden">
           <div>
-            <label class="font-bold text-stone-800 block mb-1">Groq API Key (100% 免費 · 絕無 High Demand)：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_groq_key_label">Groq API Key (100% 免費 · 絕無 High Demand)：</label>
             <div class="flex gap-2">
               <input type="password" id="groq-key-input" placeholder="gsk_..." class="flex-1 p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs">
               <button type="button" onclick="testCurrentApiKey('groq')" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-1">
                 <span>⚡</span>
-                <span>測試連線</span>
+                <span data-i18n="settings_test_btn">測試連線</span>
               </button>
             </div>
             <div id="groq-test-status" class="mt-1.5 text-2xs hidden"></div>
-            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed">
+            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed" data-i18n="settings_groq_help">
               • Groq 為世界領先的 LPU AI 推論引擎，速度達 <strong>500 tokens/秒 (1~2秒生成全篇)</strong>！<br>
               • 100% 免費（每天高達 14,400 次請求），完全不會遇到 Google 繁忙或 High Demand 限制。<br>
               • 可在 <a href="https://console.groq.com/keys" target="_blank" class="text-amber-800 underline font-semibold">console.groq.com</a> 10秒免費免信用卡申請。
@@ -484,12 +484,12 @@
           </div>
 
           <div>
-            <label class="font-bold text-stone-800 block mb-1">Groq 推論模型選擇 (Groq Model)：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_groq_model">Groq 推論模型選擇 (Groq Model)：</label>
             <select id="groq-model-select-input" class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800 font-mono">
-              <option value="llama-3.3-70b-versatile" selected>llama-3.3-70b-versatile (推薦 · 旗艦 70B · 深度神學考證 · 穩定在線)</option>
-              <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Groq 官方指定 8B 替代模型 · 輕量極速秒出)</option>
-              <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (MoE 專家架構 · 32K 長上下文)</option>
-              <option value="gemma2-9b-it">gemma2-9b-it (Google Gemma 2 9B · 正統嚴謹)</option>
+              <option value="llama-3.3-70b-versatile" data-i18n="model_groq_llama70b" selected>llama-3.3-70b-versatile (推薦 · 旗艦 70B · 深度神學考證 · 穩定在線)</option>
+              <option value="openai/gpt-oss-20b" data-i18n="model_groq_gpt20b">openai/gpt-oss-20b (Groq 官方指定 8B 替代模型 · 輕量極速秒出)</option>
+              <option value="mixtral-8x7b-32768" data-i18n="model_groq_mixtral">mixtral-8x7b-32768 (MoE 專家架構 · 32K 長上下文)</option>
+              <option value="gemma2-9b-it" data-i18n="model_groq_gemma">gemma2-9b-it (Google Gemma 2 9B · 正統嚴謹)</option>
             </select>
           </div>
         </div>
@@ -497,16 +497,16 @@
         <!-- 本地離線 AI 設置群 (Ollama / LM Studio) -->
         <div id="provider-local-box" class="space-y-3 hidden">
           <div>
-            <label class="font-bold text-stone-800 block mb-1">本地 API 服務端點 (Endpoint URL)：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_local_endpoint">本地 API 服務端點 (Endpoint URL)：</label>
             <div class="flex gap-2">
               <input type="text" id="local-endpoint-input" placeholder="http://localhost:11434/v1" value="http://localhost:11434/v1" class="flex-1 p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs">
               <button type="button" onclick="testCurrentApiKey('local')" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-1">
                 <span>💻</span>
-                <span>測試連線</span>
+                <span data-i18n="settings_test_btn">測試連線</span>
               </button>
             </div>
             <div id="local-test-status" class="mt-1.5 text-2xs hidden"></div>
-            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed">
+            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed" data-i18n="settings_local_help">
               • <strong>Ollama 預設端點</strong>：<code>http://localhost:11434/v1</code><br>
               • <strong>LM Studio 預設端點</strong>：<code>http://localhost:1234/v1</code><br>
               • <strong>重要跨域配置 (CORS)</strong>：Windows 終端啟動 Ollama 前請執行 <code>$env:OLLAMA_ORIGINS="*" ; ollama serve</code>，允許瀏覽器直接通訊。
@@ -514,18 +514,18 @@
           </div>
 
           <div>
-            <label class="font-bold text-stone-800 block mb-1">本地推論模型選擇 (Local Model)：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_local_model">本地推論模型選擇 (Local Model)：</label>
             <select id="local-model-input" class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800 font-mono">
-              <option value="qwen3.5:9b" selected>qwen3.5:9b (推薦 · 2026最新世代 · 中文與神學邏輯極佳)</option>
-              <option value="qwen2.5:7b">qwen2.5:7b (穩定輕巧 · 4.7GB · 速度飛快)</option>
-              <option value="qwen3:8b">qwen3:8b (Qwen 3 新架構 · 推理與釋經能力升級)</option>
-              <option value="qwen3:14b">qwen3:14b (Qwen 3 14B · 深度研經旗艦 · 16GB+ 記憶體推薦)</option>
-              <option value="qwen2.5:14b">qwen2.5:14b (Qwen 2.5 14B · 高精準深度釋經)</option>
-              <option value="qwen3.5:27b">qwen3.5:27b (Qwen 3.5 27B 殿堂級 · 24GB+ 顯存推薦)</option>
-              <option value="gemma2:9b">gemma2:9b (Google Gemma 2 9B · 邏輯嚴密 · 正統神學風格)</option>
-              <option value="gemma2:27b">gemma2:27b (Google Gemma 2 27B 旗艦)</option>
+              <option value="qwen3.5:9b" selected>qwen3.5:9b (Recommended · Qwen 3.5 9B)</option>
+              <option value="qwen2.5:7b">qwen2.5:7b (Fast & Lightweight · 4.7GB)</option>
+              <option value="qwen3:8b">qwen3:8b (Qwen 3 Reasoning)</option>
+              <option value="qwen3:14b">qwen3:14b (Qwen 3 14B · Deep Exegesis)</option>
+              <option value="qwen2.5:14b">qwen2.5:14b (Qwen 2.5 14B)</option>
+              <option value="qwen3.5:27b">qwen3.5:27b (Qwen 3.5 27B Flagship)</option>
+              <option value="gemma2:9b">gemma2:9b (Google Gemma 2 9B)</option>
+              <option value="gemma2:27b">gemma2:27b (Google Gemma 2 27B)</option>
             </select>
-            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed">
+            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed" data-i18n="settings_local_model_help">
               • 點擊上方「💻 測試連線」可自動掃描並載入您電腦 Ollama 已安裝的所有模型。<br>
               • 可在終端執行 <code>ollama pull qwen3.5:9b</code> 下載最新模型。
             </p>
@@ -548,10 +548,10 @@
               <span>📖</span>
               <span data-i18n="settings_apibible_title">API.Bible 金鑰 (NIV, NIrV, CEV 英文經文授權)：</span>
             </label>
-            <a href="https://scripture.api.bible/signup" target="_blank" class="text-2xs text-amber-800 underline">免費申請 Key ↗</a>
+            <a href="https://scripture.api.bible/signup" target="_blank" class="text-2xs text-amber-800 underline" data-i18n="settings_apibible_signup">免費申請 Key ↗</a>
           </div>
           <div class="flex gap-2">
-            <input type="password" id="api-bible-key-input" placeholder="在 api.bible 申請的 API Key..." class="flex-1 p-2 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs">
+            <input type="password" id="api-bible-key-input" data-i18n-placeholder="apiBibleKeyPlaceholder" placeholder="在 api.bible 申請的 API Key..." class="flex-1 p-2 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs">
             <button type="button" onclick="testApiBibleKey()" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-1">
               <span>🔍</span>
               <span data-i18n="settings_apibible_detect">驗證並偵測 Bible ID</span>
@@ -565,32 +565,32 @@
           <div class="grid grid-cols-3 gap-2 pt-1 text-2xs">
             <div>
               <label class="font-medium text-stone-600 block mb-0.5">NIV Bible ID:</label>
-              <input type="text" id="apibible-id-niv" placeholder="自動偵測或手動輸入" class="w-full p-1.5 rounded border border-stone-200 font-mono text-2xs">
+              <input type="text" id="apibible-id-niv" data-i18n-placeholder="settings_apibible_id_placeholder" placeholder="自動偵測或手動輸入" class="w-full p-1.5 rounded border border-stone-200 font-mono text-2xs">
             </div>
             <div>
               <label class="font-medium text-stone-600 block mb-0.5">NIrV Bible ID:</label>
-              <input type="text" id="apibible-id-nirv" placeholder="自動偵測或手動輸入" class="w-full p-1.5 rounded border border-stone-200 font-mono text-2xs">
+              <input type="text" id="apibible-id-nirv" data-i18n-placeholder="settings_apibible_id_placeholder" placeholder="自動偵測或手動輸入" class="w-full p-1.5 rounded border border-stone-200 font-mono text-2xs">
             </div>
             <div>
               <label class="font-medium text-stone-600 block mb-0.5">CEV Bible ID:</label>
-              <input type="text" id="apibible-id-cev" placeholder="自動偵測或手動輸入" class="w-full p-1.5 rounded border border-stone-200 font-mono text-2xs">
+              <input type="text" id="apibible-id-cev" data-i18n-placeholder="settings_apibible_id_placeholder" placeholder="自動偵測或手動輸入" class="w-full p-1.5 rounded border border-stone-200 font-mono text-2xs">
             </div>
           </div>
         </div>
 
         <div class="pt-2 border-t border-stone-100">
-          <label class="font-bold text-stone-800 block mb-1">閱讀主題顏色：</label>
+          <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_theme_label">閱讀主題顏色：</label>
           <div class="flex items-center gap-2">
-            <button onclick="BackpackStore.setTheme('light')" class="px-3 py-1.5 rounded border border-stone-300 bg-white hover:bg-stone-50 text-stone-800">清新白</button>
-            <button onclick="BackpackStore.setTheme('sepia')" class="px-3 py-1.5 rounded border border-amber-300 bg-amber-100/60 hover:bg-amber-100 text-amber-900">羊皮紙護眼</button>
-            <button onclick="BackpackStore.setTheme('dark')" class="px-3 py-1.5 rounded border border-stone-700 bg-stone-900 hover:bg-stone-800 text-stone-200">暗黑模式</button>
+            <button onclick="BackpackStore.setTheme('light')" class="px-3 py-1.5 rounded border border-stone-300 bg-white hover:bg-stone-50 text-stone-800" data-i18n="theme_light">清新白</button>
+            <button onclick="BackpackStore.setTheme('sepia')" class="px-3 py-1.5 rounded border border-amber-300 bg-amber-100/60 hover:bg-amber-100 text-amber-900" data-i18n="theme_sepia">羊皮紙護眼</button>
+            <button onclick="BackpackStore.setTheme('dark')" class="px-3 py-1.5 rounded border border-stone-700 bg-stone-900 hover:bg-stone-800 text-stone-200" data-i18n="theme_dark">暗黑模式</button>
           </div>
         </div>
       </div>
 
       <div class="p-3 bg-stone-50 border-t border-stone-200 flex items-center justify-end gap-2">
-        <button onclick="closeSettingsModal()" class="px-3 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg">取消</button>
-        <button onclick="saveSettingsModal()" class="px-4 py-1.5 text-xs bg-stone-900 text-white font-medium hover:bg-black rounded-lg">保存設置</button>
+        <button onclick="closeSettingsModal()" class="px-3 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg" data-i18n="cancel">取消</button>
+        <button onclick="saveSettingsModal()" class="px-4 py-1.5 text-xs bg-stone-900 text-white font-medium hover:bg-black rounded-lg" data-i18n="settings_save_btn">保存設置</button>
       </div>
 
     </div>
@@ -672,54 +672,53 @@
       <div class="p-4 border-b border-stone-200 flex items-center justify-between bg-amber-50/50">
         <h3 class="font-bold text-stone-900 text-sm flex items-center gap-2">
           <span class="text-base">🎒</span>
-          <span>AI 小組主題查經企劃師 (Curriculum Studio)</span>
+          <span data-i18n="curriculumModalTitle">AI 小組主題查經企劃師 (Curriculum Studio)</span>
         </h3>
         <button onclick="closeCurriculumModal()" class="text-stone-400 hover:text-stone-700 text-base p-1">✕</button>
       </div>
 
       <div class="p-5 overflow-y-auto space-y-4 text-xs">
-        <p class="text-stone-600 leading-relaxed">
+        <p class="text-stone-600 leading-relaxed" data-i18n="curriculumModalDesc">
           針對小組團契的特定牧養主題或生活痛點，由 AI 神學主管為您規劃系列課程：自動安排各堂閱讀經文、神學核心、破冰提問與生活操練。
         </p>
 
         <!-- 主題設定 -->
         <div>
-          <label class="font-bold text-stone-800 block mb-1">查經主題名稱 (Topic)：</label>
-          <input type="text" id="curriculum-topic-input" placeholder="例如：職場中的信仰張力與得勝、面對焦慮與情緒低谷..." class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs">
+          <label class="font-bold text-stone-800 block mb-1" data-i18n="curriculumTopicLabel">查經主題名稱 (Topic)：</label>
+          <input type="text" id="curriculum-topic-input" data-i18n-placeholder="curriculumTopicPlaceholder" placeholder="例如：職場中的信仰張力與得勝、面對焦慮與情緒低谷..." class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs">
           <!-- 快捷靈感標籤 -->
           <div class="flex items-center gap-1.5 flex-wrap mt-2">
-            <span class="text-2xs text-stone-400">熱門靈感：</span>
-            <button type="button" onclick="setCurriculumTopic('校園小勇士：聖經英雄的勇氣與抉擇')" class="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-2xs font-medium">🎒 校園小勇士 (兒少系列)</button>
-            <button type="button" onclick="setCurriculumTopic('職場中的信仰與抉擇')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">💼 職場信仰與抉擇</button>
-            <button type="button" onclick="setCurriculumTopic('走過人生幽谷與信心重建')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🌿 走過人生幽谷</button>
-            <button type="button" onclick="setCurriculumTopic('八福與天國價值觀')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🕊️ 八福與天國價值</button>
-            <button type="button" onclick="setCurriculumTopic('初信造就與靈命長進')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🌱 初信靈命造就</button>
+            <span class="text-2xs text-stone-400" data-i18n="curriculumInspireLabel">熱門靈感：</span>
+            <button type="button" onclick="setCurriculumTopic(I18n.isEn() ? 'Campus Little Warriors: Biblical Heroes of Courage' : '校園小勇士：聖經英雄的勇氣與抉擇')" class="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-2xs font-medium">🎒 Kids & Campus</button>
+            <button type="button" onclick="setCurriculumTopic(I18n.isEn() ? 'Faith & Integrity in the Workplace' : '職場中的信仰與抉擇')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">💼 Workplace Faith</button>
+            <button type="button" onclick="setCurriculumTopic(I18n.isEn() ? 'Walking Through Dark Valleys & Rebuilding Faith' : '走過人生幽谷與信心重建')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🌿 Dark Valleys</button>
+            <button type="button" onclick="setCurriculumTopic(I18n.isEn() ? 'The Beatitudes & Kingdom Values' : '八福與天國價值觀')" class="px-2 py-0.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-2xs">🕊️ Beatitudes</button>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <!-- 堂數選擇 -->
           <div>
-            <label class="font-bold text-stone-800 block mb-1">堂數規劃：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="curriculumSessionsLabel">堂數規劃：</label>
             <select id="curriculum-sessions-select" class="w-full p-2 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800">
-              <option value="3">3 堂課 (小專題/退修會)</option>
-              <option value="4" selected>4 堂課 (1 個月小組系列)</option>
-              <option value="6">6 堂課 (半季度門徒造就)</option>
-              <option value="8">8 堂課 (全季度深度系列)</option>
+              <option value="3" data-i18n="sess_opt_3">3 堂課 (小專題/退修會)</option>
+              <option value="4" data-i18n="sess_opt_4" selected>4 堂課 (1 個月小組系列)</option>
+              <option value="6" data-i18n="sess_opt_6">6 堂課 (半季度門徒造就)</option>
+              <option value="8" data-i18n="sess_opt_8">8 堂課 (全季度深度系列)</option>
             </select>
           </div>
 
           <!-- 對象選擇 -->
           <div>
-            <label class="font-bold text-stone-800 block mb-1">目標對象：</label>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="curriculumTargetLabel">目標對象：</label>
             <select id="curriculum-target-select" class="w-full p-2 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800">
-              <option value="職場上班族 / 青年團契" selected>職場上班族 / 青年團契</option>
-              <option value="兒童主日學 / 兒少團契 (Kids & School)">兒童主日學 / 兒少團契 (Kids & School)</option>
-              <option value="大專學生 / 青年小組">大專學生 / 青年小組</option>
-              <option value="家庭夫妻 / 父母團契">家庭夫妻 / 父母團契</option>
-              <option value="初信信徒 / 門徒班">初信信徒 / 門徒班</option>
-              <option value="弟兄小組 / 姊妹小組">弟兄小組 / 姊妹小組</option>
-              <option value="長者團契 / 常規小組">長者團契 / 常規小組</option>
+              <option value="職場上班族 / 青年團契" data-i18n="target_opt_work" selected>職場上班族 / 青年團契</option>
+              <option value="兒童主日學 / 兒少團契 (Kids & School)" data-i18n="target_opt_kids">兒童主日學 / 兒少團契 (Kids & School)</option>
+              <option value="大專學生 / 青年小組" data-i18n="target_opt_college">大專學生 / 青年小組</option>
+              <option value="家庭夫妻 / 父母團契" data-i18n="target_opt_family">家庭夫妻 / 父母團契</option>
+              <option value="初信信徒 / 門徒班" data-i18n="target_opt_new">初信信徒 / 門徒班</option>
+              <option value="弟兄小組 / 姊妹小組" data-i18n="target_opt_menwomen">弟兄小組 / 姊妹小組</option>
+              <option value="長者團契 / 常規小組" data-i18n="target_opt_senior">長者團契 / 常規小組</option>
             </select>
           </div>
         </div>
@@ -732,9 +731,9 @@
       </div>
 
       <div class="p-3 bg-stone-50 border-t border-stone-200 flex items-center justify-between">
-        <button onclick="closeCurriculumModal()" class="px-3 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg">取消</button>
+        <button onclick="closeCurriculumModal()" class="px-3 py-1.5 text-xs text-stone-600 hover:bg-stone-200 rounded-lg" data-i18n="cancel">取消</button>
         <button onclick="startGenerateCurriculum()" id="btn-start-curriculum" class="px-4 py-2 text-xs bg-amber-800 hover:bg-amber-900 text-white font-medium rounded-lg flex items-center gap-1.5 shadow-sm">
-          <span>✨ 立即 AI 生成多堂查經套裝</span>
+          <span data-i18n="curriculumStartBtn">✨ 立即 AI 生成多堂查經套裝</span>
         </button>
       </div>
     </div>

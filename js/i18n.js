@@ -78,6 +78,7 @@ const I18n = {
       customTasteHelp: "AI 會在生成時作為背景參考，以引起共鳴的恰當視角作比喻（亦可填入孩子年級或學校情境）。",
       saveTasteSettings: "保存口味設定",
       cancel: "取消",
+      closeBtn: "關閉",
       backpackHubTitle: "研經背包中心",
       backpackHubSubtitle: "收納您調配儲存的所有靈修單張、歷史考證、人物檔案與多堂小組課程",
       allTastesBadge: "當前口味：",
@@ -101,10 +102,64 @@ const I18n = {
       catArch: "🏺 歷史考證",
       navScripture: "經文閱讀",
       searchBackpackPlaceholder: "🔍 搜尋背包內材料...",
+      settings_provider_label: "AI 服務通道 (AI Engine Provider)：",
+      settings_gemini_sub: "官方免費 · 多模型容錯",
+      settings_groq_title: "⚡ Groq (推薦通道)",
+      settings_groq_sub: "超極速 500t/s · 永不塞車",
+      settings_local_title: "💻 本地離線 AI",
+      settings_local_sub: "Ollama / LM Studio · 零依賴",
+      settings_gemini_key_label: "Google Gemini API Key (免費)：",
+      settings_test_btn: "測試連線",
+      settings_gemini_help: "• 可在 <a href=\"https://aistudio.google.com/app/apikey\" target=\"_blank\" class=\"text-amber-800 underline font-semibold\">Google AI Studio</a> 免費申請。<br>• 系統已內建 <strong>5 款備用模型自動轉移機制</strong>（若單一模型繁忙，自動無縫切換備用模型）。",
+      settings_primary_model: "調用首選模型 (Primary Model)：",
+      model_gemini_25_flash: "gemini-2.5-flash (推薦 · 穩定高可用不易繁忙)",
+      model_gemini_25_lite: "gemini-2.5-flash-lite (高吞吐輕量)",
+      model_gemini_15_flash: "gemini-1.5-flash (備用)",
+      model_gemini_38_flash: "gemini-3.8-flash (2026 最新)",
+      settings_groq_key_label: "Groq API Key (100% 免費 · 絕無 High Demand)：",
+      settings_groq_help: "• Groq 為世界領先的 LPU AI 推論引擎，速度達 <strong>500 tokens/秒 (1~2秒生成全篇)</strong>！<br>• 100% 免費（每天高達 14,400 次請求），完全不會遇到 Google 繁忙或 High Demand 限制。<br>• 可在 <a href=\"https://console.groq.com/keys\" target=\"_blank\" class=\"text-amber-800 underline font-semibold\">console.groq.com</a> 10秒免費免信用卡申請。",
+      settings_groq_model: "Groq 推論模型選擇 (Groq Model)：",
+      model_groq_llama70b: "llama-3.3-70b-versatile (推薦 · 旗艦 70B · 深度神學考證 · 穩定在線)",
+      model_groq_gpt20b: "openai/gpt-oss-20b (Groq 官方指定 8B 替代模型 · 輕量極速秒出)",
+      model_groq_mixtral: "mixtral-8x7b-32768 (MoE 專家架構 · 32K 長上下文)",
+      model_groq_gemma: "gemma2-9b-it (Google Gemma 2 9B · 正統嚴謹)",
+      settings_local_endpoint: "本地 API 服務端點 (Endpoint URL)：",
+      settings_local_help: "• <strong>Ollama 預設端點</strong>：<code>http://localhost:11434/v1</code><br>• <strong>LM Studio 預設端點</strong>：<code>http://localhost:1234/v1</code><br>• <strong>重要跨域配置 (CORS)</strong>：Windows 終端啟動 Ollama 前請執行 <code>$env:OLLAMA_ORIGINS=\"*\" ; ollama serve</code>，允許瀏覽器直接通訊。",
+      settings_local_model: "本地推論模型選擇 (Local Model)：",
+      settings_local_model_help: "• 點擊上方「💻 測試連線」可自動掃描並載入您電腦 Ollama 已安裝的所有模型。<br>• 可在終端執行 <code>ollama pull qwen3.5:9b</code> 下載最新模型。",
       settings_lang_label: "介面語言 / Interface Language：",
       settings_apibible_title: "API.Bible 金鑰 (NIV, NIrV, CEV 英文經文授權)：",
+      settings_apibible_signup: "免費申請 Key ↗",
       settings_apibible_detect: "驗證並偵測 Bible ID",
-      settings_apibible_desc: "• 填入 API.Bible Key 即可讀取 NIV、NIrV、CEV 等英文譯本，讀取後會自動快取至瀏覽器支援離線閱讀。<br>• 未設定金鑰時，系統仍可隨時使用和合本 (CUV) 全本經文與所有 AI 研經材料。"
+      settings_apibible_id_placeholder: "自動偵測或手動輸入",
+      settings_apibible_desc: "• 填入 API.Bible Key 即可讀取 NIV、NIrV、CEV 等英文譯本，讀取後會自動快取至瀏覽器支援離線閱讀。<br>• 未設定金鑰時，系統仍可隨時使用和合本 (CUV) 全本經文與所有 AI 研經材料。",
+      settings_theme_label: "閱讀主題顏色：",
+      theme_light: "清新白",
+      theme_sepia: "羊皮紙護眼",
+      theme_dark: "暗黑模式",
+      settings_save_btn: "保存設置",
+      backpackModalTitle: "我的研經背包 (My Backpack)",
+      backpackModalDesc: "隨身收納的單張、人物卡與查經資料",
+      backpackModalFooter: "本地安全儲存，隨時離線翻閱",
+      curriculumModalTitle: "AI 小組主題查經企劃師 (Curriculum Studio)",
+      curriculumModalDesc: "針對小組團契的特定牧養主題或生活痛點，由 AI 神學主管為您規劃系列課程：自動安排各堂閱讀經文、神學核心、破冰提問與生活操練。",
+      curriculumTopicLabel: "查經主題名稱 (Topic)：",
+      curriculumTopicPlaceholder: "例如：職場中的信仰張力與得勝、面對焦慮與情緒低谷...",
+      curriculumInspireLabel: "熱門靈感：",
+      curriculumSessionsLabel: "堂數規劃：",
+      curriculumTargetLabel: "目標對象：",
+      curriculumStartBtn: "✨ 立即 AI 生成多堂查經套裝",
+      sess_opt_3: "3 堂課 (小專題/退修會)",
+      sess_opt_4: "4 堂課 (1 個月小組系列)",
+      sess_opt_6: "6 堂課 (半季度門徒造就)",
+      sess_opt_8: "8 堂課 (全季度深度系列)",
+      target_opt_work: "職場上班族 / 青年團契",
+      target_opt_kids: "兒童主日學 / 兒少團契 (Kids & School)",
+      target_opt_college: "大專學生 / 青年小組",
+      target_opt_family: "家庭夫妻 / 父母團契",
+      target_opt_new: "初信信徒 / 門徒班",
+      target_opt_menwomen: "弟兄小組 / 姊妹小組",
+      target_opt_senior: "長者團契 / 常規小組"
     },
     en: {
       appName: "Bible Backpack",
@@ -118,14 +173,14 @@ const I18n = {
       settingsTitle: "System & AI Engine Settings",
       apiBibleSettings: "API.Bible Gateway (NIV / NIrV / CEV)",
       apiBibleKeyLabel: "API.Bible API Key:",
-      apiBibleKeyPlaceholder: "Paste API Key from api.scripture.api.bible",
+      apiBibleKeyPlaceholder: "Paste API Key from scripture.api.bible...",
       apiBibleHelp: "Free signup at scripture.api.bible gives access to NIV, NIrV, CEV and more translations.",
       autoDetectBibleIds: "🔍 Auto-Detect Bible IDs",
       languageSelect: "Interface Language",
       langZh: "繁體中文 (Traditional Chinese)",
       langEn: "English",
       bibleVersion: "Bible Translation",
-      versionCuv: "CUV (Chinese Union Version 和合本)",
+      versionCuv: "CUV (和合本)",
       versionNiv: "NIV (New International Version)",
       versionNirv: "NIrV (Reader's Version - Easy/Kids)",
       versionCev: "CEV (Contemporary English Version)",
@@ -133,7 +188,7 @@ const I18n = {
       tabTier1Sub: "(1-2 Pages)",
       tabTier2: "In-Depth Study Dossier",
       tabTier2Sub: "(Leader Guide)",
-      reGenerate: "Re-generate",
+      reGenerate: "✨ Re-generate",
       loadingScripture: "Loading scripture text...",
       scriptureViewerHint: "Click a verse to reflect and meditate",
       saveToBackpack: "Save to Backpack",
@@ -144,20 +199,21 @@ const I18n = {
       chapterEmptyDesc: "Scripture is ready on the left. Click below and our AI Theological Director will tailor a study pack based on your chosen perspectives.",
       oneClickGenerate: "Generate Study Material Now",
       curriculumBannerTitle: "Thematic Curriculum Mode",
-      curriculumReturn: "Back to Curriculum",
-      curriculumExit: "Exit Topic",
+      curriculumReturn: "📋 Back to Curriculum",
+      curriculumExit: "✕ Exit Topic",
       exploreKeyGuideTitle: "Ready to Prepare Scripture",
-      fontSizeSm: "Small",
-      fontSizeBase: "Medium",
-      fontSizeLg: "Large",
-      tasteModalTitle: "Study Taste Mixer",
+      fontSizeSm: "S",
+      fontSizeBase: "M",
+      fontSizeLg: "L",
+      tasteModalTitle: "Study Lenses & Taste Mixer",
       tasteModalDesc: "Tailor the theological perspective to your interests and life context naturally",
-      tasteCategoryLabel: "Select Multiple Perspectives:",
+      tasteCategoryLabel: "Select Study Lenses (Multi-select):",
       customTasteLabel: "Custom Interest / Domain / Grade (Optional):",
-      customTastePlaceholder: "e.g., 4th Grade Sunday School, school friendships, software engineer, love astronomy...",
-      customTasteHelp: "AI will incorporate these analogies into application questions and takeaways.",
+      customTastePlaceholder: "e.g., 3rd Grade Sunday School, school friendships, software engineer, love astronomy...",
+      customTasteHelp: "AI will incorporate these contexts into analogies, discussion questions, and life takeaways.",
       saveTasteSettings: "Save Preferences",
       cancel: "Cancel",
+      closeBtn: "Close",
       backpackHubTitle: "My Backpack Hub",
       backpackHubSubtitle: "Manage your saved devotional sheets, character dossiers, archaeological insights, and multi-session curricula",
       allTastesBadge: "Active Lenses:",
@@ -181,10 +237,64 @@ const I18n = {
       catArch: "🏺 Archaeology",
       navScripture: "Scripture",
       searchBackpackPlaceholder: "🔍 Search saved materials...",
+      settings_provider_label: "AI Engine Provider:",
+      settings_gemini_sub: "Official Free · Multi-Model Failover",
+      settings_groq_title: "⚡ Groq (Recommended)",
+      settings_groq_sub: "Ultra-Fast 500t/s · No Queue",
+      settings_local_title: "💻 Local Offline AI",
+      settings_local_sub: "Ollama / LM Studio · Offline",
+      settings_gemini_key_label: "Google Gemini API Key (Free):",
+      settings_test_btn: "Test Connection",
+      settings_gemini_help: "• Get a free API Key from <a href=\"https://aistudio.google.com/app/apikey\" target=\"_blank\" class=\"text-amber-800 underline font-semibold\">Google AI Studio</a>.<br>• Built-in <strong>5-model automatic failover</strong> seamlessly switches models if one is busy.",
+      settings_primary_model: "Primary Gemini Model:",
+      model_gemini_25_flash: "gemini-2.5-flash (Recommended · High Availability)",
+      model_gemini_25_lite: "gemini-2.5-flash-lite (High-Throughput Lightweight)",
+      model_gemini_15_flash: "gemini-1.5-flash (Fallback)",
+      model_gemini_38_flash: "gemini-3.8-flash (Latest 2026)",
+      settings_groq_key_label: "Groq API Key (100% Free · Zero High-Demand Blocks):",
+      settings_groq_help: "• Groq LPU inference engine delivers <strong>500 tokens/sec (full study pack in 1–2s)</strong>!<br>• 100% free (up to 14,400 requests/day) with zero high-demand throttling.<br>• Get a free key in 10 seconds at <a href=\"https://console.groq.com/keys\" target=\"_blank\" class=\"text-amber-800 underline font-semibold\">console.groq.com</a> (no credit card required).",
+      settings_groq_model: "Groq Inference Model:",
+      model_groq_llama70b: "llama-3.3-70b-versatile (Recommended · Flagship 70B · Deep Exegesis)",
+      model_groq_gpt20b: "openai/gpt-oss-20b (Ultra-Fast Lightweight Model)",
+      model_groq_mixtral: "mixtral-8x7b-32768 (MoE Architecture · 32K Context)",
+      model_groq_gemma: "gemma2-9b-it (Google Gemma 2 9B · Orthodox & Precise)",
+      settings_local_endpoint: "Local API Endpoint URL:",
+      settings_local_help: "• <strong>Ollama Default</strong>: <code>http://localhost:11434/v1</code><br>• <strong>LM Studio Default</strong>: <code>http://localhost:1234/v1</code><br>• <strong>CORS Setup</strong>: Before starting Ollama on Windows, run <code>$env:OLLAMA_ORIGINS=\"*\" ; ollama serve</code> to allow browser requests.",
+      settings_local_model: "Local Inference Model:",
+      settings_local_model_help: "• Click '💻 Test Connection' above to auto-scan all models installed in your local Ollama.<br>• Run <code>ollama pull qwen3.5:9b</code> in terminal to download.",
       settings_lang_label: "Interface Language:",
       settings_apibible_title: "API.Bible API Key (NIV / NIrV / CEV Scripture):",
+      settings_apibible_signup: "Get Free Key ↗",
       settings_apibible_detect: "Verify & Detect Bible IDs",
-      settings_apibible_desc: "• Enter your API.Bible Key to read NIV, NIrV, CEV translations with instant offline caching.<br>• Without a key, Chinese Union Version (CUV) full Bible and all AI features remain completely accessible."
+      settings_apibible_id_placeholder: "Auto-detect or enter ID",
+      settings_apibible_desc: "• Enter your API.Bible Key to read NIV, NIrV, CEV translations with instant offline caching.<br>• Without a key, Chinese Union Version (CUV) full Bible and all AI features remain completely accessible.",
+      settings_theme_label: "Reading Theme:",
+      theme_light: "Light",
+      theme_sepia: "Sepia",
+      theme_dark: "Dark",
+      settings_save_btn: "Save Settings",
+      backpackModalTitle: "My Study Backpack",
+      backpackModalDesc: "Saved study sheets, character cards & archaeological notes",
+      backpackModalFooter: "Stored locally for offline access anytime",
+      curriculumModalTitle: "AI Thematic Curriculum Studio",
+      curriculumModalDesc: "Design a multi-session small group study series tailored to your fellowship's topic or life needs—complete with scripture progression, theological core, icebreakers, and life practices.",
+      curriculumTopicLabel: "Curriculum Topic:",
+      curriculumTopicPlaceholder: "e.g., Faith in the Workplace, Overcoming Anxiety & Fear, Courage at School...",
+      curriculumInspireLabel: "Popular Ideas:",
+      curriculumSessionsLabel: "Number of Sessions:",
+      curriculumTargetLabel: "Target Group:",
+      curriculumStartBtn: "✨ Generate Multi-Session Curriculum",
+      sess_opt_3: "3 Sessions (Retreat / Mini-Series)",
+      sess_opt_4: "4 Sessions (1-Month Small Group Series)",
+      sess_opt_6: "6 Sessions (Half-Quarter Discipleship)",
+      sess_opt_8: "8 Sessions (Full-Quarter In-Depth Series)",
+      target_opt_work: "Working Professionals / Young Adults",
+      target_opt_kids: "Sunday School / Kids & Youth (Kids & School)",
+      target_opt_college: "College & University Fellowship",
+      target_opt_family: "Couples & Parents Fellowship",
+      target_opt_new: "New Believers / Discipleship Class",
+      target_opt_menwomen: "Men's / Women's Small Group",
+      target_opt_senior: "Senior Fellowship / General Group"
     }
   },
 
@@ -257,11 +367,17 @@ const I18n = {
     const lang = this.getLang();
     document.documentElement.setAttribute("lang", lang === "en" ? "en" : "zh-Hant");
 
-    // 更新具備 data-i18n 屬性的元素
+    // 更新具備 data-i18n 屬性的元素（若包含 HTML 標籤則使用 innerHTML）
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
       const trans = this.t(key);
-      if (trans) el.textContent = trans;
+      if (trans !== undefined && trans !== "") {
+        if (trans.includes("<") && trans.includes(">")) {
+          el.innerHTML = trans;
+        } else {
+          el.textContent = trans;
+        }
+      }
     });
 
     // 更新具備 data-i18n-placeholder 屬性的輸入框
@@ -283,9 +399,12 @@ const I18n = {
       navLangLabel.textContent = this.isEn() ? "繁中" : "EN";
     }
 
-    // 重新渲染關鍵 UI 組件（書卷選擇器、章節下拉面板、經文區、口味標籤等）
+    // 重新渲染關鍵 UI 組件（書卷選擇器、章節下拉面板、經文區、口味標籤、口味彈窗列表、背包中心等）
     if (typeof renderBookSelector === "function") renderBookSelector();
     if (typeof renderTasteBadges === "function") renderTasteBadges();
+    if (typeof renderTasteOptionsList === "function") renderTasteOptionsList();
+    if (typeof updateBackpackBadge === "function") updateBackpackBadge();
+    if (typeof renderBackpackHub === "function") renderBackpackHub();
     if (typeof renderScripture === "function") renderScripture();
     if (typeof renderActiveTierContent === "function") renderActiveTierContent();
     if (typeof renderCurriculumBanner === "function") renderCurriculumBanner();
