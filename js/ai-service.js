@@ -11,6 +11,18 @@ const AIService = {
     "gemini-2.0-flash"
   ],
 
+  // 根據章節經文節數與內容篇幅動態計算建議問題數量 (4~6 題)
+  getRecommendedQuestionCount(bookName, chapter, verses = null) {
+    let count = Array.isArray(verses) ? verses.length : 0;
+    if (!count && typeof BibleService !== "undefined") {
+      const cuvVerses = BibleService.getChapterVerses(bookName, chapter, "cuv");
+      if (Array.isArray(cuvVerses)) count = cuvVerses.length;
+    }
+    if (count > 0 && count <= 15) return { verseCount: count, qCount: 4 };
+    if (count >= 29) return { verseCount: count, qCount: 6 };
+    return { verseCount: count || 20, qCount: 5 };
+  },
+
   // 構造單章研經材料 Prompt（注入本地 BibleService 完整經文上下文，支援注入小組主題課程之堂數、主題與討論核心）
   // 構造單章研經材料 Prompt（根據目前語系自動派發）
   buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext = null, version = null) {
@@ -28,13 +40,17 @@ const AIService = {
 
     // 從本地和合本資料庫提取本章完整經文，讓 AI 緊扣經文逐節深入剖析（不再空泛概括）
     let scriptureContext = "";
+    let chapterVerses = [];
     if (typeof BibleService !== "undefined") {
       const verses = BibleService.getChapterVerses(bookName, chapter, version || "cuv");
       if (verses && verses.length > 0 && !verses[0].text.includes("正在載入") && !verses[0].text.includes("Loading")) {
+        chapterVerses = verses;
         const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
-        scriptureContext = `\n【《${bookName}》第 ${chapter} 章經文原文（請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
+        scriptureContext = `\n【《${bookName}》第 ${chapter} 章經文原文（共 ${verses.length} 節，請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
       }
     }
+
+    const { verseCount, qCount } = this.getRecommendedQuestionCount(bookName, chapter, chapterVerses);
 
     let curriculumInstruction = "";
     if (curriculumContext) {
@@ -50,11 +66,11 @@ const AIService = {
 【課程連貫性與深度整合要求】：
 1. 標題與副標題：tier1_sheet.title 請標註為「《${curriculumContext.packTitle || "小組主題"}》第 ${curriculumContext.sessionNum || 1} 堂 · ${curriculumContext.sessionTitle || ""}」，副標題深刻點出本堂主題。
 2. 核心聚焦：經文快照 (snapshot)、經文分段 (outline)、人物檔案與神學剖析，必須強烈圍繞本堂核心信息「${curriculumContext.coreMessage || ""}」進行深度釋經。
-3. 討論問題專屬客製化：
+3. 討論問題專屬客製化（共 ${qCount} 題，依本章篇幅動態調配）：
    - Q1 (經文細讀)：結合本堂聚焦經文細節。
    - Q2 (主題討論)：必須精準對接本堂「小組討論焦點方向：${curriculumContext.discussionTheme || ""}」，tag 標註「主題探討」。
    - Q3 (生活應用)：必須緊扣本堂「指定生活實踐操練：${curriculumContext.lifeAction || ""}」，引導組員具體落地。
-   - Q4 (團契代禱)：結合本堂主題引導組員彼此代禱。
+   - 後續題目：結合本堂神學深意與團契彼此代禱。
 4. 破冰與組長提示：tier2_dossier.leaderGuide.icebreaker 請直接融入或深化本課堂指定之破冰「${curriculumContext.icebreaker || ""}」；flowTips 提供組長帶領本主題時的控場與牧養叮嚀。
 `;
     }
@@ -76,11 +92,12 @@ const AIService = {
    - title：標題請副標註「（兒少校園與家庭版）」。
    - snapshot (聖經冒險快照)：以引人入勝的故事冒險語氣撰寫，像生動的電影開場，點出本章主角遇到的最大考驗與神的大能引領。
    - outline (故事三大場景)：每個段落使用適合孩子閱讀的情節標題與簡潔說明。
-   - 討論問題 (discussionQuestions)：
+   - 討論問題 (discussionQuestions，共 ${qCount} 題)：
      * Q1 (故事小偵探)：引導孩子自己從經文找出關鍵動作、人名或有趣對比（tag: 經文小偵探）。
      * Q2 (換位思考題)：引導孩子想像自己是經文中的人物，那時會有多害怕、驚訝或興奮（tag: 換位思考）。
      * Q3 (★校園生活挑戰題)：必須精準切入學校或同儕真實情境（例如：班上有人被排擠時你敢不敢跟他做朋友、考試看到別人作弊你怎麼辦、分組沒人找你時如何倚靠神），提示 (hint) 明確指導老師/家長如何溫柔傾聽與引導孩子敞開分享（tag: 校園生活）。
-     * Q4 (勇氣小任務)：具體、簡單、本週就能在學校或家裡做的一件愛心或勇氣行動（如主動跟一位落單同學打招呼、把好吃的點心留給弟妹、睡前為一位同班同學禱告）（tag: 勇氣任務）。
+     * 後續題目（勇氣小任務/感恩分享）：具體、簡單、本週就能在學校或家裡做的一件愛心或勇氣行動（tag: 勇氣任務）。
+     * 每題的 answer（導師/家長標準參考答案）：提供老師與家長在孩子回答後，能用溫暖、正統且淺顯的語言作總結的標準答案。
    - takeaway (心靈金句與比喻)：給孩子一句好記又溫暖的校園信心力量金句。
    - prayer (出聲小禱告)：簡短、親切、真誠，讓孩子能一句一句跟著老師出聲朗讀的禱文。
 4. 【深度手冊欄位專屬要求 (Tier 2 兒少導師與家長手冊)】：
@@ -88,6 +105,28 @@ const AIService = {
    - difficulties (童言童語大哉問)：針對孩子最常問的天真卻深奧的提問（如：上帝創造世界前在做什麼？為什麼神允許壞事發生？），提供家長與老師可以直接用 10 歲孩子聽得懂的語言回答的明智解答。
    - archaeology.visualArtifacts：以「古代冷知識 / 探險家歷史實景」的生動角度介紹博物館真實文物，激發孩子探索聖經世界的好奇心！
 `;
+    }
+
+    const extraQuestionsSchemaZh = [];
+    if (qCount >= 5) {
+      extraQuestionsSchemaZh.push(`      ,{
+        "id": "q5",
+        "type": "深度神學與轉折剖析",
+        "tag": "經文深掘",
+        "question": "第5題：針對本章中後段重要情節轉折、關鍵字詞或神學張力的進深探究題（40～70字）",
+        "hint": "詳盡組長引導提示（60～100字：提供段落前後呼應線索與思考方向）",
+        "answer": "組長手冊標準參考答案（80～140字：給出明確的經文節數依據、正統神學詮釋與總結歸納要點，供組長在組員發言後作完整總結）"
+      }`);
+    }
+    if (qCount >= 6) {
+      extraQuestionsSchemaZh.push(`      ,{
+        "id": "q6",
+        "type": "生命整全與救恩視野",
+        "tag": "整全應用",
+        "question": "第6題：貫穿全章首尾、連結基督救恩藍圖與信徒群體見證的總結性問題（40～70字）",
+        "hint": "詳盡組長引導提示（60～100字：引導組員看見本章在整本聖經中的救贖意義與本週實踐）",
+        "answer": "組長手冊標準參考答案（80～140字：給出全章神學主軸歸納、基督中心視角解答及具體牧養總結）"
+      }`);
     }
 
     return `
@@ -102,21 +141,24 @@ ${kidsInstruction}
 
 【神學守則與個人化風格要求 (Depth, Orthodoxy & Taste Customization)】：
 1. 【正統信仰底線】：完全遵循大公教會歷史正統信仰（使徒信經、尼西亞信經、唯獨恩典因信稱義）。嚴厲排斥任何異端、偏激或偏離聖經原意的曲解。
-2. 【★拒絕簡略敷衍，要求極高豐富度與神學深度】：
+2. 【★動態查經題數（4～6 題）與組長標準答案要求】：
+   - 查經討論題數量必須根據經文內容多寡動態設定為 **4 至 6 題**（短篇經文 ≤15節為 4 題；中等篇幅 16～28節為 5 題；長篇豐富經文 ≥29節為 6 題）。本章共 ${verseCount} 節，請為本章精準設計 **${qCount} 題**！
+   - 每一道討論題除了給組員看的「組長引導提示 (hint，60～100字)」之外，**必須額外提供「組長手冊標準參考答案 (answer，80～140字)」**！
+   - 「標準參考答案 (answer)」將顯示在【Tier 2 組長備課手冊】中，必須包含：(1) 明確的經文節數依據與客觀答案、(2) 歷史背景或神學核心剖析、(3) 組長在組員討論後可直接宣讀或歸納的總結要點。
+3. 【★拒絕簡略敷衍，要求極高豐富度與神學深度】：
    - 無論使用哪一款模型，每個欄位的文字都必須**詳實飽滿、引經據典（明確標註第幾節）、具牧養溫度與神學洞察**，絕對不可只寫一兩句話帶過！
    - 經文分段（outline）必須涵蓋全章並分為 3 至 4 個詳細段落。
-   - 討論問題（discussionQuestions）共 4 題，每題的「組長引導提示 (hint)」必須寫滿 60～100 字，提供具體經文節數線索、原文或歷史背景切入點。
    - 人物檔案（characters）必須列出 2 至 3 位關鍵人物或群體，每位包含詳盡生平與 80～120 字的深度心理與屬靈掙扎洞察。
    - 疑難解答（difficulties）必須列出 2 至 3 個深具挑戰性的核心神學/釋經難題，每題解答（answer）必須達 120～180 字。
-3. 【★個人化口味差異化滲透要求 (Making Tastes Feel Unmistakably Distinct)】：
+4. 【★個人化口味差異化滲透要求 (Making Tastes Feel Unmistakably Distinct)】：
    - 討論題第 2 題 (Q2)：必須直接聚焦於用戶選定的第 1 項口味（例如選「古代考古/歷史」則問當時條約法理與地緣統治；選「數學邏輯/自然科學」則問因果結構、對稱 Chiasm 與自然規律；選「心理認知」則深究恐懼防禦與認知重構；選「小組導師」則設計具備群體互動張力的切入點），tag 必須自訂反映該口味（如「歷史盟約」、「邏輯因果」、「心靈防禦」、「導師錦囊」）。
    - 討論題第 3 題 (Q3)：必須直接連結用戶填寫的「自訂背景」（如軟體工程師、管理者、教育、藝術等）或第 2 項口味，設計切中該領域日常痛點與思維模型的深度反思題，tag 標註「專業反思」或「職場應用」。
    - 今日默想結語 (takeaway)：必須生動融合該口味或自訂背景的鮮明比喻（例如：若用戶是工程師，比喻底層架構與神聖協議；若為心理，比喻卸下內在防衛；若為默想，比喻幽谷清泉），拒絕乾癟的道德教條！
-4. 【★考古實物與維基百科精準驗證要求 (Visual Artifacts Rule)】：
+5. 【★考古實物與維基百科精準驗證要求 (Visual Artifacts Rule)】：
    - visualArtifacts 必須列出 2 項真實存在的博物館館藏考古文物、古代銘文或真實聖經歷史遺址（嚴禁編造「信心之盾」、「恩典之泉」等抽象比喻詞！）。
    - title 格式必須為「中文名稱 (Official English Name)」，例如：「但丘大衛家石碑 (Tel Dan Stele)」、「居魯士圓柱 (Cyrus Cylinder)」、「死海古卷以賽亞卷 (Dead Sea Scrolls)」、「迦百農古代會堂遺址 (Capernaum Synagogue)」。
    - searchQuery 必須填寫該文物或遺址在 English Wikipedia (英文維基百科) 的精確標準條目名稱（純英文，如 "Tel Dan stele", "Cyrus Cylinder", "Dead Sea Scrolls"）。
-5. 【★聖經地理與行軍路線嚴格守則 (Geography & Map Guardrail)】：
+6. 【★聖經地理與行軍路線嚴格守則 (Geography & Map Guardrail)】：
    - geography.isJourneyRoute：只有當本章經文明確記載「實際的行軍移動、出埃及遷徙、曠野行程或使徒宣教旅程」時才設為 true；若為定點事件或教導一律設為 false。
    - geography.routePoints：只標註真實聖經地點與座標。
 
@@ -137,29 +179,33 @@ ${kidsInstruction}
         "type": "觀察與梳理",
         "tag": "經文細讀",
         "question": "第1題：結合本章具體節數與經文細節的客觀事實與脈絡梳理題（40～70字）",
-        "hint": "詳盡組長引導提示（60～100字：指出應留意第幾節的關鍵字詞、人物動作對比與上下文線索）"
+        "hint": "詳盡組長引導提示（60～100字：指出應留意第幾節的關鍵字詞、人物動作對比與上下文線索）",
+        "answer": "組長手冊標準參考答案（80～140字：提供明確的經文節數證據、客觀事實整理與組長總結陳詞）"
       },
       {
         "id": "q2",
         "type": "理解與洞察",
         "tag": "【依所選第1口味自訂標籤】",
         "question": "第2題：深度貫穿【${activeTasteList[0] || '神學視角'}】的經文洞察題（40～70字，視角鮮明、打破常規）",
-        "hint": "詳盡組長引導提示（60～100字：解析經文背後的神學涵義、聖約意義與啟發切入點）"
+        "hint": "詳盡組長引導提示（60～100字：解析經文背後的神學涵義、聖約意義與啟發切入點）",
+        "answer": "組長手冊標準參考答案（80～140字：深入解答此視角下的神學深意、歷史/原文背景及核心真理歸納）"
       },
       {
         "id": "q3",
         "type": "生活與信心應用",
         "tag": "【依自訂背景或第2口味標籤】",
         "question": "第3題：緊密結合【${customKeyword || activeTasteList[1] || '生活反思'}】的深度應用題（40～70字，生動共鳴）",
-        "hint": "詳盡組長引導提示（60～100字：引導組員從表面道德教訓進入內心偶像省察與恩典依靠）"
+        "hint": "詳盡組長引導提示（60～100字：引導組員從表面道德教訓進入內心偶像省察與恩典依靠）",
+        "answer": "組長手冊標準參考答案（80～140字：提供從律法主義轉向福音恩典的牧養解答範例與生命轉化關鍵）"
       },
       {
         "id": "q4",
         "type": "小組同行互勉",
         "tag": "團契代禱",
         "question": "第4題：促進小組組員彼此敞開扶持、具體實踐與彼此代禱的行動題（40～70字）",
-        "hint": "詳盡組長引導提示（60～100字：提供具體可落實的本週操練建議與小組代禱方向）"
-      }
+        "hint": "詳盡組長引導提示（60～100字：提供具體可落實的本週操練建議與小組代禱方向）",
+        "answer": "組長手冊標準參考答案（80～140字：總結本題在團契生活與個人操練上的具體方向與牧養勉勵）"
+      }${extraQuestionsSchemaZh.join("\n")}
     ],
     "takeaway": "今日核心默想結語（80～120字：融合所選口味之鮮活比喻、深刻、充滿福音盼望與牧養力量）",
     "prayer": "總結禱告詞（80～120字：呼應本章經文真理與所選視角之誠摯優美禱文）"
@@ -247,13 +293,17 @@ ${kidsInstruction}
     });
 
     let scriptureContext = "";
+    let chapterVerses = [];
     if (typeof BibleService !== "undefined") {
       const verses = BibleService.getChapterVerses(bookName, chapter, ver);
       if (verses && verses.length > 0 && !verses[0].text.includes("Loading") && !verses[0].text.includes("正在載入")) {
+        chapterVerses = verses;
         const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
-        scriptureContext = `\n[Scripture Passage (${ver.toUpperCase()}) for ${engBook} Chapter ${chapter} (Strictly examine and quote from these verses below)]:\n${formattedVerses}\n`;
+        scriptureContext = `\n[Scripture Passage (${ver.toUpperCase()}) for ${engBook} Chapter ${chapter} (${verses.length} verses - Strictly examine and quote from these verses below)]:\n${formattedVerses}\n`;
       }
     }
+
+    const { verseCount, qCount } = this.getRecommendedQuestionCount(bookName, chapter, chapterVerses);
 
     let curriculumInstruction = "";
     if (curriculumContext) {
@@ -284,11 +334,12 @@ ${kidsInstruction}
    - title: Include subtitle "(Kids & Campus Edition)".
    - snapshot: Written like an exciting adventure movie opening, highlighting the hero's greatest test and God's mighty deliverance.
    - outline: 3 lively story scenes with kid-friendly titles.
-   - discussionQuestions:
+   - discussionQuestions (${qCount} questions):
      * Q1 (Scripture Detective): Help kids spot key actions, names, or contrasts in the passage (tag: Scripture Detective).
      * Q2 (In Their Shoes): Help kids imagine walking in the shoes of biblical characters (tag: Empathy & Perspective).
      * Q3 (Campus Life Challenge): Address real school/peer dilemmas with practical hints for leaders/parents (tag: Campus Life).
-     * Q4 (Courage Mission): A simple, actionable act of kindness or courage to practice this week (tag: Courage Mission).
+     * Q4+ (Courage Mission / Reflection): Simple, actionable acts of kindness or courage to practice this week (tag: Courage Mission).
+     * Each question's "answer" field must provide a warm, clear, kid-appropriate model answer for teachers/parents to summarize.
    - takeaway: A catchy, encouraging memory quote and confidence booster.
    - prayer: A short, heartfelt, sentence-by-sentence aloud prayer for kids to repeat.
 4. Specific Field Guidance (Tier 2 Dossier):
@@ -296,6 +347,28 @@ ${kidsInstruction}
    - difficulties: Kid-friendly answers to candid, tough questions (e.g., "What was God doing before creating the world? Why does God allow bad things?").
    - archaeology.visualArtifacts: Presented from a fascinating explorer perspective with authentic museum artifacts.
 `;
+    }
+
+    const extraQuestionsSchemaEn = [];
+    if (qCount >= 5) {
+      extraQuestionsSchemaEn.push(`      ,{
+        "id": "q5",
+        "type": "Deep Exegesis & Turning Point",
+        "tag": "Textual Depth",
+        "question": "Question 5 exploring a key narrative turning point, literary contrast, or theological tension in the second half of the chapter (40-70 words)",
+        "hint": "Leader's facilitation guide pointing out specific verses and structural connections (60-100 words)",
+        "answer": "Leader's Model Answer & Key Synthesis (80-140 words: clear scriptural evidence, theological explanation, and key takeaway points for the leader)"
+      }`);
+    }
+    if (qCount >= 6) {
+      extraQuestionsSchemaEn.push(`      ,{
+        "id": "q6",
+        "type": "Redemptive Vision & Holistic Practice",
+        "tag": "Gospel Synthesis",
+        "question": "Question 6 connecting the whole chapter's arc to Christ's redemptive work and community witness (40-70 words)",
+        "hint": "Leader's facilitation guide helping the group synthesize the chapter's gospel significance (60-100 words)",
+        "answer": "Leader's Model Answer & Key Synthesis (80-140 words: comprehensive Christ-centered synthesis and pastoral conclusion for the group leader)"
+      }`);
     }
 
     return `
@@ -310,9 +383,12 @@ ${kidsInstruction}
 
 [Theological Orthodoxy & Depth Guidelines]:
 1. Historic Orthodoxy: Adhere strictly to historic Christian creedal orthodoxy (Nicene Creed, Apostles' Creed, Grace through Faith in Jesus Christ).
-2. Depth & Substance: Avoid superficial one-liners. Every outline section, character profile, and discussion hint must be deeply substantive with chapter verse references.
-3. Visual Artifacts: Cite 2 authentic museum artifacts or excavated biblical sites with their exact English Wikipedia title in "searchQuery".
-4. Language Requirement: All fields in tier1_sheet and tier2_dossier MUST be in ENGLISH.
+2. Dynamic Question Count (4-6 Questions) & Leader Model Answers:
+   - Scale the number of discussionQuestions between 4 and 6 based on passage length and richness (short chapters <=15 verses: 4 questions; medium chapters 16-28 verses: 5 questions; long/rich chapters >=29 verses: 6 questions). Since this chapter has ${verseCount} verses, generate ${qCount} questions!
+   - Every question in discussionQuestions MUST include BOTH a "hint" (for group members on Tier 1) AND an "answer" (80-140 words, the Leader's Model Answer & Theological Key displayed in the Tier 2 Leader's Guide, citing specific verses and key points to summarize after discussion).
+3. Depth & Substance: Avoid superficial one-liners. Every outline section, character profile, and discussion hint/answer must be deeply substantive with chapter verse references.
+4. Visual Artifacts: Cite 2 authentic museum artifacts or excavated biblical sites with their exact English Wikipedia title in "searchQuery".
+5. Language Requirement: All fields in tier1_sheet and tier2_dossier MUST be in ENGLISH.
 
 [Output strictly valid JSON only without markdown code fences or thinking blocks]:
 {
@@ -331,29 +407,33 @@ ${kidsInstruction}
         "type": "Observation & Flow",
         "tag": "Textual Reading",
         "question": "Question 1 examining specific verse details, context, and characters (40-70 words)",
-        "hint": "Leader's facilitation guide with verse references and context clues (60-100 words)"
+        "hint": "Leader's facilitation guide with verse references and context clues (60-100 words)",
+        "answer": "Leader's Model Answer & Key Synthesis (80-140 words: specific verse evidence, objective textual facts, and summary points for the leader)"
       },
       {
         "id": "q2",
         "type": "Theological Insight",
         "tag": "${activeTasteList[0] || 'Theological Lens'}",
         "question": "Question 2 deeply examining the text through the first selected lens (40-70 words)",
-        "hint": "Leader's facilitation guide unpacking covenantal or spiritual depths (60-100 words)"
+        "hint": "Leader's facilitation guide unpacking covenantal or spiritual depths (60-100 words)",
+        "answer": "Leader's Model Answer & Key Synthesis (80-140 words: deep theological, historical, or covenantal explanation for the leader to synthesize)"
       },
       {
         "id": "q3",
         "type": "Faith & Real Life Application",
         "tag": "${customKeyword || activeTasteList[1] || 'Life Application'}",
         "question": "Question 3 connecting the text to real daily struggle, work, or custom background (40-70 words)",
-        "hint": "Leader's facilitation guide moving beyond superficial moralism to gospel reliance (60-100 words)"
+        "hint": "Leader's facilitation guide moving beyond superficial moralism to gospel reliance (60-100 words)",
+        "answer": "Leader's Model Answer & Key Synthesis (80-140 words: gospel-centered pastoral model answer showing how grace transforms real-life struggles)"
       },
       {
         "id": "q4",
         "type": "Fellowship & Action",
         "tag": "Prayer & Fellowship",
         "question": "Question 4 inviting mutual vulnerability, practical discipleship, and prayer (40-70 words)",
-        "hint": "Leader's facilitation guide suggesting actionable steps and prayer directions (60-100 words)"
-      }
+        "hint": "Leader's facilitation guide suggesting actionable steps and prayer directions (60-100 words)",
+        "answer": "Leader's Model Answer & Key Synthesis (80-140 words: practical discipleship takeaways and group prayer focus for the leader)"
+      }${extraQuestionsSchemaEn.join("\n")}
     ],
     "takeaway": "Core takeaway message with a memorable metaphor and gospel hope (80-120 words)",
     "prayer": "Concluding group prayer echoing the biblical truths of this chapter (80-120 words)"

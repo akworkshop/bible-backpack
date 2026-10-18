@@ -342,11 +342,11 @@ function renderTier1Sheet(container) {
         </div>
       </div>
 
-      <!-- 啟發與小組討論題 (3-4題) -->
+      <!-- 啟發與小組討論題 (4-6題，依經文篇幅動態調配) -->
       <div class="questions-section pt-1">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">${isEn ? "✦ Small Group Discussion & Life Questions" : "✦ 小組討論與生活啟發（3~4 題）"}</h3>
-          <span class="text-xs text-stone-400 no-print">${isEn ? "Tailored to your study lenses" : "融入個人口味 · 拒絕生硬強塞"}</span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">${isEn ? `✦ Small Group Discussion & Life Questions (${(data.discussionQuestions || []).length} Questions)` : `✦ 小組討論與生活啟發（共 ${(data.discussionQuestions || []).length} 題 · 依經文篇幅動態調配）`}</h3>
+          <span class="text-xs text-stone-400 no-print">${isEn ? "Standard Answers in Leader Guide (Tier 2)" : "組長標準參考答案詳見「深度研經行囊」"}</span>
         </div>
         
         <div class="space-y-3">
@@ -1112,26 +1112,60 @@ function renderTier2Dossier(container) {
         </div>
       </div>
 
-      <!-- 模組 5: 小組長備課與帶領指南 -->
+      <!-- 模組 5: 小組長備課與帶領指南（含查經問題標準參考答案） -->
       <div class="dossier-card bg-white border border-stone-200 rounded-lg p-4">
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
             <span>🎓</span>
-            <span>${isEn ? "Leader's Facilitation Guide" : "小組長備課手冊 (Leader's Facilitation Guide)"}</span>
+            <span>${isEn ? "Leader's Facilitation Guide & Standard Answers" : "小組長備課手冊與查經標準答案 (Leader's Guide & Answer Key)"}</span>
           </h3>
           <span class="text-xs text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded">${isEn ? "Leader Only" : "導師專用"}</span>
         </div>
-        <div class="text-xs space-y-2 leading-relaxed">
+        <div class="text-xs space-y-3 leading-relaxed">
           <div class="p-2.5 bg-emerald-50/50 rounded border border-emerald-100 text-emerald-950">
+            <span class="font-bold text-emerald-900 block mb-0.5">${isEn ? "🧊 Group Icebreaker:" : "🧊 小組破冰提問："}</span>
             ${escapeHtml(data.leaderGuide.icebreaker)}
           </div>
-          <div class="p-2.5 bg-stone-50 rounded text-stone-700">
-            <span class="font-bold text-stone-900 block mb-0.5">${isEn ? "Pacing & Mindset:" : "帶領節奏與心態："}</span>
+          <div class="p-2.5 bg-stone-50 rounded text-stone-700 border border-stone-200/60">
+            <span class="font-bold text-stone-900 block mb-0.5">${isEn ? "🧭 Pacing & Facilitation Mindset:" : "🧭 帶領節奏與牧養心態："}</span>
             ${escapeHtml(data.leaderGuide.flowTips)}
           </div>
-          <div class="text-stone-500 pt-1">
+          <div class="text-stone-500 pt-0.5 pb-1">
             ⏱️ <span class="font-medium text-stone-700">${isEn ? "Suggested Time Budget: " : "時間規劃建議："}</span> ${escapeHtml(data.leaderGuide.timeBudget)}
           </div>
+
+          ${(activeStudyData?.tier1_sheet?.discussionQuestions && activeStudyData.tier1_sheet.discussionQuestions.length > 0) ? `
+            <div class="pt-3 border-t border-stone-200 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-stone-900 text-xs sm:text-sm flex items-center gap-1.5">
+                  <span>📋</span>
+                  <span>${isEn ? `Discussion Questions · Model Answers & Leader Key (${activeStudyData.tier1_sheet.discussionQuestions.length} Questions)` : `查經討論題 · 組長標準參考答案與歸納要點（共 ${activeStudyData.tier1_sheet.discussionQuestions.length} 題）`}</span>
+                </h4>
+                <span class="text-2xs text-stone-400 no-print">${isEn ? "Synced with Tier 1 Study Sheet" : "與靈修查經單張題目同步"}</span>
+              </div>
+              <div class="space-y-3">
+                ${activeStudyData.tier1_sheet.discussionQuestions.map((q, idx) => `
+                  <div class="p-3 bg-stone-50/90 border border-stone-200 rounded-lg space-y-2">
+                    <div class="flex items-start justify-between gap-2">
+                      <div class="font-bold text-stone-900 text-xs sm:text-sm leading-snug">
+                        <span class="text-amber-800 mr-1">Q${idx + 1}.</span>${escapeHtml(q.question)}
+                      </div>
+                      ${q.tag ? `<span class="flex-shrink-0 px-2 py-0.5 text-2xs rounded bg-white text-stone-600 border border-stone-200 font-medium">${escapeHtml(q.tag)}</span>` : ''}
+                    </div>
+                    <div class="p-2.5 bg-emerald-50/80 border-l-3 border-emerald-600 rounded-r text-emerald-950 text-xs leading-relaxed">
+                      <span class="font-bold text-emerald-900 block mb-0.5">${isEn ? "✅ Standard Reference Answer & Key Synthesis:" : "✅ 標準參考答案與總結要點："}</span>
+                      ${escapeHtml(q.answer || q.leaderAnswer || q.hint || '')}
+                    </div>
+                    ${(q.answer && q.hint && q.answer !== q.hint) ? `
+                      <div class="text-2xs text-stone-500 pl-1">
+                        <strong class="text-stone-600">${isEn ? "💡 Facilitation Prompt: " : "💡 組員引導提示："}</strong>${escapeHtml(q.hint)}
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
     </div>
