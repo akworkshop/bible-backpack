@@ -81,7 +81,30 @@ const I18n = {
       backpackHubTitle: "研經背包中心",
       backpackHubSubtitle: "收納您調配儲存的所有靈修單張、歷史考證、人物檔案與多堂小組課程",
       allTastesBadge: "當前口味：",
-      kidsModeTitleSuffix: "（兒少校園與家庭版）"
+      kidsModeTitleSuffix: "（兒少校園與家庭版）",
+      taste_btn: "研經口味",
+      viewStudy: "研經工作台",
+      viewBackpack: "我的研經背包",
+      adjustTasteBtn: "+ 調整偏好",
+      chapterPrefix: "第",
+      chapterSuffix: "章",
+      scriptureCopyright: "和合本 (CUV) 公有領域",
+      backToStudy: "← 返回讀經工作台",
+      curriculumStudioBtn: "✨ AI 規劃多堂查經套裝",
+      curriculumPacksTitle: "小組主題查經套裝 (Thematic Curriculum Packs)",
+      curriculumPacksDesc: "針對職場、情緒、門徒造就等主題規劃的多堂完整查經課程，支援逐堂查經與整套列印",
+      addCurriculumBtn: "+ 新增主題系列",
+      catAll: "全部",
+      catSheet: "📄 靈修單張",
+      catCharacter: "👤 人物檔案",
+      catGeo: "🗺️ 地理水文",
+      catArch: "🏺 歷史考證",
+      navScripture: "經文閱讀",
+      searchBackpackPlaceholder: "🔍 搜尋背包內材料...",
+      settings_lang_label: "介面語言 / Interface Language：",
+      settings_apibible_title: "API.Bible 金鑰 (NIV, NIrV, CEV 英文經文授權)：",
+      settings_apibible_detect: "驗證並偵測 Bible ID",
+      settings_apibible_desc: "• 填入 API.Bible Key 即可讀取 NIV、NIrV、CEV 等英文譯本，讀取後會自動快取至瀏覽器支援離線閱讀。<br>• 未設定金鑰時，系統仍可隨時使用和合本 (CUV) 全本經文與所有 AI 研經材料。"
     },
     en: {
       appName: "Bible Backpack",
@@ -89,7 +112,7 @@ const I18n = {
       chapterSelect: "Chapter",
       bookSelectorTitle: "Select Book & Chapter",
       searchScripture: "Search scripture...",
-      studyTastes: "Study Tastes",
+      studyTastes: "Study Lenses",
       myBackpack: "My Backpack",
       settings: "Settings",
       settingsTitle: "System & AI Engine Settings",
@@ -135,10 +158,33 @@ const I18n = {
       customTasteHelp: "AI will incorporate these analogies into application questions and takeaways.",
       saveTasteSettings: "Save Preferences",
       cancel: "Cancel",
-      backpackHubTitle: "Backpack Hub",
+      backpackHubTitle: "My Backpack Hub",
       backpackHubSubtitle: "Manage your saved devotional sheets, character dossiers, archaeological insights, and multi-session curricula",
-      allTastesBadge: "Active Tastes:",
-      kidsModeTitleSuffix: " (Kids & Campus Edition)"
+      allTastesBadge: "Active Lenses:",
+      kidsModeTitleSuffix: " (Kids & Campus Edition)",
+      taste_btn: "Study Lenses",
+      viewStudy: "Study Workspace",
+      viewBackpack: "My Backpack",
+      adjustTasteBtn: "+ Adjust Lenses",
+      chapterPrefix: "Ch.",
+      chapterSuffix: "",
+      scriptureCopyright: "CUV Public Domain / API.Bible Licensed",
+      backToStudy: "← Back to Study Workspace",
+      curriculumStudioBtn: "✨ AI Thematic Curriculum Studio",
+      curriculumPacksTitle: "Thematic Curriculum Study Packs",
+      curriculumPacksDesc: "Multi-session small group study series with progression, icebreakers, and printable guides",
+      addCurriculumBtn: "+ New Topic Series",
+      catAll: "All",
+      catSheet: "📄 Study Sheets",
+      catCharacter: "👤 Characters",
+      catGeo: "🗺️ Geography",
+      catArch: "🏺 Archaeology",
+      navScripture: "Scripture",
+      searchBackpackPlaceholder: "🔍 Search saved materials...",
+      settings_lang_label: "Interface Language:",
+      settings_apibible_title: "API.Bible API Key (NIV / NIrV / CEV Scripture):",
+      settings_apibible_detect: "Verify & Detect Bible IDs",
+      settings_apibible_desc: "• Enter your API.Bible Key to read NIV, NIrV, CEV translations with instant offline caching.<br>• Without a key, Chinese Union Version (CUV) full Bible and all AI features remain completely accessible."
     }
   },
 
@@ -207,6 +253,7 @@ const I18n = {
 
   // 應用翻譯至頁面標記了 data-i18n 的元素
   applyToDOM() {
+    if (typeof document === "undefined") return;
     const lang = this.getLang();
     document.documentElement.setAttribute("lang", lang === "en" ? "en" : "zh-Hant");
 
@@ -224,18 +271,24 @@ const I18n = {
       if (trans) el.setAttribute("placeholder", trans);
     });
 
+    // 更新章節前後綴標籤
+    const chapPrefix = document.getElementById("chapter-prefix-label");
+    const chapSuffix = document.getElementById("chapter-suffix-label");
+    if (chapPrefix) chapPrefix.textContent = this.isEn() ? "Ch." : "第";
+    if (chapSuffix) chapSuffix.textContent = this.isEn() ? "" : "章";
+
+    // 更新語言切換按鈕文字
+    const navLangLabel = document.getElementById("nav-lang-label");
+    if (navLangLabel) {
+      navLangLabel.textContent = this.isEn() ? "繁中" : "EN";
+    }
+
     // 重新渲染關鍵 UI 組件（書卷選擇器、章節下拉面板、經文區、口味標籤等）
     if (typeof renderBookSelector === "function") renderBookSelector();
     if (typeof renderTasteBadges === "function") renderTasteBadges();
     if (typeof renderScripture === "function") renderScripture();
     if (typeof renderActiveTierContent === "function") renderActiveTierContent();
     if (typeof renderCurriculumBanner === "function") renderCurriculumBanner();
-
-    // 更新語言切換按鈕文字
-    const langToggleBtn = document.getElementById("lang-toggle-btn");
-    if (langToggleBtn) {
-      langToggleBtn.innerHTML = lang === "en" ? "<span>🌐</span><span>EN</span>" : "<span>🌐</span><span>繁中</span>";
-    }
 
     const langSelectSetting = document.getElementById("setting-language-select");
     if (langSelectSetting) {

@@ -15,11 +15,16 @@ function renderCurriculumBanner() {
     return;
   }
   banner.classList.remove("hidden");
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
   const titleEl = document.getElementById("curriculum-banner-title");
   const sessionEl = document.getElementById("curriculum-banner-session");
   const themeEl = document.getElementById("curriculum-banner-theme");
-  if (titleEl) titleEl.textContent = activeCurriculumContext.packTitle || "小組主題課程";
-  if (sessionEl) sessionEl.textContent = `第 ${activeCurriculumContext.sessionNum || 1} 堂 · ${activeCurriculumContext.sessionTitle || ""}`;
+  if (titleEl) titleEl.textContent = activeCurriculumContext.packTitle || (isEn ? "Thematic Curriculum" : "小組主題課程");
+  if (sessionEl) {
+    sessionEl.textContent = isEn
+      ? `Session ${activeCurriculumContext.sessionNum || 1} · ${activeCurriculumContext.sessionTitle || ""}`
+      : `第 ${activeCurriculumContext.sessionNum || 1} 堂 · ${activeCurriculumContext.sessionTitle || ""}`;
+  }
   if (themeEl) {
     const parts = [];
     if (activeCurriculumContext.passageRange) parts.push(`📖 ${activeCurriculumContext.passageRange}`);
@@ -33,7 +38,8 @@ function renderCurriculumBanner() {
 function exitCurriculumMode() {
   activeCurriculumContext = null;
   renderCurriculumBanner();
-  showToast("已退出小組主題模式，返回單章通用研經。");
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  showToast(isEn ? "Exited thematic curriculum mode, returned to general study." : "已退出小組主題模式，返回單章通用研經。");
   handleBookOrChapterChange(false);
 }
 
@@ -274,18 +280,21 @@ function renderTier1Sheet(container) {
     return;
   }
 
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const bookName = typeof I18n !== "undefined" ? I18n.getBookName(activeStudyData.bookName || currentBook) : (activeStudyData.bookName || currentBook);
+  const chapNum = activeStudyData.chapter || currentChapter;
   const isSavedSheet = BackpackStore.isItemSaved(`sheet-${activeStudyData.bookId}-${activeStudyData.chapter}`);
 
   container.innerHTML = `
     <!-- 打印抬頭（平時隱藏，打印時自動顯示） -->
     <div class="print-header">
       <div class="print-brand">
-        <span>🎒 Bible Backpack · 靈修查經單張</span>
-        <span style="font-weight: normal; font-size: 10pt;">經文：${activeStudyData.bookName} 第 ${activeStudyData.chapter} 章</span>
+        <span>${isEn ? "🎒 Bible Backpack · Devotional Study Sheet" : "🎒 Bible Backpack · 靈修查經單張"}</span>
+        <span style="font-weight: normal; font-size: 10pt;">${isEn ? `Passage: ${bookName} Ch. ${chapNum}` : `經文：${bookName} 第 ${chapNum} 章`}</span>
       </div>
       <div class="print-meta">
-        <span>姓名/組別：____________________</span>
-        <span>日期：${new Date().toLocaleDateString()}</span>
+        <span>${isEn ? "Name / Group: ____________________" : "姓名/組別：____________________"}</span>
+        <span>${isEn ? "Date: " : "日期："}${new Date().toLocaleDateString()}</span>
       </div>
     </div>
 
@@ -293,16 +302,16 @@ function renderTier1Sheet(container) {
     <div class="no-print flex items-center justify-between pb-4 mb-4 border-b border-stone-200">
       <div>
         <span class="inline-block px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-amber-900 bg-amber-100 rounded">
-          類別一 · 靈修查經單張
+          ${isEn ? "Tier 1 · Devotional Study Sheet" : "類別一 · 靈修查經單張"}
         </span>
-        <span class="text-xs text-stone-500 ml-2">約 1~2 頁 A4，適合個人與團契</span>
+        <span class="text-xs text-stone-500 ml-2">${isEn ? "~1-2 pages A4, for personal & small group study" : "約 1~2 頁 A4，適合個人與團契"}</span>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="toggleSaveCurrentSheet()" class="action-btn px-3 py-1.5 text-xs rounded-md border ${isSavedSheet ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold' : 'border-stone-300 text-stone-700 hover:bg-stone-50'} transition-all flex items-center gap-1">
-          <span>${isSavedSheet ? '⭐ 已在背包' : '🎒 存入背包'}</span>
+          <span>${isSavedSheet ? (isEn ? '⭐ Saved' : '⭐ 已在背包') : (isEn ? '🎒 Save to Backpack' : '🎒 存入背包')}</span>
         </button>
         <button onclick="triggerPrint()" class="action-btn px-3 py-1.5 text-xs bg-stone-900 text-white rounded-md hover:bg-stone-800 transition-colors flex items-center gap-1 font-medium">
-          <span>🖨️ 列印/PDF</span>
+          <span>${isEn ? "🖨️ Print / PDF" : "🖨️ 列印/PDF"}</span>
         </button>
       </div>
     </div>
@@ -316,13 +325,13 @@ function renderTier1Sheet(container) {
 
       <!-- 章節精華快照 -->
       <div class="snapshot-box p-3.5 bg-stone-50 rounded-lg border-l-4 border-amber-700 text-sm text-stone-700 leading-relaxed">
-        <span class="font-bold text-stone-900 block mb-1">📖 章節核心快照</span>
+        <span class="font-bold text-stone-900 block mb-1">${isEn ? "📖 Chapter Snapshot" : "📖 章節核心快照"}</span>
         ${escapeHtml(data.snapshot)}
       </div>
 
       <!-- 經文分段大綱 -->
       <div class="outline-section">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">✦ 經文脈絡分段</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2">${isEn ? "✦ Passage Outline" : "✦ 經文脈絡分段"}</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
           ${data.outline.map(item => `
             <div class="p-2.5 bg-white border border-stone-200 rounded-md text-xs leading-relaxed">
@@ -336,8 +345,8 @@ function renderTier1Sheet(container) {
       <!-- 啟發與小組討論題 (3-4題) -->
       <div class="questions-section pt-1">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">✦ 小組討論與生活啟發（3~4 題）</h3>
-          <span class="text-xs text-stone-400 no-print">融入個人口味 · 拒絕生硬強塞</span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-stone-500">${isEn ? "✦ Small Group Discussion & Life Questions" : "✦ 小組討論與生活啟發（3~4 題）"}</h3>
+          <span class="text-xs text-stone-400 no-print">${isEn ? "Tailored to your study lenses" : "融入個人口味 · 拒絕生硬強塞"}</span>
         </div>
         
         <div class="space-y-3">
@@ -365,10 +374,10 @@ function renderTier1Sheet(container) {
 
       <!-- 默想總結與禱告 -->
       <div class="takeaway-box p-4 bg-amber-50/70 border border-amber-200 rounded-lg text-sm">
-        <div class="takeaway-title font-bold text-amber-950 mb-1">🕊️ 今日默想結語</div>
+        <div class="takeaway-title font-bold text-amber-950 mb-1">${isEn ? "🕊️ Today's Key Takeaway" : "🕊️ 今日默想結語"}</div>
         <p class="text-amber-900 leading-relaxed mb-3">${escapeHtml(data.takeaway)}</p>
         <div class="pt-2 border-t border-amber-200/80">
-          <span class="font-bold text-amber-950 text-xs block mb-1">🙏 總結禱告</span>
+          <span class="font-bold text-amber-950 text-xs block mb-1">${isEn ? "🙏 Closing Prayer" : "🙏 總結禱告"}</span>
           <p class="text-xs text-amber-900/90 italic leading-relaxed">${escapeHtml(data.prayer)}</p>
         </div>
       </div>
@@ -847,21 +856,23 @@ function renderTier2Dossier(container) {
     return;
   }
 
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
   const validPoints = getValidRoutePoints(data.geography?.routePoints);
   const isJourney = isChapterJourneyRoute(data.geography, activeStudyData?.bookName || currentBook, activeStudyData?.chapter || currentChapter);
-  const bookName = activeStudyData?.bookName || currentBook;
+  const rawBook = activeStudyData?.bookName || currentBook;
+  const bookName = typeof I18n !== "undefined" ? I18n.getBookName(rawBook) : rawBook;
   const chapNum = activeStudyData?.chapter || currentChapter;
 
   container.innerHTML = `
     <!-- 打印抬頭（平時隱藏，打印時自動顯示） -->
     <div class="print-header">
       <div class="print-brand">
-        <span>🎒 Bible Backpack · 深度研經行囊 (組長手冊)</span>
-        <span style="font-weight: normal; font-size: 10pt;">經文：${bookName} 第 ${chapNum} 章</span>
+        <span>${isEn ? "🎒 Bible Backpack · In-Depth Dossier (Leader Guide)" : "🎒 Bible Backpack · 深度研經行囊 (組長手冊)"}</span>
+        <span style="font-weight: normal; font-size: 10pt;">${isEn ? `Passage: ${bookName} Ch. ${chapNum}` : `經文：${bookName} 第 ${chapNum} 章`}</span>
       </div>
       <div class="print-meta">
-        <span>姓名/組別：____________________</span>
-        <span>日期：${new Date().toLocaleDateString()}</span>
+        <span>${isEn ? "Name / Group: ____________________" : "姓名/組別：____________________"}</span>
+        <span>${isEn ? "Date: " : "日期："}${new Date().toLocaleDateString()}</span>
       </div>
     </div>
 
@@ -869,13 +880,13 @@ function renderTier2Dossier(container) {
     <div class="no-print flex items-center justify-between pb-4 mb-4 border-b border-stone-200">
       <div>
         <span class="inline-block px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-purple-900 bg-purple-100 rounded">
-          類別二 · 深度研經行囊 (Dossier)
+          ${isEn ? "Tier 2 · In-Depth Dossier (Leader Guide)" : "類別二 · 深度研經行囊 (Dossier)"}
         </span>
-        <span class="text-xs text-stone-500 ml-2">小組長備課 × 個人深入鑽研</span>
+        <span class="text-xs text-stone-500 ml-2">${isEn ? "Leader Prep × Deep Theological Exploration" : "小組長備課 × 個人深入鑽研"}</span>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="triggerPrint()" class="action-btn px-3 py-1.5 text-xs bg-stone-900 text-white rounded-md hover:bg-stone-800 transition-colors flex items-center gap-1 font-medium">
-          <span>🖨️ 列印深度行囊</span>
+          <span>${isEn ? "🖨️ Print Leader Dossier" : "🖨️ 列印深度行囊"}</span>
         </button>
       </div>
     </div>
@@ -891,10 +902,10 @@ function renderTier2Dossier(container) {
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
             <span>👤</span>
-            <span>人物深度檔案 (Character Dossier)</span>
+            <span>${isEn ? "Character Dossier" : "人物深度檔案 (Character Dossier)"}</span>
           </h3>
           <button onclick="saveCardToBackpack('人物檔案', '${data.characters[0]?.name}')" class="text-xs text-amber-700 hover:underline">
-            + 存入背包
+            ${isEn ? "+ Save to Backpack" : "+ 存入背包"}
           </button>
         </div>
         <div class="space-y-3">
@@ -920,27 +931,27 @@ function renderTier2Dossier(container) {
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
             <span>🗺️</span>
-            <span>${isJourney ? '地理水文與行軍路線 (Geography & Route Simulation)' : '聖經歷史地理與水文環境 (Historical Geography & Context)'}</span>
+            <span>${isJourney ? (isEn ? 'Geography & Route Simulation' : '地理水文與行軍路線 (Geography & Route Simulation)') : (isEn ? 'Historical Geography & Context' : '聖經歷史地理與水文環境 (Historical Geography & Context)')}</span>
           </h3>
           <div class="flex items-center gap-2">
             ${data.geography?.googleMapsUrl ? `
               <a href="${data.geography.googleMapsUrl}" target="_blank" class="text-xs text-blue-700 hover:underline flex items-center gap-1 font-medium bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                <span>🌐 Google Maps 路線</span>
+                <span>${isEn ? "🌐 Google Maps Route" : "🌐 Google Maps 路線"}</span>
               </a>
             ` : ''}
             <button onclick="saveCardToBackpack('地理水文', '${data.geography?.location}')" class="text-xs text-amber-700 hover:underline">
-              + 存入背包
+              ${isEn ? "+ Save to Backpack" : "+ 存入背包"}
             </button>
           </div>
         </div>
 
         <div class="text-xs space-y-2.5">
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-stone-800">關鍵地點：</span>
+            <span class="font-semibold text-stone-800">${isEn ? "Key Location: " : "關鍵地點："}</span>
             <span class="text-stone-700 bg-stone-100 px-2 py-0.5 rounded font-mono">${escapeHtml(data.geography.location)}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="font-semibold text-stone-800">地形特徵：</span>
+            <span class="font-semibold text-stone-800">${isEn ? "Terrain: " : "地形特徵："}</span>
             <span class="text-stone-600">${escapeHtml(data.geography.terrain)}</span>
           </div>
           
@@ -953,7 +964,7 @@ function renderTier2Dossier(container) {
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
               <span class="text-xs font-bold text-stone-700 flex items-center gap-1">
                 <span>📍</span>
-                <span id="map-heading-label">${isJourney ? `《${escapeHtml(bookName)}》第 ${chapNum} 章 · 行軍與遷徙路線圖` : `《${escapeHtml(bookName)}》第 ${chapNum} 章 · 聖經歷史地標考證圖（非行軍連線）`}</span>
+                <span id="map-heading-label">${isJourney ? (isEn ? `${bookName} Ch. ${chapNum} · March Route Map` : `《${escapeHtml(bookName)}》第 ${chapNum} 章 · 行軍與遷徙路線圖`) : (isEn ? `${bookName} Ch. ${chapNum} · Biblical Landmark Map` : `《${escapeHtml(bookName)}》第 ${chapNum} 章 · 聖經歷史地標考證圖（非行軍連線）`)}</span>
               </span>
               <div class="flex items-center gap-1.5 flex-wrap">
                 <!-- 地圖文字語言切換 (Chinese / English) -->
@@ -963,12 +974,12 @@ function renderTier2Dossier(container) {
                 </div>
                 <!-- 地圖底圖樣式 (Clear Base vs Satellite) -->
                 <div class="bg-stone-100 p-0.5 rounded-lg border border-stone-200 flex items-center text-2xs">
-                  <button id="map-type-voyager" onclick="setMapType('voyager')" class="px-2 py-0.5 rounded font-bold bg-white text-stone-900 shadow-xs">清晰地圖</button>
-                  <button id="map-type-satellite" onclick="setMapType('satellite')" class="px-2 py-0.5 rounded text-stone-500 hover:text-stone-800">🛰️ 衛星</button>
+                  <button id="map-type-voyager" onclick="setMapType('voyager')" class="px-2 py-0.5 rounded font-bold bg-white text-stone-900 shadow-xs">${isEn ? "Terrain" : "清晰地圖"}</button>
+                  <button id="map-type-satellite" onclick="setMapType('satellite')" class="px-2 py-0.5 rounded text-stone-500 hover:text-stone-800">${isEn ? "🛰️ Satellite" : "🛰️ 衛星"}</button>
                 </div>
                 ${isJourney ? `
                   <button onclick="simulateMarchRoute()" class="px-2.5 py-1 text-2xs bg-amber-800 text-white rounded-md hover:bg-amber-900 font-medium transition-colors flex items-center gap-1 shadow-sm">
-                    <span>▶ 模擬行徑</span>
+                    <span>${isEn ? "▶ Simulate March" : "▶ 模擬行徑"}</span>
                   </button>
                 ` : ''}
               </div>
@@ -1000,7 +1011,7 @@ function renderTier2Dossier(container) {
           ` : `
             <div class="p-3 bg-stone-50 border border-stone-200 rounded-lg text-2xs text-stone-500 flex items-center gap-2">
               <span>🧭</span>
-              <span>本章屬心靈默想、教義論述或無特定剛性地理座標，為持守嚴謹考證原則，不強行標註推測性地標。</span>
+              <span>${isEn ? "This chapter focuses on spiritual reflections or theological discourse. To preserve strict biblical integrity, speculative landmarks are not mapped." : "本章屬心靈默想、教義論述或無特定剛性地理座標，為持守嚴謹考證原則，不強行標註推測性地標。"}</span>
             </div>
           `}
         </div>
@@ -1011,20 +1022,20 @@ function renderTier2Dossier(container) {
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
             <span>🏺</span>
-            <span>歷史年代與考古考證 (History & Archaeology)</span>
+            <span>${isEn ? "History & Archaeology" : "歷史年代與考古考證 (History & Archaeology)"}</span>
           </h3>
           <button onclick="saveCardToBackpack('歷史考證', '${data.archaeology?.era}')" class="text-xs text-amber-700 hover:underline">
-            + 存入背包
+            ${isEn ? "+ Save to Backpack" : "+ 存入背包"}
           </button>
         </div>
 
         <div class="text-xs space-y-3 leading-relaxed">
           <div>
-            <span class="font-semibold text-stone-800">歷史年代：</span>
+            <span class="font-semibold text-stone-800">${isEn ? "Historical Era: " : "歷史年代："}</span>
             <span class="text-stone-600 font-medium">${escapeHtml(data.archaeology.era)}</span>
           </div>
           <div>
-            <span class="font-semibold text-stone-800">地緣形勢：</span>
+            <span class="font-semibold text-stone-800">${isEn ? "Geopolitical Context: " : "地緣形勢："}</span>
             <span class="text-stone-600">${escapeHtml(data.archaeology.canaaniteContext)}</span>
           </div>
           <div class="p-3 bg-amber-50/80 border border-amber-200 rounded-lg text-amber-950 whitespace-pre-line">
@@ -1035,8 +1046,8 @@ function renderTier2Dossier(container) {
           ${data.archaeology.visualArtifacts ? `
             <div class="pt-2">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-stone-700">✦ 出土實物與考古圖解 (Visual Evidence)</span>
-                <span class="text-2xs text-stone-400">點擊圖片可放大細看</span>
+                <span class="text-xs font-bold text-stone-700">${isEn ? "✦ Visual Evidence & Artifacts" : "✦ 出土實物與考古圖解 (Visual Evidence)"}</span>
+                <span class="text-2xs text-stone-400">${isEn ? "Click image to inspect" : "點擊圖片可放大細看"}</span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 ${data.archaeology.visualArtifacts.map((art, idx) => {
@@ -1048,23 +1059,23 @@ function renderTier2Dossier(container) {
                       <div class="relative overflow-hidden rounded-lg mb-2.5 bg-stone-200 aspect-video cursor-pointer border border-stone-200/80" onclick="openArtifactZoomModal(${idx})">
                         <img id="artifact-img-${idx}" src="${fallbackSrc}" alt="${escapeHtml(art.title)}" onerror="handleArtifactImgError(this, ${idx})" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy">
                         <div class="absolute inset-0 bg-stone-900/10 group-hover:bg-transparent transition-colors"></div>
-                        <span class="absolute bottom-1 right-1 bg-black/70 backdrop-blur-xs text-white text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5">🔍 放大檢視</span>
+                        <span class="absolute bottom-1 right-1 bg-black/70 backdrop-blur-xs text-white text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5">${isEn ? "🔍 Inspect" : "🔍 放大檢視"}</span>
                         <span id="artifact-source-tag-${idx}" class="hidden absolute top-1 left-1 bg-emerald-800/90 backdrop-blur-xs text-white text-2xs px-1.5 py-0.5 rounded shadow-xs flex items-center gap-1 font-sans">
                           <span>🏛️</span>
-                          <span>百科考證真跡</span>
+                          <span>${isEn ? "Verified Artifact" : "百科考證真跡"}</span>
                         </span>
                       </div>
 
                       <!-- 維基百科條目核驗與多角度換圖列 -->
                       <div id="artifact-verify-bar-${idx}" class="hidden mb-2 px-2 py-1 bg-emerald-50/80 border border-emerald-200/80 rounded-md flex items-center justify-between gap-1">
-                        <span id="artifact-matched-wiki-${idx}" class="text-2xs text-emerald-900 font-medium truncate">📖 對應百科條目</span>
+                        <span id="artifact-matched-wiki-${idx}" class="text-2xs text-emerald-900 font-medium truncate">📖 ${isEn ? "Wikipedia Match" : "對應百科條目"}</span>
                         <button type="button" id="artifact-cycle-btn-${idx}" onclick="cycleArtifactPhoto(${idx}, event)" class="hidden text-2xs bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded whitespace-nowrap font-medium cursor-pointer transition-colors">
-                          🔄 換圖
+                          ${isEn ? "🔄 Switch" : "🔄 換圖"}
                         </button>
                       </div>
 
                       <div class="flex items-center justify-between mb-1.5">
-                        <span class="text-2xs font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded">${escapeHtml(art.imageBadge || '📜 歷史文獻考證')}</span>
+                        <span class="text-2xs font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded">${escapeHtml(art.imageBadge || (isEn ? '📜 Historical Text' : '📜 歷史文獻考證'))}</span>
                         <a id="artifact-source-link-${idx}" href="javascript:void(0)" target="_blank" class="text-2xs text-stone-500 hover:text-amber-800 underline font-mono flex items-center gap-0.5">
                           <span>${escapeHtml(art.tag || 'Archaeology')}</span>
                         </a>
@@ -1085,9 +1096,9 @@ function renderTier2Dossier(container) {
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
             <span>🔍</span>
-            <span>經文疑難解答 (Difficult Passages Q&A)</span>
+            <span>${isEn ? "Difficult Passages Q&A" : "經文疑難解答 (Difficult Passages Q&A)"}</span>
           </h3>
-          <span class="text-xs text-stone-400">正統釋經守則</span>
+          <span class="text-xs text-stone-400">${isEn ? "Orthodox Hermeneutics" : "正統釋經守則"}</span>
         </div>
         <div class="space-y-3">
           ${data.difficulties.map(diff => `
@@ -1106,20 +1117,20 @@ function renderTier2Dossier(container) {
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
             <span>🎓</span>
-            <span>小組長備課手冊 (Leader's Facilitation Guide)</span>
+            <span>${isEn ? "Leader's Facilitation Guide" : "小組長備課手冊 (Leader's Facilitation Guide)"}</span>
           </h3>
-          <span class="text-xs text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded">導師專用</span>
+          <span class="text-xs text-emerald-800 font-semibold bg-emerald-50 px-2 py-0.5 rounded">${isEn ? "Leader Only" : "導師專用"}</span>
         </div>
         <div class="text-xs space-y-2 leading-relaxed">
           <div class="p-2.5 bg-emerald-50/50 rounded border border-emerald-100 text-emerald-950">
             ${escapeHtml(data.leaderGuide.icebreaker)}
           </div>
           <div class="p-2.5 bg-stone-50 rounded text-stone-700">
-            <span class="font-bold text-stone-900 block mb-0.5">帶領節奏與心態：</span>
+            <span class="font-bold text-stone-900 block mb-0.5">${isEn ? "Pacing & Mindset:" : "帶領節奏與心態："}</span>
             ${escapeHtml(data.leaderGuide.flowTips)}
           </div>
           <div class="text-stone-500 pt-1">
-            ⏱️ <span class="font-medium text-stone-700">時間規劃建議：</span> ${escapeHtml(data.leaderGuide.timeBudget)}
+            ⏱️ <span class="font-medium text-stone-700">${isEn ? "Suggested Time Budget: " : "時間規劃建議："}</span> ${escapeHtml(data.leaderGuide.timeBudget)}
           </div>
         </div>
       </div>
@@ -1434,27 +1445,52 @@ function renderEmptyChapterPrompt(book = currentBook, chapter = currentChapter, 
   const container = document.getElementById("tier-content-container");
   if (!container) return;
 
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const bookName = typeof I18n !== "undefined" ? I18n.getBookName(book) : book;
   const selectedTasteIds = BackpackStore.getTastes();
   const selectedTastes = BackpackStore.AVAILABLE_TASTES.filter(t => selectedTasteIds.includes(t.id));
-  const tastesLabel = selectedTastes.map(t => t.name).join("、") || "綜合思考";
+  const tastesLabel = selectedTastes.map(t => typeof I18n !== "undefined" ? I18n.getTasteInfo(t).name : t.name).join(isEn ? ", " : "、") || (isEn ? "General Study" : "綜合思考");
 
   const isCurriculum = !!activeCurriculumContext;
   const isTier1 = tier === "tier1";
-  const title = isCurriculum
-    ? `《${activeCurriculumContext.packTitle}》第 ${activeCurriculumContext.sessionNum} 堂 · 專屬材料尚未調配`
-    : (isTier1
-      ? `《${book}》第 ${chapter} 章 · 靈修材料尚未製作`
-      : `《${book}》第 ${chapter} 章 · 深度研經行囊尚未製作`);
+  
+  let title = "";
+  let desc = "";
+  let btnText = "";
 
-  const desc = isCurriculum
-    ? `本堂主題【${activeCurriculumContext.sessionTitle}】（焦點：${activeCurriculumContext.passageRange || `${book} 第 ${chapter} 章`}）。點擊下方按鈕，AI 神學主管將直接緊扣「${activeCurriculumContext.coreMessage || '本堂核心信息'}」與破冰焦點，專屬調配【靈修單張】與【組長手冊】！`
-    : (isTier1
-      ? `左側全本經文已就緒。隨時點擊下方按鈕，AI 神學主管將根據您設定的口味視角，為本章專屬調配【靈修查經單張】（約 1~2 頁 A4，適合個人靈修與小組聚會）。`
-      : `包含：歷史地理考證地圖、出土文物考古圖解、神學難題解答與小組長破冰指南。`);
+  if (isEn) {
+    title = isCurriculum
+      ? `${activeCurriculumContext.packTitle} Session ${activeCurriculumContext.sessionNum} · Study Pack Not Yet Generated`
+      : (isTier1
+        ? `${bookName} Chapter ${chapter} · Devotional Study Sheet Not Yet Generated`
+        : `${bookName} Chapter ${chapter} · In-Depth Dossier Not Yet Generated`);
 
-  const btnText = isCurriculum
-    ? `一鍵為【${activeCurriculumContext.sessionTitle}】調配專屬小組材料`
-    : `一鍵製作《${escapeHtml(book)} 第 ${chapter} 章》靈修材料`;
+    desc = isCurriculum
+      ? `Session Topic: [${activeCurriculumContext.sessionTitle}] (Focus: ${activeCurriculumContext.passageRange || `${bookName} Ch. ${chapter}`}). Click below and our AI Theological Director will generate customized devotional and leader sheets centered on this core message and icebreaker!`
+      : (isTier1
+        ? `Scripture text is ready on the left. Click below and our AI Theological Director will tailor a Devotional Study Sheet (~1-2 pages A4) for personal devotionals and small group study.`
+        : `Includes: historical geography maps, archaeological artifacts, theological Q&A, and small group leader facilitation guide.`);
+
+    btnText = isCurriculum
+      ? `Generate Group Material for [${activeCurriculumContext.sessionTitle}]`
+      : `Generate Study Material for ${escapeHtml(bookName)} Ch. ${chapter}`;
+  } else {
+    title = isCurriculum
+      ? `《${activeCurriculumContext.packTitle}》第 ${activeCurriculumContext.sessionNum} 堂 · 專屬材料尚未調配`
+      : (isTier1
+        ? `《${bookName}》第 ${chapter} 章 · 靈修材料尚未製作`
+        : `《${bookName}》第 ${chapter} 章 · 深度研經行囊尚未製作`);
+
+    desc = isCurriculum
+      ? `本堂主題【${activeCurriculumContext.sessionTitle}】（焦點：${activeCurriculumContext.passageRange || `${bookName} 第 ${chapter} 章`}）。點擊下方按鈕，AI 神學主管將直接緊扣「${activeCurriculumContext.coreMessage || '本堂核心信息'}」與破冰焦點，專屬調配【靈修單張】與【組長手冊】！`
+      : (isTier1
+        ? `左側全本經文已就緒。隨時點擊下方按鈕，AI 神學主管將根據您設定的口味視角，為本章專屬調配【靈修查經單張】（約 1~2 頁 A4，適合個人靈修與小組聚會）。`
+        : `包含：歷史地理考證地圖、出土文物考古圖解、神學難題解答與小組長破冰指南。`);
+
+    btnText = isCurriculum
+      ? `一鍵為【${activeCurriculumContext.sessionTitle}】調配專屬小組材料`
+      : `一鍵製作《${escapeHtml(bookName)} 第 ${chapter} 章》靈修材料`;
+  }
 
   container.innerHTML = `
     <div class="py-16 px-4 text-center space-y-4 max-w-lg mx-auto animate-fade-in my-auto">
@@ -1468,15 +1504,15 @@ function renderEmptyChapterPrompt(book = currentBook, chapter = currentChapter, 
         </p>
         ${isCurriculum && activeCurriculumContext.discussionTheme ? `
           <div class="mt-2 text-2xs text-amber-800 bg-amber-50/80 border border-amber-200/80 px-3 py-1.5 rounded-lg max-w-md mx-auto inline-block text-left">
-            <strong>💬 討論焦點預覽：</strong>${escapeHtml(activeCurriculumContext.discussionTheme)}
+            <strong>${isEn ? "💬 Discussion Theme: " : "💬 討論焦點預覽："}</strong>${escapeHtml(activeCurriculumContext.discussionTheme)}
           </div>
         ` : ''}
       </div>
       
       <!-- 當前口味標籤 -->
       <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-stone-100 border border-stone-200 rounded-full text-2xs text-stone-700">
-        <span>✨ 當前口味：<strong>${escapeHtml(tastesLabel)}</strong></span>
-        <button onclick="openTasteModal()" class="text-amber-800 hover:text-amber-900 underline font-medium">切換口味</button>
+        <span>✨ ${isEn ? "Active Lenses: " : "當前口味："}<strong>${escapeHtml(tastesLabel)}</strong></span>
+        <button onclick="openTasteModal()" class="text-amber-800 hover:text-amber-900 underline font-medium">${isEn ? "Change Lenses" : "切換口味"}</button>
       </div>
 
       <!-- 一鍵製作靈修材料按鈕 -->
@@ -1489,17 +1525,17 @@ function renderEmptyChapterPrompt(book = currentBook, chapter = currentChapter, 
 
       <div class="pt-4 border-t border-stone-200 flex flex-wrap items-center justify-center gap-3 text-xs text-stone-500">
         <button onclick="openSettingsModal()" class="hover:text-stone-800 underline flex items-center gap-1">
-          <span>⚙️ API 設置與模型切換</span>
+          <span>${isEn ? "⚙️ API Settings & Model Switch" : "⚙️ API 設置與模型切換"}</span>
         </button>
         ${isCurriculum ? `
           <span>·</span>
           <button onclick="exitCurriculumMode()" class="hover:text-stone-800 underline flex items-center gap-1">
-            <span>✕ 退出主題模式</span>
+            <span>${isEn ? "✕ Exit Topic Mode" : "✕ 退出主題模式"}</span>
           </button>
         ` : `
           <span>·</span>
           <button onclick="loadDefaultPreset()" class="hover:text-stone-800 underline flex items-center gap-1">
-            <span>📖 查看經典預載書卷 (創世記 1)</span>
+            <span>${isEn ? "📖 View Preset Pack (Genesis 1)" : "📖 查看經典預載書卷 (創世記 1)"}</span>
           </button>
         `}
       </div>
