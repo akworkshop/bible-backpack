@@ -48,6 +48,15 @@ function initApp() {
   currentChapter = lastLoc.chapter || 1;
 
   applyThemeAndFont();
+
+  if (typeof I18n !== "undefined") {
+    I18n.applyToDOM();
+    const navLangLabel = document.getElementById("nav-lang-label");
+    if (navLangLabel) {
+      navLangLabel.textContent = BackpackStore.getLanguage() === "zh" ? "EN" : "繁中";
+    }
+  }
+
   renderTasteBadges();
   renderBookSelector();
 
@@ -68,22 +77,73 @@ function applyThemeAndFont() {
   document.body.className = `font-size-${fontSize}`;
 }
 
+// 介面語言切換 (zh 繁體中文 ⇄ en English)
+function setLanguage(lang) {
+  if (!lang || (lang !== "zh" && lang !== "en")) return;
+  BackpackStore.setLanguage(lang);
+
+  const btnZh = document.getElementById("lang-btn-zh");
+  const btnEn = document.getElementById("lang-btn-en");
+  if (btnZh && btnEn) {
+    if (lang === "zh") {
+      btnZh.className = "px-3 py-1.5 rounded border text-xs font-bold transition-all border-amber-700 bg-amber-50 text-amber-900";
+      btnEn.className = "px-3 py-1.5 rounded border text-xs font-medium transition-all border-stone-300 bg-white hover:bg-stone-50 text-stone-700";
+    } else {
+      btnEn.className = "px-3 py-1.5 rounded border text-xs font-bold transition-all border-amber-700 bg-amber-50 text-amber-900";
+      btnZh.className = "px-3 py-1.5 rounded border text-xs font-medium transition-all border-stone-300 bg-white hover:bg-stone-50 text-stone-700";
+    }
+  }
+
+  const navLangLabel = document.getElementById("nav-lang-label");
+  if (navLangLabel) {
+    navLangLabel.textContent = lang === "zh" ? "EN" : "繁中";
+  }
+
+  if (typeof I18n !== "undefined") {
+    I18n.applyToDOM();
+  }
+
+  // 英文介面時，若當前譯本為和合本，自動推薦切換至 NIV
+  if (lang === "en" && BackpackStore.getBibleVersion() === "cuv") {
+    BackpackStore.setBibleVersion("niv");
+    const verSelect = document.getElementById("bible-version-select");
+    if (verSelect) verSelect.value = "niv";
+  }
+
+  renderBookSelector();
+  renderTasteBadges();
+  renderScripture();
+  handleBookOrChapterChange(false);
+}
+
+function toggleLanguage() {
+  const current = BackpackStore.getLanguage();
+  const next = current === "zh" ? "en" : "zh";
+  setLanguage(next);
+  showToast(next === "en" ? "Switched to English interface" : "已切換至繁體中文介面");
+}
+
 // 頂部當前口味標籤展示
 function renderTasteBadges() {
   const container = document.getElementById("active-taste-badges");
   if (!container) return;
 
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
   const selectedTasteIds = BackpackStore.getTastes();
   const allTastes = BackpackStore.AVAILABLE_TASTES;
   const activeTastes = allTastes.filter(t => selectedTasteIds.includes(t.id));
   const customKeyword = BackpackStore.getCustomTaste();
 
-  let html = activeTastes.map(t => `
-    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 border border-stone-200">
-      <span>${t.icon}</span>
-      <span>${t.name}</span>
-    </span>
-  `).join("");
+  let html = activeTastes.map(t => {
+    const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t.id) : t;
+    const name = isEn ? (info.nameEn || t.name) : t.name;
+    return `
+      <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-700 border border-stone-200">
+        <span>${t.icon}</span>
+        <span>${name}</span>
+      </span>
+    `;
+  }).join("");
 
   if (customKeyword) {
     html += `
@@ -97,27 +157,38 @@ function renderTasteBadges() {
   container.innerHTML = html;
 }
 
-// 渲染經文列表（優先從本地 BibleService 瞬間極速讀取全本 66 卷經文）
+// 渲染經文列表（支援 CUV 和合本、API.Bible NIV/NIrV/CEV 與本地快取）
 function renderScripture() {
   const titleEl = document.getElementById("scripture-title");
   const container = document.getElementById("scripture-verses");
+  const versionSelect = document.getElementById("bible-version-select");
   if (!container) return;
 
-  const book = currentBook || (activeStudyData ? activeStudyData.bookName : "約書亞記");
+  const currentVer = (typeof BackpackStore !== "undefined" ? BackpackStore.getBibleVersion() : "cuv").toLowerCase();
+  if (versionSelect && versionSelect.value !== currentVer) {
+    versionSelect.value = currentVer;
+  }
+
+  const book = currentBook || (activeStudyData ? activeStudyData.bookName : "創世記");
   const chap = currentChapter || (activeStudyData ? activeStudyData.chapter : 1);
+  const bookMeta = typeof BibleService !== "undefined" ? BibleService.getBookMeta(book) : null;
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const displayName = isEn ? (bookMeta?.english || book) : (bookMeta?.name || book);
 
   if (titleEl) {
-    titleEl.textContent = `${book} 第 ${chap} 章`;
+    titleEl.textContent = isEn 
+      ? `${displayName} Chapter ${chap}` 
+      : `${displayName} 第 ${chap} 章`;
   }
 
-  // 1. 優先從本地全本聖經服務讀取
+  // 1. 優先從 BibleService 讀取 (支援 cuv, niv, nirv, cev)
   let verses = null;
-  if (typeof BibleService !== "undefined" && BibleService.bibleData) {
-    verses = BibleService.getChapterVerses(book, chap);
+  if (typeof BibleService !== "undefined") {
+    verses = BibleService.getChapterVerses(book, chap, currentVer);
   }
 
-  // 2. 備用：若本地全庫尚未完成載入，從 activeStudyData 或預載包讀取
-  if (!verses || !verses.length || (verses.length === 1 && verses[0].text.includes("正在"))) {
+  // 2. 備用：若 CUV 本地全庫尚未完成載入，從 activeStudyData 或預載包讀取 (僅在 CUV 時相容備用)
+  if (currentVer === "cuv" && (!verses || !verses.length || (verses.length === 1 && verses[0].text.includes("正在")))) {
     if (activeStudyData && activeStudyData.bookName === book && activeStudyData.chapter === chap && activeStudyData.verses) {
       verses = activeStudyData.verses;
     } else if (typeof getPresetPack === "function") {
@@ -130,20 +201,54 @@ function renderScripture() {
     container.innerHTML = `
       <div class="py-12 text-center text-xs text-stone-400">
         <div class="inline-block animate-spin text-2xl mb-2">📖</div>
-        <div>正在準備《${escapeHtml(book)}》第 ${chap} 章經文...</div>
+        <div>${isEn ? `Loading ${displayName} ${chap}...` : `正在準備《${escapeHtml(displayName)}》第 ${chap} 章經文...`}</div>
       </div>
     `;
     return;
   }
 
-  const versesHtml = verses.map(v => `
-    <div class="verse-item flex items-baseline gap-2 py-1.5 px-2 rounded hover:bg-stone-50 transition-colors" id="verse-${v.num}">
-      <span class="verse-num text-xs font-bold text-amber-800 w-6 flex-shrink-0 select-none">${v.num}</span>
-      <span class="verse-text text-stone-800 leading-relaxed">${escapeHtml(v.text)}</span>
-    </div>
-  `).join("");
+  const versesHtml = verses.map(v => {
+    if (v.isNotice) {
+      return `
+        <div class="p-3 my-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 leading-relaxed">
+          <div class="font-bold mb-1">📢 ${isEn ? "Notice" : "提示"}</div>
+          <div>${escapeHtml(v.text)}</div>
+          <div class="mt-2">
+            <button onclick="openSettingsModal()" class="px-3 py-1 bg-amber-800 text-white text-2xs rounded hover:bg-amber-900">
+              ${isEn ? "Open Settings (⚙️)" : "前往設置 (⚙️)"}
+            </button>
+            <button onclick="switchBibleVersion('cuv')" class="px-3 py-1 bg-stone-200 text-stone-800 text-2xs rounded hover:bg-stone-300 ml-1">
+              ${isEn ? "Switch to CUV" : "切換至和合本"}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div class="verse-item flex items-baseline gap-2 py-1.5 px-2 rounded hover:bg-stone-50 transition-colors" id="verse-${v.num}">
+        <span class="verse-num text-xs font-bold text-amber-800 w-6 flex-shrink-0 select-none">${v.num}</span>
+        <span class="verse-text text-stone-800 leading-relaxed">${escapeHtml(v.text)}</span>
+      </div>
+    `;
+  }).join("");
 
   container.innerHTML = versesHtml;
+}
+
+// 切換聖經譯本
+function switchBibleVersion(ver) {
+  if (!ver) return;
+  BackpackStore.setBibleVersion(ver);
+  
+  if (ver !== "cuv" && !BackpackStore.getApiBibleKey()) {
+    showToast(typeof I18n !== "undefined" && I18n.isEn() 
+      ? `Please set your API.Bible Key in Settings (⚙️) to fetch ${ver.toUpperCase()} text!` 
+      : `請在右上角「⚙️ 設置」填寫 API.Bible 金鑰以連線載入 ${ver.toUpperCase()}！`);
+  } else {
+    showToast(`切換譯本至 ${ver.toUpperCase()}`);
+  }
+
+  renderScripture();
 }
 
 // 渲染當前選中的研經層級 (Tier 1 vs Tier 2)
@@ -1097,11 +1202,12 @@ function triggerPrint() {
   window.print();
 }
 
-// 書卷選擇器渲染
+// 書卷選擇器渲染（支援雙語）
 function renderBookSelector() {
   const select = document.getElementById("book-selector-select");
   if (!select || typeof BIBLE_BOOKS === "undefined") return;
 
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
   let html = "";
   let currentSec = "";
 
@@ -1109,10 +1215,15 @@ function renderBookSelector() {
     if (book.section !== currentSec) {
       if (currentSec !== "") html += `</optgroup>`;
       currentSec = book.section;
-      html += `<optgroup label="—— ${book.testament === 'OT' ? '舊約' : '新約'} · ${currentSec} ——">`;
+      const secLabel = isEn 
+        ? `${book.testament === 'OT' ? 'Old Testament' : 'New Testament'} · ${book.section}` 
+        : `${book.testament === 'OT' ? '舊約' : '新約'} · ${currentSec}`;
+      html += `<optgroup label="—— ${secLabel} ——">`;
     }
     const selected = book.name === currentBook ? "selected" : "";
-    html += `<option value="${book.name}" ${selected}>${book.name} (${book.chapters}章)</option>`;
+    const bName = isEn ? book.english : book.name;
+    const chapSuffix = isEn ? `(${book.chapters} ch)` : `(${book.chapters}章)`;
+    html += `<option value="${book.name}" ${selected}>${bName} ${chapSuffix}</option>`;
   });
   html += `</optgroup>`;
 
@@ -1264,8 +1375,11 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
   // ★ 關鍵：無論如何立即依本地全本聖經庫渲染左側經文，實現 0 毫秒極速閱讀跳轉！
   renderScripture();
 
-  // 1. 若非處於主題課程模式，優先檢查是否命中預載經典包 (創世記 1, 約書亞記 1, 詩篇 23, 羅馬書 8)
-  if (!activeCurriculumContext) {
+  const lang = typeof BackpackStore !== "undefined" ? BackpackStore.getLanguage() : "zh";
+  const version = typeof BackpackStore !== "undefined" ? BackpackStore.getBibleVersion() : "cuv";
+
+  // 1. 若非處於主題課程模式，優先檢查是否命中預載經典包 (僅在非英文時啟用；用戶明確要求英文版本不用預載包，現場調配)
+  if (!activeCurriculumContext && lang !== "en") {
     const preset = typeof getPresetPack === "function" ? getPresetPack(currentBook, currentChapter) : null;
     if (preset && !forceRegenerate) {
       activeStudyData = preset;
@@ -1277,9 +1391,9 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
     }
   }
 
-  // 2. 檢查本地持久快取中是否已有先前調配過的材料（若為主題課程，特徵 hash 包含課程 ID 與課堂序號）
+  // 2. 檢查本地持久快取中是否已有先前調配過的材料（若為主題課程，特徵 hash 包含語言、譯本、課程 ID 與課堂序號）
   const selectedTasteIds = BackpackStore.getTastes();
-  let tasteHash = (selectedTasteIds || []).sort().join("-") + (BackpackStore.getCustomTaste() ? `-${BackpackStore.getCustomTaste()}` : "");
+  let tasteHash = `${lang}-${version}-` + (selectedTasteIds || []).sort().join("-") + (BackpackStore.getCustomTaste() ? `-${BackpackStore.getCustomTaste()}` : "");
   if (activeCurriculumContext) {
     tasteHash += `-curriculum-${activeCurriculumContext.packId || 'pack'}-${activeCurriculumContext.sessionNum || 1}`;
   }
@@ -1295,7 +1409,10 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
     };
     renderActiveTierContent();
     if (!isInitialLoad) {
-      showToast(`⚡ 已從快取載入【${activeCurriculumContext ? activeCurriculumContext.sessionTitle : currentBook + ' 第 ' + currentChapter + ' 章'}】研經材料！`);
+      const isEn = typeof I18n !== "undefined" && I18n.isEn();
+      showToast(isEn 
+        ? `⚡ Loaded study pack from offline cache!` 
+        : `⚡ 已從快取載入【${activeCurriculumContext ? activeCurriculumContext.sessionTitle : currentBook + ' 第 ' + currentChapter + ' 章'}】研經材料！`);
     }
     return;
   }
@@ -1745,6 +1862,35 @@ function openSettingsModal(notice = "") {
   const groqModelSelect = document.getElementById("groq-model-select-input");
   if (groqModelSelect) groqModelSelect.value = BackpackStore.getGroqModel();
 
+  const apiBibleKeyInput = document.getElementById("api-bible-key-input");
+  const apibibleIdNiv = document.getElementById("apibible-id-niv");
+  const apibibleIdNirv = document.getElementById("apibible-id-nirv");
+  const apibibleIdCev = document.getElementById("apibible-id-cev");
+  const apibibleStatusEl = document.getElementById("apibible-test-status");
+
+  if (apiBibleKeyInput) apiBibleKeyInput.value = BackpackStore.getApiBibleKey();
+  if (apibibleIdNiv) apibibleIdNiv.value = BackpackStore.getApiBibleId("niv");
+  if (apibibleIdNirv) apibibleIdNirv.value = BackpackStore.getApiBibleId("nirv");
+  if (apibibleIdCev) apibibleIdCev.value = BackpackStore.getApiBibleId("cev");
+  if (apibibleStatusEl) {
+    apibibleStatusEl.className = "mt-1.5 text-2xs hidden";
+    apibibleStatusEl.innerHTML = "";
+  }
+
+  // 更新語系按鈕樣式
+  const currentLang = BackpackStore.getLanguage();
+  const btnZh = document.getElementById("lang-btn-zh");
+  const btnEn = document.getElementById("lang-btn-en");
+  if (btnZh && btnEn) {
+    if (currentLang === "zh") {
+      btnZh.className = "px-3 py-1.5 rounded border text-xs font-bold transition-all border-amber-700 bg-amber-50 text-amber-900";
+      btnEn.className = "px-3 py-1.5 rounded border text-xs font-medium transition-all border-stone-300 bg-white hover:bg-stone-50 text-stone-700";
+    } else {
+      btnEn.className = "px-3 py-1.5 rounded border text-xs font-bold transition-all border-amber-700 bg-amber-50 text-amber-900";
+      btnZh.className = "px-3 py-1.5 rounded border text-xs font-medium transition-all border-stone-300 bg-white hover:bg-stone-50 text-stone-700";
+    }
+  }
+
   if (noticeEl) {
     noticeEl.textContent = notice;
     noticeEl.style.display = notice ? "block" : "none";
@@ -1883,6 +2029,11 @@ function saveSettingsModal() {
   const geminiModel = document.getElementById("model-select-input")?.value;
   const groqModel = document.getElementById("groq-model-select-input")?.value;
 
+  const apiBibleKey = document.getElementById("api-bible-key-input")?.value;
+  const nivId = document.getElementById("apibible-id-niv")?.value;
+  const nirvId = document.getElementById("apibible-id-nirv")?.value;
+  const cevId = document.getElementById("apibible-id-cev")?.value;
+
   BackpackStore.setProvider(provider);
   BackpackStore.setApiKey(geminiKey);
   BackpackStore.setGroqKey(groqKey);
@@ -1890,6 +2041,11 @@ function saveSettingsModal() {
   if (localModel) BackpackStore.setLocalModel(localModel);
   if (geminiModel) BackpackStore.setModelName(geminiModel);
   if (groqModel) BackpackStore.setGroqModel(groqModel);
+
+  if (typeof apiBibleKey !== "undefined") BackpackStore.setApiBibleKey(apiBibleKey);
+  if (nivId) BackpackStore.setApiBibleId("niv", nivId);
+  if (nirvId) BackpackStore.setApiBibleId("nirv", nirvId);
+  if (cevId) BackpackStore.setApiBibleId("cev", cevId);
 
   closeSettingsModal();
   let activeDesc = "";
@@ -1905,6 +2061,7 @@ function saveSettingsModal() {
     hasValidConfig = !!geminiKey;
   }
   showToast(`設置已保存！當前通道：${activeDesc}`);
+  renderScripture();
 
   // 若先前有點選等待生成的書卷或用戶正要調配，立即自動觸發生成
   if (pendingGenerationBook && hasValidConfig) {
@@ -1918,6 +2075,58 @@ function saveSettingsModal() {
     if (bookSelect) bookSelect.value = currentBook;
     if (chapInput) chapInput.value = currentChapter;
     generateWithCurrentTastes();
+  }
+}
+
+// 測試與驗證 API.Bible API Key
+async function testApiBibleKey() {
+  const keyInput = document.getElementById("api-bible-key-input");
+  const statusEl = document.getElementById("apibible-test-status");
+  const apiKey = (keyInput ? keyInput.value : "").trim();
+
+  if (!apiKey) {
+    if (statusEl) {
+      statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
+      statusEl.textContent = "⚠️ 請先填寫 API.Bible API Key 再進行驗證。";
+    }
+    return;
+  }
+
+  if (statusEl) {
+    statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
+    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> 正在向 API.Bible 驗證金鑰並掃描可用聖經譯本 (NIV, NIrV, CEV)...`;
+  }
+
+  try {
+    const detected = await BibleService.detectBibleIds(apiKey);
+    const nivId = detected.niv?.id || BackpackStore.getApiBibleId("niv");
+    const nirvId = detected.nirv?.id || BackpackStore.getApiBibleId("nirv");
+    const cevId = detected.cev?.id || BackpackStore.getApiBibleId("cev");
+
+    const nivInput = document.getElementById("apibible-id-niv");
+    const nirvInput = document.getElementById("apibible-id-nirv");
+    const cevInput = document.getElementById("apibible-id-cev");
+
+    if (nivInput && nivId) nivInput.value = nivId;
+    if (nirvInput && nirvId) nirvInput.value = nirvId;
+    if (cevInput && cevId) cevInput.value = cevId;
+
+    const detectedNames = [];
+    if (detected.niv) detectedNames.push(`NIV (${detected.niv.name})`);
+    if (detected.nirv) detectedNames.push(`NIrV (${detected.nirv.name})`);
+    if (detected.cev) detectedNames.push(`CEV (${detected.cev.name})`);
+
+    if (statusEl) {
+      statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 block font-medium";
+      statusEl.innerHTML = `<span>✅ 驗證成功！已自動偵測：${detectedNames.join("、") || "相關英文譯本"}</span>`;
+    }
+    BackpackStore.setApiBibleKey(apiKey);
+    renderScripture();
+  } catch (err) {
+    if (statusEl) {
+      statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-red-50 text-red-800 border border-red-200 block";
+      statusEl.innerHTML = `<span>❌ 驗證失敗：${escapeHtml(err.message)}</span>`;
+    }
   }
 }
 

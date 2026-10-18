@@ -70,3 +70,10 @@ const BIBLE_BOOKS = [
   { id: "jud", name: "猶大書", english: "Jude", testament: "NT", section: "普通書信", chapters: 1 },
   { id: "rev", name: "啟示錄", english: "Revelation", testament: "NT", section: "啟示性先知書", chapters: 22 }
 ];
+
+if (typeof window !== "undefined") {
+  window.BIBLE_BOOKS = BIBLE_BOOKS;
+}
+if (typeof global !== "undefined") {
+  global.BIBLE_BOOKS = BIBLE_BOOKS;
+}

@@ -316,6 +316,75 @@ const BackpackStore = {
     localStorage.setItem("bible_backpack_local_model", (model || "qwen3.5:9b").trim());
   },
 
+  // 介面語言 (Interface Language: 'zh' | 'en')
+  getLanguage() {
+    return localStorage.getItem("bible_backpack_lang") || "zh";
+  },
+
+  setLanguage(lang) {
+    localStorage.setItem("bible_backpack_lang", lang === "en" ? "en" : "zh");
+  },
+
+  // 當前選定之聖經譯本 ('cuv' | 'niv' | 'nirv' | 'cev')
+  getBibleVersion() {
+    return localStorage.getItem("bible_backpack_version") || (this.getLanguage() === "en" ? "niv" : "cuv");
+  },
+
+  setBibleVersion(ver) {
+    localStorage.setItem("bible_backpack_version", (ver || "cuv").toLowerCase());
+  },
+
+  // API.Bible API 金鑰 (https://scripture.api.bible)
+  getApiBibleKey() {
+    return localStorage.getItem("bible_backpack_apibible_key") || "";
+  },
+
+  setApiBibleKey(key) {
+    localStorage.setItem("bible_backpack_apibible_key", (key || "").trim());
+  },
+
+  // API.Bible 各譯本對應之 Bible ID (預設或自訂)
+  getApiBibleId(ver) {
+    const v = (ver || "").toLowerCase();
+    const custom = localStorage.getItem(`bible_backpack_bid_${v}`);
+    if (custom) return custom;
+
+    // 常見預設 ID (若有自動偵測將被覆寫)
+    const defaults = {
+      niv: "71c6eab193a58f74-01",   // Biblica NIV
+      nirv: "71c6eab193a58f74-02",  // Biblica NIrV (Reader's)
+      cev: "555fef9a63310866-01"    // CEV (Contemporary English Version)
+    };
+    return defaults[v] || "";
+  },
+
+  setApiBibleId(ver, id) {
+    const v = (ver || "").toLowerCase();
+    if (id) {
+      localStorage.setItem(`bible_backpack_bid_${v}`, id.trim());
+    } else {
+      localStorage.removeItem(`bible_backpack_bid_${v}`);
+    }
+  },
+
+  // 線上譯本經文章節本地持久快取 (讀過一次便永久離線 0 毫秒秒開)
+  getCachedChapterVerses(version, bookCode, chapter) {
+    try {
+      const key = `bible_verses_${(version || 'cuv').toLowerCase()}_${(bookCode || '').toUpperCase()}_${chapter}`;
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  saveCachedChapterVerses(version, bookCode, chapter, verses) {
+    try {
+      const key = `bible_verses_${(version || 'cuv').toLowerCase()}_${(bookCode || '').toUpperCase()}_${chapter}`;
+      localStorage.setItem(key, JSON.stringify(verses));
+    } catch (e) {}
+  },
+
   // 本地研經材料持久緩存 (避免重複調配消耗額度與等待)
   getCachedPack(book, chapter, tasteHash = "default") {
     try {
@@ -334,3 +403,10 @@ const BackpackStore = {
     } catch (e) {}
   }
 };
+
+if (typeof window !== "undefined") {
+  window.BackpackStore = BackpackStore;
+}
+if (typeof global !== "undefined") {
+  global.BackpackStore = BackpackStore;
+}

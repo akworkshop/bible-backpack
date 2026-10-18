@@ -12,17 +12,27 @@ const AIService = {
   ],
 
   // 構造單章研經材料 Prompt（注入本地 BibleService 完整經文上下文，支援注入小組主題課程之堂數、主題與討論核心）
-  buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext = null) {
+  // 構造單章研經材料 Prompt（根據目前語系自動派發）
+  buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext = null, version = null) {
+    const isEn = typeof I18n !== "undefined" && I18n.isEn();
+    if (isEn) {
+      return this.buildEnglishPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext, version);
+    }
+    return this.buildChinesePrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext, version);
+  },
+
+  // 構造中文研經 Prompt
+  buildChinesePrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext = null, version = "cuv") {
     const tasteNames = (selectedTastes || []).map(t => `${t.name} (${t.desc || t.category})`).join("、");
     const activeTasteList = (selectedTastes || []).map(t => t.name);
 
     // 從本地和合本資料庫提取本章完整經文，讓 AI 緊扣經文逐節深入剖析（不再空泛概括）
     let scriptureContext = "";
-    if (typeof BibleService !== "undefined" && BibleService.bibleData) {
-      const verses = BibleService.getChapterVerses(bookName, chapter);
-      if (verses && verses.length > 0 && !verses[0].text.includes("正在載入")) {
+    if (typeof BibleService !== "undefined") {
+      const verses = BibleService.getChapterVerses(bookName, chapter, version || "cuv");
+      if (verses && verses.length > 0 && !verses[0].text.includes("正在載入") && !verses[0].text.includes("Loading")) {
         const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
-        scriptureContext = `\n【《${bookName}》第 ${chapter} 章和合本經文原文（請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
+        scriptureContext = `\n【《${bookName}》第 ${chapter} 章經文原文（請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
       }
     }
 
@@ -104,11 +114,11 @@ ${kidsInstruction}
    - 今日默想結語 (takeaway)：必須生動融合該口味或自訂背景的鮮明比喻（例如：若用戶是工程師，比喻底層架構與神聖協議；若為心理，比喻卸下內在防衛；若為默想，比喻幽谷清泉），拒絕乾癟的道德教條！
 4. 【★考古實物與維基百科精準驗證要求 (Visual Artifacts Rule)】：
    - visualArtifacts 必須列出 2 項真實存在的博物館館藏考古文物、古代銘文或真實聖經歷史遺址（嚴禁編造「信心之盾」、「恩典之泉」等抽象比喻詞！）。
-   - title 格式必須為「中文名稱 (Official English Name)」，例如：「但丘大衛家石碑 (Tel Dan Stele)」、「居魯士圓柱 (Cyrus Cylinder)」、「死海古卷以賽亞卷 (Dead Sea Scrolls)」、「迦百農古代會堂遺址 (Capernaum Synagogue)」、「梅르內普塔赫石碑 (Merneptah Stele)」、「拉吉浮雕 (Lachish reliefs)」。
-   - searchQuery 必須填寫該文物或遺址在 English Wikipedia (英文維基百科) 的精確標準條目名稱（純英文，如 "Tel Dan stele", "Cyrus Cylinder", "Dead Sea Scrolls", "Pool of Bethesda", "Ketef Hinnom scrolls", "Black Obelisk of Shalmaneser III"）。
+   - title 格式必須為「中文名稱 (Official English Name)」，例如：「但丘大衛家石碑 (Tel Dan Stele)」、「居魯士圓柱 (Cyrus Cylinder)」、「死海古卷以賽亞卷 (Dead Sea Scrolls)」、「迦百農古代會堂遺址 (Capernaum Synagogue)」。
+   - searchQuery 必須填寫該文物或遺址在 English Wikipedia (英文維基百科) 的精確標準條目名稱（純英文，如 "Tel Dan stele", "Cyrus Cylinder", "Dead Sea Scrolls"）。
 5. 【★聖經地理與行軍路線嚴格守則 (Geography & Map Guardrail)】：
-   - geography.isJourneyRoute：只有當本章經文明確記載「實際的行軍移動、出埃及遷徙、曠野行程或使徒宣教旅程」（有明確從 A 地前往 B 地的順序動線）時，才設為 true；若本章為定點事件、創造敘事、詩篇、智慧書或一般書信教導，一律設為 false。
-   - geography.routePoints：只標註經文中明確提及或歷史考證確鑿的真實聖經地點（經緯度座標必須真實準確）；若地點位置在考古上極度不確定，或本章並無特定地點，切勿亂湊或憑空捏造座標（無特定地點時可僅列出 1 個核心歷史參照地標如耶路撒冷，或留空陣列 []）。
+   - geography.isJourneyRoute：只有當本章經文明確記載「實際的行軍移動、出埃及遷徙、曠野行程或使徒宣教旅程」時才設為 true；若為定點事件或教導一律設為 false。
+   - geography.routePoints：只標註真實聖經地點與座標。
 
 【請輸出嚴格合法的純 JSON 格式】：所有字串內部如有雙引號請使用 \\" 轉義，換行請使用 \\n，絕對禁止未轉義的原始換行或未閉合引號。JSON 結構如下：
 {
@@ -223,8 +233,206 @@ ${kidsInstruction}
 /no_think`;
   },
 
+  // 構造英文研經 Prompt
+  buildEnglishPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext = null, version = null) {
+    const ver = version || (typeof BackpackStore !== "undefined" ? BackpackStore.getBibleVersion() : "niv");
+    const engBook = typeof I18n !== "undefined" ? I18n.getBookName(bookName, "en") : bookName;
+    const tasteNames = (selectedTastes || []).map(t => {
+      const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t.id) : t;
+      return `${info.nameEn || t.name} (${info.descEn || t.desc || ""})`;
+    }).join(", ");
+    const activeTasteList = (selectedTastes || []).map(t => {
+      const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t.id) : t;
+      return info.nameEn || t.name;
+    });
+
+    let scriptureContext = "";
+    if (typeof BibleService !== "undefined") {
+      const verses = BibleService.getChapterVerses(bookName, chapter, ver);
+      if (verses && verses.length > 0 && !verses[0].text.includes("Loading") && !verses[0].text.includes("正在載入")) {
+        const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
+        scriptureContext = `\n[Scripture Passage (${ver.toUpperCase()}) for ${engBook} Chapter ${chapter} (Strictly examine and quote from these verses below)]:\n${formattedVerses}\n`;
+      }
+    }
+
+    let curriculumInstruction = "";
+    if (curriculumContext) {
+      curriculumInstruction = `
+[CRITICAL INSTRUCTION: Dedicated Study Sheet for Thematic Curriculum Series]:
+- Series Theme: "${curriculumContext.packTitle || "Thematic Study"}"
+- Current Session: Session ${curriculumContext.sessionNum || 1}: "${curriculumContext.sessionTitle || ""}" (Passage: ${curriculumContext.passageRange || `${engBook} ${chapter}`})
+- Core Message: ${curriculumContext.coreMessage || "None"}
+- Discussion Focus: ${curriculumContext.discussionTheme || "None"}
+- Icebreaker: ${curriculumContext.icebreaker || "None"}
+- Action Step: ${curriculumContext.lifeAction || "None"}
+`;
+    }
+
+    let kidsInstruction = "";
+    const isKidsFocus = (selectedTastes || []).some(t => t.id === "kids" || (t.name && (t.name.includes("兒少") || t.name.includes("Kids")))) ||
+                        (customKeyword && /兒少|兒童|孩子|小學|校園|主日學|young|child|kid|school/i.test(customKeyword)) ||
+                        (curriculumContext && /兒童|兒少|kids|child/i.test(`${curriculumContext.packTitle} ${curriculumContext.target || ""}`));
+
+    if (isKidsFocus) {
+      kidsInstruction = `
+[CRITICAL PASTORAL GUIDELINE: Kids & Campus / Youth Ministry Mode Activated]:
+1. Target Audience: Kids & Teens (Ages 8-14), Sunday School teachers, youth group counselors, and Christian parents.
+2. Tone & Cognitive Style:
+   - Engaging, story-driven, warm, and highly relatable. Avoid dense theological jargon.
+   - Ground metaphors in real campus and kid life: group projects at school, playground games, peer pressure, exam anxiety, fear of being left out, courage to admit mistakes, sharing snacks, friendship reconciliation, balancing phone/video games with prayer.
+3. Specific Field Guidance (Tier 1 Sheet):
+   - title: Include subtitle "(Kids & Campus Edition)".
+   - snapshot: Written like an exciting adventure movie opening, highlighting the hero's greatest test and God's mighty deliverance.
+   - outline: 3 lively story scenes with kid-friendly titles.
+   - discussionQuestions:
+     * Q1 (Scripture Detective): Help kids spot key actions, names, or contrasts in the passage (tag: Scripture Detective).
+     * Q2 (In Their Shoes): Help kids imagine walking in the shoes of biblical characters (tag: Empathy & Perspective).
+     * Q3 (Campus Life Challenge): Address real school/peer dilemmas with practical hints for leaders/parents (tag: Campus Life).
+     * Q4 (Courage Mission): A simple, actionable act of kindness or courage to practice this week (tag: Courage Mission).
+   - takeaway: A catchy, encouraging memory quote and confidence booster.
+   - prayer: A short, heartfelt, sentence-by-sentence aloud prayer for kids to repeat.
+4. Specific Field Guidance (Tier 2 Dossier):
+   - leaderGuide.icebreaker: A 5-minute dynamic game or interactive icebreaker needing zero complex props.
+   - difficulties: Kid-friendly answers to candid, tough questions (e.g., "What was God doing before creating the world? Why does God allow bad things?").
+   - archaeology.visualArtifacts: Presented from a fascinating explorer perspective with authentic museum artifacts.
+`;
+    }
+
+    return `
+You are the Theological Content Director of "Bible Backpack".
+Please generate an exceptionally rich, theologically profound, and historically orthodox study pack in English for the Holy Bible: ${engBook} Chapter ${chapter} (using the ${ver.toUpperCase()} translation context).
+${scriptureContext}
+${curriculumInstruction}
+${kidsInstruction}
+[User's Chosen Study Lenses & Perspective]:
+- Primary Lenses: ${tasteNames || "Expository, Pastoral & Practical Application"}
+- Custom Background / Interest: ${customKeyword ? `"${customKeyword}" (Address this domain's mental models, real-world challenges, or professional metaphors in Q3 and Takeaway)` : "General, focus on the selected lenses above"}
+
+[Theological Orthodoxy & Depth Guidelines]:
+1. Historic Orthodoxy: Adhere strictly to historic Christian creedal orthodoxy (Nicene Creed, Apostles' Creed, Grace through Faith in Jesus Christ).
+2. Depth & Substance: Avoid superficial one-liners. Every outline section, character profile, and discussion hint must be deeply substantive with chapter verse references.
+3. Visual Artifacts: Cite 2 authentic museum artifacts or excavated biblical sites with their exact English Wikipedia title in "searchQuery".
+4. Language Requirement: All fields in tier1_sheet and tier2_dossier MUST be in ENGLISH.
+
+[Output strictly valid JSON only without markdown code fences or thinking blocks]:
+{
+  "tier1_sheet": {
+    "title": "${engBook} Chapter ${chapter} · Small Group Study Sheet",
+    "subtitle": "Subtitle capturing the theological essence and life message",
+    "snapshot": "Chapter Core Snapshot (120-180 words: redemptive-historical turning point, core tension, and gospel focus)",
+    "outline": [
+      { "verses": "Verses 1-X", "theme": "Scene 1 theme and textual narrative context (25-40 words)" },
+      { "verses": "Verses X-Y", "theme": "Scene 2 theme and textual narrative context (25-40 words)" },
+      { "verses": "Verses Y-Z", "theme": "Scene 3 theme and textual narrative context (25-40 words)" }
+    ],
+    "discussionQuestions": [
+      {
+        "id": "q1",
+        "type": "Observation & Flow",
+        "tag": "Textual Reading",
+        "question": "Question 1 examining specific verse details, context, and characters (40-70 words)",
+        "hint": "Leader's facilitation guide with verse references and context clues (60-100 words)"
+      },
+      {
+        "id": "q2",
+        "type": "Theological Insight",
+        "tag": "${activeTasteList[0] || 'Theological Lens'}",
+        "question": "Question 2 deeply examining the text through the first selected lens (40-70 words)",
+        "hint": "Leader's facilitation guide unpacking covenantal or spiritual depths (60-100 words)"
+      },
+      {
+        "id": "q3",
+        "type": "Faith & Real Life Application",
+        "tag": "${customKeyword || activeTasteList[1] || 'Life Application'}",
+        "question": "Question 3 connecting the text to real daily struggle, work, or custom background (40-70 words)",
+        "hint": "Leader's facilitation guide moving beyond superficial moralism to gospel reliance (60-100 words)"
+      },
+      {
+        "id": "q4",
+        "type": "Fellowship & Action",
+        "tag": "Prayer & Fellowship",
+        "question": "Question 4 inviting mutual vulnerability, practical discipleship, and prayer (40-70 words)",
+        "hint": "Leader's facilitation guide suggesting actionable steps and prayer directions (60-100 words)"
+      }
+    ],
+    "takeaway": "Core takeaway message with a memorable metaphor and gospel hope (80-120 words)",
+    "prayer": "Concluding group prayer echoing the biblical truths of this chapter (80-120 words)"
+  },
+  "tier2_dossier": {
+    "title": "${engBook} Chapter ${chapter} · In-Depth Field Dossier",
+    "subtitle": "Historical Context · Geography · Character Profiles · Theological FAQ · Leader's Guide",
+    "characters": [
+      {
+        "name": "Key Figure or Group 1",
+        "title": "Role and Spiritual Significance",
+        "profile": "Historical context and role in this chapter (60-100 words)",
+        "psychologicalInsight": "Psychological struggle, fears, motives, and spiritual breakthrough (80-120 words)"
+      },
+      {
+        "name": "Key Figure or Group 2",
+        "title": "Role and Spiritual Significance",
+        "profile": "Historical context and role in this chapter (60-100 words)",
+        "psychologicalInsight": "Psychological struggle, fears, motives, and spiritual breakthrough (80-120 words)"
+      }
+    ],
+    "geography": {
+      "isJourneyRoute": false,
+      "location": "Core biblical region or setting",
+      "terrain": "Topography, climate, and strategic military/trade context (40-80 words)",
+      "hydrologyInsight": "How the landscape, hydrology, or ecology shapes the narrative (120-180 words)",
+      "routePoints": [
+        { "lat": 31.7767, "lng": 35.2345, "name": "Biblical Site 1", "nameEn": "Biblical Site 1", "desc": "Historical significance in this chapter", "descEn": "Historical significance in this chapter" }
+      ]
+    },
+    "archaeology": {
+      "era": "Historical period (e.g. Late Bronze Age / 1st Century Roman Period)",
+      "canaaniteContext": "Near Eastern / Greco-Roman religious, cultural, and political background (100-150 words)",
+      "treatyStructure": "Ancient treaty form, covenant structure, or original language insights (120-180 words)",
+      "visualArtifacts": [
+        {
+          "title": "Artifact 1 (e.g. Dead Sea Scrolls)",
+          "searchQuery": "Dead Sea Scrolls",
+          "category": "Museum Artifact / Archaeological Discovery",
+          "tag": "Archaeology",
+          "description": "Details on discovery, dating, museum location, and how it corroborates this passage (80-120 words)",
+          "imageBadge": "🏛️ Verified Museum Artifact"
+        },
+        {
+          "title": "Artifact 2 (e.g. Cyrus Cylinder)",
+          "searchQuery": "Cyrus Cylinder",
+          "category": "Historical Inscription / Site",
+          "tag": "Biblical History",
+          "description": "Details on discovery, museum location, and insight for this passage (80-120 words)",
+          "imageBadge": "📜 Historical Archaeological Site"
+        }
+      ]
+    },
+    "difficulties": [
+      {
+        "question": "Theological FAQ 1: A challenging theological, ethical, or historical question often raised from this text",
+        "answer": "Robust, orthodox, multi-layered explanation grounded in Scripture (120-180 words)"
+      },
+      {
+        "question": "Theological FAQ 2: An exegetical tension or difficult phrasing in this chapter",
+        "answer": "Robust, orthodox, multi-layered explanation with context and linguistic clarity (120-180 words)"
+      }
+    ],
+    "leaderGuide": {
+      "icebreaker": "5-minute engaging icebreaker prompt relevant to the chapter theme (50-80 words)",
+      "flowTips": "Facilitation rhythm, pastoral sensitivity, and group discussion tips (80-120 words)",
+      "timeBudget": "Recommended schedule (e.g. Icebreaker 10m · Reading 15m · Discussion 25m · Prayer 10m)"
+    }
+  }
+}
+/no_think`;
+  },
+
   // 構造多堂主題查經套裝 (Thematic Curriculum) Prompt
   buildCurriculumPrompt(topic, sessionCount, audience, selectedTastes) {
+    const isEn = typeof I18n !== "undefined" && I18n.isEn();
+    if (isEn) {
+      return this.buildEnglishCurriculumPrompt(topic, sessionCount, audience, selectedTastes);
+    }
     const tasteNames = (selectedTastes || []).map(t => t.name).join("、");
 
     let kidsCurriculumRule = "";
@@ -277,8 +485,69 @@ ${kidsCurriculumRule}
 /no_think`;
   },
 
+  // 構造英文多堂主題查經套裝 Prompt
+  buildEnglishCurriculumPrompt(topic, sessionCount, audience, selectedTastes) {
+    const tasteNames = (selectedTastes || []).map(t => {
+      const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t.id) : t;
+      return info.nameEn || t.name;
+    }).join(", ");
+
+    let kidsRule = "";
+    if (/兒少|兒童|kids|child|youth|school/i.test(`${audience} ${topic}`) || (selectedTastes || []).some(t => t.id === "kids")) {
+      kidsRule = `
+4. [Kids & Campus Guideline]:
+   - Designed for children/teens (ages 8-14); make session titles adventure-themed and story-driven.
+   - Core messages, discussion, and life action must address real school/peer experiences (peer pressure, honesty, courage, teamwork, overcoming fear).
+   - Icebreaker: A 5-minute fun game or dynamic interactive question for classroom or living room.
+`;
+    }
+
+    return `
+You are the Theological Curriculum Director of "Bible Backpack".
+Please design a complete ${sessionCount}-session thematic small group curriculum series in English.
+
+[Parameters]:
+- Series Topic: ${topic}
+- Number of Sessions: ${sessionCount}
+- Target Audience: ${audience || "Small Group Fellowship"}
+- Study Lenses: ${tasteNames || "Expository, Practical Discipleship"}
+
+[Planning Rules]:
+1. Adhere strictly to historic orthodox Christian doctrine. Select 1 primary scripture passage for each session (balanced across Old and New Testaments).
+2. Clear progression: Problem & Reality ➔ God's Word & Example ➔ Life Breakthrough ➔ Commissioned in Victory.
+3. Each session must provide: session title, bookName (exact English Bible book name, e.g. "Genesis", "Joshua", "Romans"), chapter (number), passageRange (e.g. "Joshua 1:1-9"), coreMessage, discussionTheme, icebreaker, and lifeAction.
+${kidsRule}
+
+[Return strictly valid JSON only without markdown code fences]:
+{
+  "title": "${topic}: Group Study Series",
+  "subtitle": "Subtitle highlighting the overarching spiritual hope",
+  "target": "${audience || "Small Group Fellowship"}",
+  "sessionCount": ${sessionCount},
+  "overview": "Overview of the curriculum series and tips for group leaders (approx 120 words)",
+  "sessions": [
+    {
+      "sessionNum": 1,
+      "title": "Session 1 Title",
+      "bookName": "Joshua",
+      "chapter": 1,
+      "passageRange": "Joshua 1:1-9",
+      "coreMessage": "Core message summary",
+      "discussionTheme": "Discussion focus and life intersection",
+      "icebreaker": "5-minute fun icebreaker prompt or game",
+      "lifeAction": "Actionable life practice for this week"
+    }
+  ]
+}
+/no_think`;
+  },
+
   // 系統提示詞（嚴守歷史正統大公信經、要求完整且詳盡輸出 tier1 與 tier2 雙層架構之純 JSON）
   buildSystemPrompt() {
+    const isEn = typeof I18n !== "undefined" && I18n.isEn();
+    if (isEn) {
+      return "You are a senior Christian theological curriculum director and biblical archaeologist adhering strictly to historic creedal orthodoxy (Nicene Creed, Apostles' Creed, classical Trinitarianism). CRITICAL REQUIREMENT: Return a single valid, deeply detailed, comprehensive JSON object in English containing BOTH 'tier1_sheet' AND 'tier2_dossier'. Never write brief or superficial one-sentence summaries; provide rich verse-by-verse exposition, thorough historical/archaeological analysis, and extensive leader hints. For 'visualArtifacts', ONLY cite real, Wikipedia-verifiable museum artifacts or archaeological sites with their exact English Wikipedia article title in 'searchQuery'. Output valid JSON only, without markdown backticks or thinking blocks. /no_think";
+    }
     return "You are a senior Christian theological curriculum director and biblical archaeologist adhering strictly to historic creedal orthodoxy (Nicene Creed, Apostles' Creed, classical Trinitarianism). CRITICAL REQUIREMENT: Return a single valid, deeply detailed, comprehensive JSON object in Traditional Chinese (繁體中文) containing BOTH 'tier1_sheet' AND 'tier2_dossier'. Never write brief or superficial one-sentence summaries; provide rich verse-by-verse exposition, thorough historical/archaeological analysis, and extensive leader hints. For 'visualArtifacts', ONLY cite real, Wikipedia-verifiable museum artifacts or archaeological sites with their exact English Wikipedia article title in 'searchQuery'. Output valid JSON only, without markdown backticks or thinking blocks. /no_think";
   },
 
@@ -503,9 +772,11 @@ ${kidsCurriculumRule}
     return JSON.parse(repaired);
   },
 
-  // 向 AI 發起單章研經請求（內建本地快取 + Groq/Gemini 雙通道 + 多模型自動故障轉移 + 支援小組主題課程上下文）
+  // 向 AI 發起單章研經請求（內建本地快取 + Groq/Gemini 雙通道 + 多模型自動故障轉移 + 支援小組主題課程上下文與多語言）
   async generateStudyPack(bookName, chapter, selectedTastes, customKeyword, onStatusUpdate = null, bypassCache = false, curriculumContext = null) {
-    let tasteHash = (selectedTastes || []).map(t => t.id).sort().join("-") + (customKeyword ? `-${customKeyword}` : "");
+    const lang = typeof BackpackStore !== "undefined" ? BackpackStore.getLanguage() : "zh";
+    const version = typeof BackpackStore !== "undefined" ? BackpackStore.getBibleVersion() : "cuv";
+    let tasteHash = `${lang}-${version}-` + (selectedTastes || []).map(t => t.id).sort().join("-") + (customKeyword ? `-${customKeyword}` : "");
     if (curriculumContext) {
       tasteHash += `-curriculum-${curriculumContext.packId || 'pack'}-${curriculumContext.sessionNum || 1}`;
     }
@@ -514,13 +785,13 @@ ${kidsCurriculumRule}
     if (!bypassCache) {
       const cached = BackpackStore.getCachedPack(bookName, chapter, tasteHash);
       if (cached) {
-        console.log(`⚡ 從本地持久快取載入【${bookName} 第 ${chapter} 章】${curriculumContext ? '主題課程' : ''}研經材料！`);
+        console.log(`⚡ 從本地持久快取載入【${bookName} 第 ${chapter} 章 (${lang.toUpperCase()}/${version.toUpperCase()})】${curriculumContext ? '主題課程' : ''}研經材料！`);
         return cached;
       }
     }
 
     const provider = BackpackStore.getProvider();
-    const promptText = this.buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext);
+    const promptText = this.buildPrompt(bookName, chapter, selectedTastes, customKeyword, curriculumContext, version);
 
     // 2. 若選擇本地離線 AI (Ollama / LM Studio)
     if (provider === "local") {
@@ -967,3 +1238,10 @@ ${kidsCurriculumRule}
     return { ok: false, message: `Google Gemini 連線失敗：${lastErrMsg || "請檢查 API Key 或網路連線"}` };
   }
 };
+
+if (typeof window !== "undefined") {
+  window.AIService = AIService;
+}
+if (typeof global !== "undefined") {
+  global.AIService = AIService;
+}
