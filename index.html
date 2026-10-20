@@ -586,6 +586,24 @@
             <button onclick="BackpackStore.setTheme('dark')" class="px-3 py-1.5 rounded border border-stone-700 bg-stone-900 hover:bg-stone-800 text-stone-200" data-i18n="theme_dark">暗黑模式</button>
           </div>
         </div>
+
+        <!-- 跨裝置 / Netlify 設定檔儲存與讀取 -->
+        <div class="pt-3 border-t border-stone-200 space-y-2 bg-stone-50/80 p-3 rounded-xl border border-stone-200/80">
+          <label class="font-bold text-stone-800 block" data-i18n="settings_backup_label">跨裝置 / 換網址設定備份 (Save & Load API Config)：</label>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="exportSettingsToFile()" class="px-3 py-1.5 bg-white hover:bg-amber-50 text-stone-800 border border-stone-300 hover:border-amber-600 rounded-lg text-xs font-semibold transition-all shadow-2xs flex items-center gap-1 cursor-pointer">
+              <span data-i18n="settings_export_btn">💾 儲存設定檔 (.json)</span>
+            </button>
+            <button type="button" onclick="document.getElementById('import-settings-file-input').click()" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold transition-all shadow-2xs flex items-center gap-1 cursor-pointer">
+              <span data-i18n="settings_import_btn">📂 讀取設定檔 (.json)</span>
+            </button>
+            <input type="file" id="import-settings-file-input" accept=".json,application/json" class="hidden" onchange="importSettingsFromFile(event)">
+          </div>
+          <p class="text-2xs text-stone-500 leading-relaxed" data-i18n="settings_backup_desc">
+            • 點擊「保存設置」會自動儲存在當前瀏覽器，下次打開自動讀取。<br>
+            • 若換到 Netlify 新網址、手機或另一台電腦，可先按「💾 儲存設定檔」下載備份，再到新裝置按「📂 讀取設定檔」一秒還原所有 API Key、譯本 ID 與個人口味！
+          </p>
+        </div>
       </div>
 
       <div class="p-3 bg-stone-50 border-t border-stone-200 flex items-center justify-end gap-2">

@@ -2244,6 +2244,116 @@ function closeSettingsModal() {
   document.getElementById("settings-modal")?.classList.add("hidden");
 }
 
+// 儲存 API 與個人設定至本地 .json 檔案（方便跨裝置或部署至 Netlify 後一鍵還原）
+function exportSettingsToFile() {
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const selectedProviderRadio = document.querySelector('input[name="ai_provider"]:checked');
+  const provider = selectedProviderRadio ? selectedProviderRadio.value : BackpackStore.getProvider();
+
+  const configData = {
+    app: "Bible Backpack",
+    exportedAt: new Date().toISOString(),
+    provider: provider,
+    geminiApiKey: (document.getElementById("api-key-input")?.value ?? BackpackStore.getApiKey()).trim(),
+    geminiModel: document.getElementById("model-select-input")?.value || BackpackStore.getModelName(),
+    groqApiKey: (document.getElementById("groq-key-input")?.value ?? BackpackStore.getGroqKey()).trim(),
+    groqModel: document.getElementById("groq-model-select-input")?.value || BackpackStore.getGroqModel(),
+    localEndpoint: (document.getElementById("local-endpoint-input")?.value ?? BackpackStore.getLocalEndpoint()).trim(),
+    localModel: document.getElementById("local-model-input")?.value || BackpackStore.getLocalModel(),
+    apiBibleKey: (document.getElementById("api-bible-key-input")?.value ?? BackpackStore.getApiBibleKey()).trim(),
+    apiBibleIds: {
+      niv: (document.getElementById("apibible-id-niv")?.value ?? BackpackStore.getApiBibleId("niv")).trim(),
+      nirv: (document.getElementById("apibible-id-nirv")?.value ?? BackpackStore.getApiBibleId("nirv")).trim(),
+      cev: (document.getElementById("apibible-id-cev")?.value ?? BackpackStore.getApiBibleId("cev")).trim()
+    },
+    language: BackpackStore.getLanguage(),
+    bibleVersion: BackpackStore.getBibleVersion(),
+    theme: BackpackStore.getTheme(),
+    tastes: BackpackStore.getTastes(),
+    customTaste: BackpackStore.getCustomTaste(),
+    savedItems: BackpackStore.getSavedItems(),
+    studyPacks: BackpackStore.getStudyPacks()
+  };
+
+  const blob = new Blob([JSON.stringify(configData, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "bible-backpack-settings.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(isEn
+    ? "💾 Settings exported to bible-backpack-settings.json!"
+    : "💾 設定檔已下載為 bible-backpack-settings.json！");
+}
+
+// 從 .json 設定檔讀取並一鍵還原所有 API Key、譯本 ID 與個人口味
+function importSettingsFromFile(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const cfg = JSON.parse(e.target.result);
+      if (!cfg || typeof cfg !== "object") {
+        throw new Error("Invalid config format");
+      }
+
+      if (cfg.provider) BackpackStore.setProvider(cfg.provider);
+      if (typeof cfg.geminiApiKey === "string") BackpackStore.setApiKey(cfg.geminiApiKey);
+      if (cfg.geminiModel) BackpackStore.setModelName(cfg.geminiModel);
+      if (typeof cfg.groqApiKey === "string") BackpackStore.setGroqKey(cfg.groqApiKey);
+      if (cfg.groqModel) BackpackStore.setGroqModel(cfg.groqModel);
+      if (cfg.localEndpoint) BackpackStore.setLocalEndpoint(cfg.localEndpoint);
+      if (cfg.localModel) BackpackStore.setLocalModel(cfg.localModel);
+      if (typeof cfg.apiBibleKey === "string") BackpackStore.setApiBibleKey(cfg.apiBibleKey);
+
+      if (cfg.apiBibleIds && typeof cfg.apiBibleIds === "object") {
+        if (cfg.apiBibleIds.niv) BackpackStore.setApiBibleId("niv", cfg.apiBibleIds.niv);
+        if (cfg.apiBibleIds.nirv) BackpackStore.setApiBibleId("nirv", cfg.apiBibleIds.nirv);
+        if (cfg.apiBibleIds.cev) BackpackStore.setApiBibleId("cev", cfg.apiBibleIds.cev);
+      }
+
+      if (Array.isArray(cfg.tastes)) {
+        BackpackStore.saveTastes(cfg.tastes, cfg.customTaste || "");
+      }
+      if (cfg.theme) BackpackStore.setTheme(cfg.theme);
+      if (cfg.language) BackpackStore.setLanguage(cfg.language);
+      if (cfg.bibleVersion) BackpackStore.setBibleVersion(cfg.bibleVersion);
+
+      if (Array.isArray(cfg.savedItems) && cfg.savedItems.length > 0) {
+        localStorage.setItem("bible_backpack_saved_items", JSON.stringify(cfg.savedItems));
+      }
+      if (Array.isArray(cfg.studyPacks) && cfg.studyPacks.length > 0) {
+        localStorage.setItem("bible_backpack_study_packs", JSON.stringify(cfg.studyPacks));
+      }
+
+      // 同步刷新設定彈窗內的欄位與整個介面
+      openSettingsModal();
+      if (typeof I18n !== "undefined") I18n.applyToDOM();
+      renderTasteBadges();
+      updateBackpackBadge();
+      renderScripture();
+
+      showToast(isEn
+        ? "✅ Settings & API Keys loaded and applied!"
+        : "✅ 已成功讀取並套用所有 API 金鑰與個人設定！");
+    } catch (err) {
+      showToast(isEn
+        ? "❌ Failed to load config file. Please select a valid .json file."
+        : "❌ 讀取設定檔失敗，請確認檔案格式是否正確。");
+    } finally {
+      event.target.value = "";
+    }
+  };
+  reader.readAsText(file);
+}
+
 // Toast 輕量提示條
 function showToast(msg, duration = 2800) {
   const toast = document.getElementById("app-toast");
