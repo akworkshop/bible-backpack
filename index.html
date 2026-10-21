@@ -41,13 +41,13 @@
 </head>
 <body class="font-size-base flex flex-col min-h-screen text-stone-900 bg-stone-50/50">
 
-  <!-- ================= 頂部主導航欄 (Top Navbar) ================= -->
+  <!-- ================= 頂部主導航欄 (Top Navbar - Mobile 2-Row / Desktop 1-Row) ================= -->
   <header class="no-print sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-stone-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-2">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 md:py-0 md:h-14 flex flex-wrap md:flex-nowrap items-center justify-between gap-y-2 gap-x-2">
       
-      <!-- 品牌標識 (Official Branding: Bible Backpack) -->
-      <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-        <div class="w-8 h-8 rounded-lg bg-amber-800 text-white flex items-center justify-center font-bold text-base shadow-sm">
+      <!-- 1. 品牌標識 (Official Branding: Bible Backpack) -->
+      <div class="order-1 flex items-center gap-2 cursor-pointer flex-shrink-0" onclick="navigateTo('study')">
+        <div class="w-8 h-8 rounded-lg bg-amber-800 text-white flex items-center justify-center font-bold text-base shadow-sm flex-shrink-0">
           🎒
         </div>
         <div class="leading-tight">
@@ -55,12 +55,12 @@
             <span>Bible Backpack</span>
             <span class="text-xs text-amber-700 font-serif">✝</span>
           </div>
-          <div class="text-2xs text-stone-500 font-medium" data-i18n="appTagline">個人化 AI 研經行囊</div>
+          <div class="text-2xs text-stone-500 font-medium truncate max-w-[140px] sm:max-w-none" data-i18n="appTagline">個人化 AI 研經行囊</div>
         </div>
       </div>
 
-      <!-- 頁面主要視圖切換 (View Switcher: 研經工作台 vs 背包中心) -->
-      <div class="hidden sm:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200 text-xs">
+      <!-- 2. 頁面主要視圖切換 (Desktop View Switcher: 研經工作台 vs 背包中心) -->
+      <div class="hidden md:flex md:order-2 items-center bg-stone-100 p-1 rounded-xl border border-stone-200 text-xs flex-shrink-0">
         <button id="view-tab-study" onclick="navigateTo('study')" class="px-3 py-1.5 rounded-lg font-bold bg-white text-stone-900 shadow-sm transition-all flex items-center gap-1.5">
           <span>📖</span>
           <span data-i18n="viewStudy">研經工作台</span>
@@ -72,41 +72,22 @@
         </button>
       </div>
 
-      <!-- 經卷與章節快捷選擇器（支援下拉點選 + 直接輸入章節數字） -->
-      <div class="flex items-center gap-1.5 bg-stone-100 p-1 rounded-lg border border-stone-200 text-xs relative">
-        <select id="book-selector-select" class="bg-transparent font-medium text-stone-800 focus:outline-none cursor-pointer py-1 px-1">
-          <!-- 由 books.js 動態渲染 -->
-        </select>
-        <span class="text-stone-400" id="chapter-prefix-label">第</span>
-        <div class="relative flex items-center" id="chapter-combo-wrapper">
-          <input type="text" inputmode="numeric" id="chapter-selector-input" value="1" title="可直接輸入章節數字，或點擊右側箭頭展開章節選單" class="w-12 bg-white text-center font-bold text-stone-900 rounded-l border border-r-0 border-stone-300 py-0.5 px-1 focus:outline-none focus:border-amber-700">
-          <button type="button" id="chapter-dropdown-btn" onclick="toggleChapterDropdown(event)" title="展開章節選單" class="px-1.5 py-0.5 bg-stone-50 hover:bg-stone-200 border border-stone-300 rounded-r text-stone-600 font-bold select-none cursor-pointer transition-colors">
-            ▾
-          </button>
-          <!-- 章節下拉選單面板 (Grid Dropdown) -->
-          <div id="chapter-dropdown-menu" class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-60 max-h-64 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-xl z-50 p-2 grid grid-cols-5 gap-1">
-            <!-- 由 app.js 動態渲染各章按鈕 -->
-          </div>
-        </div>
-        <span class="text-stone-400 pr-1" id="chapter-suffix-label">章</span>
-      </div>
-
-      <!-- 右側快捷操作群組 -->
-      <div class="flex items-center gap-1.5">
+      <!-- 3. 右側快捷操作群組 (Mobile 上排右側 / Desktop 最右側) -->
+      <div class="order-2 md:order-4 flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
         <!-- 語言切換按鈕 (Language Switcher) -->
-        <button id="nav-lang-btn" onclick="toggleLanguage()" class="action-btn px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1 transition-colors" title="切換語言 / Switch Language">
+        <button id="nav-lang-btn" onclick="toggleLanguage()" class="action-btn px-2 sm:px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1 transition-colors" title="切換語言 / Switch Language">
           <span>🌐</span>
           <span id="nav-lang-label">EN</span>
         </button>
 
         <!-- 調配口味按鈕 -->
-        <button onclick="openTasteModal()" class="action-btn px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium flex items-center gap-1 transition-colors">
+        <button onclick="openTasteModal()" class="action-btn px-2 sm:px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium flex items-center gap-1 transition-colors" title="自選研經口味">
           <span>🎨</span>
-          <span class="hidden md:inline" data-i18n="taste_btn">研經口味</span>
+          <span class="hidden lg:inline" data-i18n="taste_btn">研經口味</span>
         </button>
 
-        <!-- 我的背包按鈕 (點擊切換至背包大頁面) -->
-        <button onclick="navigateTo('backpack')" class="action-btn relative p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs transition-colors flex items-center justify-center sm:hidden" title="我的背包中心">
+        <!-- 我的背包按鈕 (手機頂部快捷入口) -->
+        <button onclick="mobileBottomNav('backpack')" class="action-btn relative p-1.5 sm:p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs transition-colors flex items-center justify-center md:hidden" title="我的背包中心">
           <span>🎒</span>
           <span id="backpack-count-badge" style="display: none;" class="absolute -top-1 -right-1 bg-amber-700 text-white text-2xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
             0
@@ -114,22 +95,47 @@
         </button>
 
         <!-- 設置按鈕 -->
-        <button onclick="openSettingsModal()" class="action-btn p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 text-xs transition-colors" title="設置與免費 API Key">
+        <button onclick="openSettingsModal()" class="action-btn p-1.5 sm:p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 text-xs transition-colors" title="設置與免費 API Key">
           <span>⚙️</span>
         </button>
+      </div>
+
+      <!-- 4. 經卷與章節快捷選擇器（手機端獨立滿版第二排 / 電腦端置中，含上一章/下一章快捷鍵） -->
+      <div class="order-3 md:order-3 w-full md:w-auto flex items-center justify-between md:justify-start gap-1 bg-stone-100 px-2 py-1 rounded-xl border border-stone-200 text-xs relative">
+        <button type="button" onclick="stepChapter(-1)" class="px-1.5 py-1 rounded hover:bg-stone-200 text-stone-600 font-bold transition-colors flex-shrink-0" title="上一章 / Previous Chapter">◀</button>
+        
+        <div class="flex items-center gap-1 flex-1 md:flex-initial justify-center min-w-0">
+          <select id="book-selector-select" class="bg-transparent font-semibold text-stone-800 focus:outline-none cursor-pointer py-0.5 px-1 max-w-[155px] sm:max-w-[200px] truncate">
+            <!-- 由 books.js 動態渲染 -->
+          </select>
+          <span class="text-stone-400 flex-shrink-0" id="chapter-prefix-label">第</span>
+          <div class="relative flex items-center flex-shrink-0" id="chapter-combo-wrapper">
+            <input type="text" inputmode="numeric" id="chapter-selector-input" value="1" title="可直接輸入章節數字，或點擊右側箭頭展開章節選單" class="w-10 sm:w-12 bg-white text-center font-bold text-stone-900 rounded-l border border-r-0 border-stone-300 py-0.5 px-1 focus:outline-none focus:border-amber-700">
+            <button type="button" id="chapter-dropdown-btn" onclick="toggleChapterDropdown(event)" title="展開章節選單" class="px-1.5 py-0.5 bg-stone-50 hover:bg-stone-200 border border-stone-300 rounded-r text-stone-600 font-bold select-none cursor-pointer transition-colors">
+              ▾
+            </button>
+            <!-- 章節下拉選單面板 (Grid Dropdown) -->
+            <div id="chapter-dropdown-menu" class="hidden absolute top-full right-0 sm:left-1/2 sm:-translate-x-1/2 mt-1.5 w-60 max-h-64 overflow-y-auto bg-white border border-stone-200 rounded-xl shadow-xl z-50 p-2 grid grid-cols-5 gap-1">
+              <!-- 由 app.js 動態渲染各章按鈕 -->
+            </div>
+          </div>
+          <span class="text-stone-400 pr-0.5 flex-shrink-0" id="chapter-suffix-label">章</span>
+        </div>
+
+        <button type="button" onclick="stepChapter(1)" class="px-1.5 py-1 rounded hover:bg-stone-200 text-stone-600 font-bold transition-colors flex-shrink-0" title="下一章 / Next Chapter">▶</button>
       </div>
     </div>
 
     <!-- 當前口味快捷展示條 (Active Taste Bar) -->
-    <div id="taste-bar-container" class="bg-stone-50 border-t border-stone-200/60 px-4 py-1.5 overflow-x-auto">
-      <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-1.5 flex-shrink-0">
-          <span class="text-stone-500 font-medium" data-i18n="allTastesBadge">當前口味：</span>
-          <div id="active-taste-badges" class="flex items-center gap-1.5">
+    <div id="taste-bar-container" class="bg-stone-50 border-t border-stone-200/60 px-3 sm:px-4 py-1.5 overflow-x-auto">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-1.5 min-w-0 overflow-x-auto no-scrollbar">
+          <span class="text-stone-500 font-medium flex-shrink-0" data-i18n="allTastesBadge">當前口味：</span>
+          <div id="active-taste-badges" class="flex items-center gap-1.5 flex-shrink-0">
             <!-- 由 app.js 動態渲染 -->
           </div>
         </div>
-        <button onclick="openTasteModal()" class="text-2xs text-amber-800 hover:underline flex-shrink-0 font-medium" data-i18n="adjustTasteBtn">
+        <button onclick="openTasteModal()" class="text-2xs text-amber-800 hover:underline flex-shrink-0 font-medium whitespace-nowrap" data-i18n="adjustTasteBtn">
           + 調整偏好
         </button>
       </div>
@@ -137,13 +143,13 @@
   </header>
 
   <!-- ================= 主工作區 (Main Two-Column Workspace) ================= -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-5 pb-24 md:pb-8">
     
     <!-- 頁面 1：研經工作台 (Study Workspace Page) -->
-    <div id="study-workspace-page" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div id="study-workspace-page" class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
       
       <!-- 左欄：經文閱讀區 (Scripture Viewer) - 列印時完全排除 (no-print) -->
-      <section id="scripture-viewer-section" class="no-print lg:col-span-5 bg-white border border-stone-200 rounded-xl shadow-sm p-4 sm:p-5 flex flex-col h-full max-h-[calc(100vh-170px)] sticky top-28">
+      <section id="scripture-viewer-section" class="no-print lg:col-span-5 bg-white border border-stone-200 rounded-xl shadow-sm p-4 sm:p-5 flex flex-col h-full max-h-[55vh] lg:max-h-[calc(100vh-170px)] lg:sticky lg:top-28">
         <div class="flex items-center justify-between pb-3 border-b border-stone-100 mb-3">
           <div class="flex items-center gap-2">
             <h2 id="scripture-title" class="font-bold text-stone-900 text-base">創世記 第 1 章</h2>
@@ -201,25 +207,25 @@
 
         <!-- 雙類別切換標籤 (Two-Tier Tab Switcher) -->
         <div class="no-print flex items-center justify-between gap-2 bg-stone-200/80 p-1 rounded-xl">
-          <div class="flex items-center gap-1 flex-1">
-            <button id="tab-tier1" onclick="switchTier('tier1')" class="tab-active flex-1 py-2 px-3 rounded-lg text-xs font-medium text-stone-600 transition-all text-center flex items-center justify-center gap-1.5">
+          <div class="flex items-center gap-1 flex-1 min-w-0">
+            <button id="tab-tier1" onclick="switchTier('tier1')" class="tab-active flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs font-medium text-stone-600 transition-all text-center flex items-center justify-center gap-1">
               <span>📄</span>
-              <span><span data-i18n="tabTier1">靈修查經單張</span> <span class="text-2xs opacity-75" data-i18n="tabTier1Sub">(1~2頁)</span></span>
+              <span class="truncate"><span data-i18n="tabTier1">靈修查經單張</span> <span class="hidden sm:inline text-2xs opacity-75" data-i18n="tabTier1Sub">(1~2頁)</span></span>
             </button>
-            <button id="tab-tier2" onclick="switchTier('tier2')" class="flex-1 py-2 px-3 rounded-lg text-xs font-medium text-stone-600 transition-all text-center flex items-center justify-center gap-1.5">
+            <button id="tab-tier2" onclick="switchTier('tier2')" class="flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs font-medium text-stone-600 transition-all text-center flex items-center justify-center gap-1">
               <span>📚</span>
-              <span><span data-i18n="tabTier2">深度研經行囊</span> <span class="text-2xs opacity-75" data-i18n="tabTier2Sub">(組長手冊)</span></span>
+              <span class="truncate"><span data-i18n="tabTier2">深度研經行囊</span> <span class="hidden sm:inline text-2xs opacity-75" data-i18n="tabTier2Sub">(組長手冊)</span></span>
             </button>
           </div>
 
           <!-- 重新調配生成按鈕 (強制跳過快取，重新向 AI 請求最新材料) -->
-          <button onclick="generateWithCurrentTastes(true)" class="action-btn px-3 py-2 bg-amber-800 text-white hover:bg-amber-900 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors shadow-sm flex-shrink-0" title="強制重新調配生成最新研經材料">
+          <button onclick="generateWithCurrentTastes(true)" class="action-btn px-2.5 sm:px-3 py-2 bg-amber-800 text-white hover:bg-amber-900 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors shadow-sm flex-shrink-0" title="強制重新調配生成最新研經材料">
             <span data-i18n="reGenerate">✨ 重新調配</span>
           </button>
         </div>
 
         <!-- 核心材料渲染面板 -->
-        <div id="tier-content-container" class="bg-white border border-stone-200 rounded-xl shadow-sm p-5 sm:p-6 min-h-[500px]">
+        <div id="tier-content-container" class="bg-white border border-stone-200 rounded-xl shadow-sm p-4 sm:p-6 min-h-[500px]">
           <!-- 由 app.js 動態渲染 Tier 1 或 Tier 2 -->
         </div>
 
@@ -304,26 +310,26 @@
   </main>
 
   <!-- ================= 手機端底部常駐導航 (Mobile Bottom Nav) ================= -->
-  <nav class="no-print md:hidden sticky bottom-0 z-40 bg-white border-t border-stone-200 flex items-center justify-around py-2 px-3 shadow-lg">
-    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-stone-600 text-2xs touch-target justify-center">
-      <span class="text-base">📖</span>
-      <span data-i18n="navScripture">經文閱讀</span>
+  <nav id="mobile-bottom-nav" class="no-print md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-stone-200 grid grid-cols-5 items-center py-1.5 px-1 shadow-lg">
+    <button type="button" id="mob-nav-scripture" onclick="mobileBottomNav('scripture')" class="flex flex-col items-center gap-0.5 py-1 rounded-lg text-amber-800 font-bold bg-amber-50/80 text-2xs touch-target justify-center transition-all">
+      <span class="text-base leading-none">📖</span>
+      <span class="truncate max-w-full px-0.5" data-i18n="navScripture">經文閱讀</span>
     </button>
-    <button onclick="switchTier('tier1'); window.scrollTo({top:300, behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-stone-600 text-2xs touch-target justify-center">
-      <span class="text-base">📄</span>
-      <span data-i18n="tabTier1">靈修單張</span>
+    <button type="button" id="mob-nav-tier1" onclick="mobileBottomNav('tier1')" class="flex flex-col items-center gap-0.5 py-1 rounded-lg text-stone-600 text-2xs touch-target justify-center transition-all">
+      <span class="text-base leading-none">📄</span>
+      <span class="truncate max-w-full px-0.5" data-i18n="tabTier1">靈修單張</span>
     </button>
-    <button onclick="switchTier('tier2'); window.scrollTo({top:300, behavior:'smooth'})" class="flex flex-col items-center gap-0.5 text-stone-600 text-2xs touch-target justify-center">
-      <span class="text-base">📚</span>
-      <span data-i18n="tabTier2">深度行囊</span>
+    <button type="button" id="mob-nav-tier2" onclick="mobileBottomNav('tier2')" class="flex flex-col items-center gap-0.5 py-1 rounded-lg text-stone-600 text-2xs touch-target justify-center transition-all">
+      <span class="text-base leading-none">📚</span>
+      <span class="truncate max-w-full px-0.5" data-i18n="tabTier2">深度行囊</span>
     </button>
-    <button onclick="openBackpackModal()" class="flex flex-col items-center gap-0.5 text-stone-600 text-2xs touch-target justify-center">
-      <span class="text-base">🎒</span>
-      <span data-i18n="myBackpack">我的背包</span>
+    <button type="button" id="mob-nav-backpack" onclick="mobileBottomNav('backpack')" class="flex flex-col items-center gap-0.5 py-1 rounded-lg text-stone-600 text-2xs touch-target justify-center transition-all">
+      <span class="text-base leading-none">🎒</span>
+      <span class="truncate max-w-full px-0.5" data-i18n="myBackpack">我的背包</span>
     </button>
-    <button onclick="triggerPrint()" class="flex flex-col items-center gap-0.5 text-amber-800 text-2xs touch-target justify-center font-bold">
-      <span class="text-base">🖨️</span>
-      <span data-i18n="printPdf">列印單張</span>
+    <button type="button" id="mob-nav-print" onclick="mobileBottomNav('print')" class="flex flex-col items-center gap-0.5 py-1 rounded-lg text-amber-800 text-2xs touch-target justify-center font-bold transition-all">
+      <span class="text-base leading-none">🖨️</span>
+      <span class="truncate max-w-full px-0.5" data-i18n="printPdf">列印單張</span>
     </button>
   </nav>
 

@@ -1193,6 +1193,10 @@ function switchTier(tier) {
     btnTier1?.classList.remove("tab-active");
   }
 
+  if (typeof updateMobileBottomNavState === "function") {
+    updateMobileBottomNavState(tier);
+  }
+
   renderActiveTierContent();
 }
 
@@ -1351,6 +1355,44 @@ function selectChapterFromDropdown(chap) {
   if (chapInput) chapInput.value = currentChapter;
   const menu = document.getElementById("chapter-dropdown-menu");
   menu?.classList.add("hidden");
+  handleBookOrChapterChange(false);
+}
+
+// 頂部上一章 / 下一章快捷切換按鈕 (◀ / ▶)
+function stepChapter(delta) {
+  if (typeof BIBLE_BOOKS === "undefined" || !Array.isArray(BIBLE_BOOKS)) return;
+  const bookIdx = BIBLE_BOOKS.findIndex(b => b.name === currentBook);
+  const bookMeta = bookIdx >= 0 ? BIBLE_BOOKS[bookIdx] : null;
+  const maxChap = bookMeta ? bookMeta.chapters : 50;
+
+  let nextChap = currentChapter + (parseInt(delta, 10) || 0);
+  if (nextChap < 1) {
+    if (bookIdx > 0) {
+      const prevBook = BIBLE_BOOKS[bookIdx - 1];
+      currentBook = prevBook.name;
+      currentChapter = prevBook.chapters;
+    } else {
+      currentChapter = 1;
+      const isEn = typeof I18n !== "undefined" && I18n.isEn();
+      showToast(isEn ? "Already at Genesis Chapter 1" : "已經是創世記第 1 章");
+      return;
+    }
+  } else if (nextChap > maxChap) {
+    if (bookIdx >= 0 && bookIdx < BIBLE_BOOKS.length - 1) {
+      const nextBook = BIBLE_BOOKS[bookIdx + 1];
+      currentBook = nextBook.name;
+      currentChapter = 1;
+    } else {
+      currentChapter = maxChap;
+      const isEn = typeof I18n !== "undefined" && I18n.isEn();
+      showToast(isEn ? "Already at the last chapter of Revelation" : "已經是啟示錄最後一章");
+      return;
+    }
+  } else {
+    currentChapter = nextChap;
+  }
+
+  document.getElementById("chapter-dropdown-menu")?.classList.add("hidden");
   handleBookOrChapterChange(false);
 }
 
@@ -2386,7 +2428,7 @@ let currentBackpackSearch = "";
 let routeMapInstance = null;
 let marchAnimationTimeout = null;
 
-function navigateTo(viewName) {
+function navigateTo(viewName, skipAutoScroll = false) {
   currentView = viewName;
 
   const studyPage = document.getElementById("study-workspace-page");
@@ -2405,7 +2447,10 @@ function navigateTo(viewName) {
     tabBackpack?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
     tabBackpack?.classList.add("text-stone-600");
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    updateMobileBottomNavState("scripture");
+    if (!skipAutoScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   } else {
     studyPage?.classList.add("hidden");
     backpackPage?.classList.remove("hidden");
@@ -2416,8 +2461,71 @@ function navigateTo(viewName) {
     tabStudy?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
     tabStudy?.classList.add("text-stone-600");
 
+    updateMobileBottomNavState("backpack");
     renderBackpackHub();
+    if (!skipAutoScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+}
+
+// 同步手機底部導航列按鈕高亮狀態
+function updateMobileBottomNavState(activeKey) {
+  const navMap = {
+    scripture: "mob-nav-scripture",
+    tier1: "mob-nav-tier1",
+    tier2: "mob-nav-tier2",
+    backpack: "mob-nav-backpack"
+  };
+
+  Object.entries(navMap).forEach(([key, id]) => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    if (key === activeKey) {
+      btn.classList.add("text-amber-800", "font-bold", "bg-amber-50/80");
+      btn.classList.remove("text-stone-600");
+    } else {
+      btn.classList.remove("text-amber-800", "font-bold", "bg-amber-50/80");
+      btn.classList.add("text-stone-600");
+    }
+  });
+}
+
+// 手機底部常駐導航欄一鍵切換與精準滾動控制
+function mobileBottomNav(target) {
+  if (target === "scripture") {
+    if (currentView !== "study") {
+      navigateTo("study", true);
+    }
+    updateMobileBottomNavState("scripture");
     window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if (target === "tier1" || target === "tier2") {
+    if (currentView !== "study") {
+      navigateTo("study", true);
+    }
+    switchTier(target);
+    updateMobileBottomNavState(target);
+
+    setTimeout(() => {
+      const studySec = document.getElementById("study-material-section");
+      const headerEl = document.querySelector("header");
+      if (studySec) {
+        const headerHeight = headerEl ? headerEl.offsetHeight : 115;
+        const rect = studySec.getBoundingClientRect();
+        const targetY = Math.max(0, window.pageYOffset + rect.top - headerHeight - 8);
+        window.scrollTo({ top: targetY, behavior: "smooth" });
+      }
+    }, 40);
+  } else if (target === "backpack") {
+    navigateTo("backpack");
+    updateMobileBottomNavState("backpack");
+  } else if (target === "print") {
+    if (currentView !== "study") {
+      navigateTo("study", true);
+    }
+    setTimeout(() => {
+      triggerPrint();
+    }, 80);
   }
 }
 
