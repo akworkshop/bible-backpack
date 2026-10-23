@@ -73,11 +73,19 @@ function initApp() {
   setupEventListeners();
   updateBackpackBadge();
 
-  let isSharedLoaded = false;
-  if (typeof ShareService !== "undefined") {
-    isSharedLoaded = ShareService.init();
-  }
-  if (!isSharedLoaded) {
+  // 檢查是否由分享連結或小組碼打開
+  const hasShareParams = (window.location.hash && (window.location.hash.includes("code=") || window.location.hash.includes("share="))) ||
+                         (window.location.search && (window.location.search.includes("code=") || window.location.search.includes("share=")));
+
+  if (hasShareParams && typeof ShareService !== "undefined") {
+    Promise.resolve(ShareService.init()).then(loaded => {
+      if (!loaded) {
+        handleBookOrChapterChange(false, true);
+      }
+    }).catch(() => {
+      handleBookOrChapterChange(false, true);
+    });
+  } else {
     handleBookOrChapterChange(false, true);
   }
 }
