@@ -94,6 +94,12 @@
           </span>
         </button>
 
+        <!-- 分享給組員按鈕 (Share with Group) -->
+        <button onclick="ShareService.openShareModal()" class="action-btn px-2 sm:px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1 transition-colors" title="分享給組員 / Share with Group">
+          <span>🔗</span>
+          <span class="hidden xl:inline" data-i18n="navShare">分享</span>
+        </button>
+
         <!-- 設置按鈕 -->
         <button onclick="openSettingsModal()" class="action-btn p-1.5 sm:p-2 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 text-xs transition-colors" title="設置與免費 API Key">
           <span>⚙️</span>
@@ -141,6 +147,11 @@
       </div>
     </div>
   </header>
+
+  <!-- 小組共學分享提示橫幅 (Shared Pack Banner) -->
+  <div id="shared-pack-banner" class="hidden no-print bg-amber-100/90 border-b border-amber-300/80 px-3 sm:px-6 py-2 text-stone-900 transition-all">
+    <!-- 由 ShareService 動態填充 -->
+  </div>
 
   <!-- ================= 主工作區 (Main Two-Column Workspace) ================= -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-5 pb-24 md:pb-8">
@@ -763,12 +774,115 @@
     </div>
   </div>
 
+  <!-- ================= 彈窗 5：小組查經即時分享 (Share Modal) ================= -->
+  <div id="share-modal" class="no-print hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-fade-in">
+      
+      <!-- 頭部 -->
+      <div class="p-4 sm:p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+        <div>
+          <h3 class="font-bold text-stone-900 text-base sm:text-lg flex items-center gap-2">
+            <span>🔗</span>
+            <span data-i18n="shareModalTitle">小組查經即時分享 (Share Material)</span>
+          </h3>
+          <p class="text-xs text-stone-500 mt-0.5" id="share-modal-passage-meta">
+            約書亞記 第 1 章 · 靈修單張 (組員版)
+          </p>
+        </div>
+        <button onclick="ShareService.closeShareModal()" class="text-stone-400 hover:text-stone-700 text-xl p-1">✕</button>
+      </div>
+
+      <!-- 內容主體 -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- 分享範疇切換 (Tier 1 組員版 vs Tier 2 組長手冊 vs 完整雙層) -->
+        <div>
+          <label class="text-xs font-bold text-stone-700 uppercase tracking-wider block mb-1.5" data-i18n="shareScopeLabel">選擇分享內容：</label>
+          <div class="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200 text-xs">
+            <button id="share-mode-btn-tier1" type="button" onclick="ShareService.switchShareMode('tier1')" class="flex-1 py-1.5 px-2 rounded-lg text-xs font-bold bg-white text-stone-900 shadow-sm border border-stone-200 transition-all text-center">
+              <span data-i18n="shareScopeTier1">📄 靈修單張 (組員版)</span>
+            </button>
+            <button id="share-mode-btn-tier2" type="button" onclick="ShareService.switchShareMode('tier2')" class="flex-1 py-1.5 px-2 rounded-lg text-xs text-stone-600 hover:text-stone-900 transition-all text-center">
+              <span data-i18n="shareScopeTier2">📚 深度行囊 (組長版)</span>
+            </button>
+            <button id="share-mode-btn-all" type="button" onclick="ShareService.switchShareMode('all')" class="flex-1 py-1.5 px-2 rounded-lg text-xs text-stone-600 hover:text-stone-900 transition-all text-center">
+              <span data-i18n="shareScopeAll">🎒 完整雙層</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 現場掃描二維碼展示區 -->
+        <div class="p-4 bg-stone-50 rounded-2xl border border-stone-200 flex flex-col items-center justify-center text-center">
+          <div class="text-xs font-bold text-stone-700 mb-2 flex items-center gap-1.5">
+            <span>📷</span>
+            <span data-i18n="shareQrTitle">現場手機相機掃描 QR Code：</span>
+          </div>
+          <!-- QR Code Canvas 容器 -->
+          <div id="share-qrcode-container" class="p-3 bg-white rounded-xl shadow-xs border border-stone-200 inline-flex items-center justify-center min-w-[210px] min-h-[210px]">
+            <!-- 由 qrcodejs 動態繪製 -->
+          </div>
+          <p class="text-2xs text-stone-500 mt-2 max-w-xs leading-relaxed" data-i18n="shareQrHint">
+            團契聚會現場可直接投影或讓組員以手機相機掃描，無需登入、即掃即讀！
+          </p>
+        </div>
+
+        <!-- 連結複製與即時分享快捷鍵 -->
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-stone-700 uppercase tracking-wider block" data-i18n="shareLinkTitle">分享專屬連結：</label>
+          <div class="flex gap-2">
+            <input type="text" id="share-url-input" readonly class="flex-1 p-2.5 rounded-lg border border-stone-200 bg-stone-50 font-mono text-2xs text-stone-700 select-all focus:outline-none focus:border-amber-700" onclick="this.select()">
+            <button type="button" id="share-copy-btn" onclick="ShareService.copyShareLink()" class="px-3.5 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-1 transition-colors">
+              <span>📋</span>
+              <span data-i18n="shareCopyBtn">複製連結</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 外部通訊轉發操作按鈕列 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <!-- WhatsApp 一鍵轉發 -->
+          <button type="button" onclick="ShareService.shareToWhatsApp()" class="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors">
+            <span class="text-sm">💬</span>
+            <span data-i18n="shareWhatsappBtn">傳送到 WhatsApp 群組</span>
+          </button>
+
+          <!-- 手機原生分享 (iOS AirDrop / Android Nearby / LINE) -->
+          <button type="button" id="share-native-btn" onclick="ShareService.shareViaNative()" class="p-2.5 bg-amber-800 hover:bg-amber-900 text-white text-xs font-medium rounded-xl flex items-center justify-center gap-2 shadow-xs transition-colors">
+            <span class="text-sm">📲</span>
+            <span data-i18n="shareNativeBtn">手機原生分享 (LINE/AirDrop)</span>
+          </button>
+        </div>
+
+        <!-- 離線小組包下載 -->
+        <div class="pt-2 border-t border-stone-100 flex items-center justify-between text-2xs text-stone-500">
+          <span>需要離線分享或備份檔案？</span>
+          <button type="button" onclick="ShareService.downloadPackJson()" class="text-amber-800 hover:underline font-medium">
+            💾 下載小組研經檔案 (.json)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 底部按鈕 -->
+      <div class="p-3 bg-stone-50 border-t border-stone-200 flex items-center justify-end">
+        <button onclick="ShareService.closeShareModal()" class="px-4 py-2 text-xs bg-stone-200 hover:bg-stone-300 text-stone-700 font-medium rounded-lg" data-i18n="close">
+          關閉
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Toast 輕量提示條 -->
   <div id="app-toast" class="no-print hidden fixed bottom-16 left-1/2 -translate-x-1/2 z-50 bg-stone-900/90 text-white text-xs px-4 py-2 rounded-full shadow-lg transition-opacity duration-300 pointer-events-none">
     提示信息
   </div>
 
   <!-- ================= 腳本依賴加載 (Scripts) ================= -->
+  <!-- 壓縮與 QR Code 生成函式庫 (輕量開源無服務端依賴) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <script src="data/books.js?v=20261019_1"></script>
   <script src="data/joshua1.js?v=20261019_1"></script>
   <script src="data/preset_packs.js?v=20261019_1"></script>
@@ -776,6 +890,7 @@
   <script src="js/i18n.js?v=20261019_1"></script>
   <script src="js/bible-service.js?v=20261019_1"></script>
   <script src="js/ai-service.js?v=20261019_1"></script>
+  <script src="js/share-service.js?v=20261022_1"></script>
   <script src="js/app.js?v=20261019_1"></script>
 </body>
 </html>

@@ -163,7 +163,21 @@ const I18n = {
       target_opt_family: "家庭夫妻 / 父母團契",
       target_opt_new: "初信信徒 / 門徒班",
       target_opt_menwomen: "弟兄小組 / 姊妹小組",
-      target_opt_senior: "長者團契 / 常規小組"
+      target_opt_senior: "長者團契 / 常規小組",
+      navShare: "分享",
+      shareBtn: "🔗 分享給組員",
+      shareModalTitle: "小組查經即時分享 (Share Material)",
+      shareScopeLabel: "選擇分享內容：",
+      shareScopeTier1: "📄 靈修單張 (組員版)",
+      shareScopeTier2: "📚 深度行囊 (組長版)",
+      shareScopeAll: "🎒 完整雙層",
+      shareQrTitle: "現場手機相機掃描 QR Code：",
+      shareQrHint: "團契聚會現場可直接投影或讓組員以手機相機掃描，無需登入、即掃即讀！",
+      shareLinkTitle: "分享專屬連結：",
+      shareCopyBtn: "複製連結",
+      shareCopiedToast: "✅ 查經分享連結已複製！可直接貼至 WhatsApp / LINE 小組群！",
+      shareWhatsappBtn: "傳送到 WhatsApp 群組",
+      shareNativeBtn: "手機原生分享 (LINE/AirDrop)"
     },
     en: {
       appName: "Bible Backpack",
@@ -302,7 +316,21 @@ const I18n = {
       target_opt_family: "Couples & Parents Fellowship",
       target_opt_new: "New Believers / Discipleship Class",
       target_opt_menwomen: "Men's / Women's Small Group",
-      target_opt_senior: "Senior Fellowship / General Group"
+      target_opt_senior: "Senior Fellowship / General Group",
+      navShare: "Share",
+      shareBtn: "🔗 Share with Group",
+      shareModalTitle: "Share Study Material (Zero-Server)",
+      shareScopeLabel: "Select Content to Share:",
+      shareScopeTier1: "📄 Devotional Sheet (Member)",
+      shareScopeTier2: "📚 In-Depth Dossier (Leader)",
+      shareScopeAll: "🎒 Complete (Both)",
+      shareQrTitle: "Scan QR Code on Mobile Phone:",
+      shareQrHint: "Group members can scan with their phone camera to load immediately—no registration needed!",
+      shareLinkTitle: "Shareable Link:",
+      shareCopyBtn: "Copy Link",
+      shareCopiedToast: "✅ Share link copied! Ready to paste into group chat.",
+      shareWhatsappBtn: "Send to WhatsApp Group",
+      shareNativeBtn: "Share via Apps (AirDrop/LINE)"
     }
   },
 

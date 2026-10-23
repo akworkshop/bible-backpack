@@ -73,6 +73,10 @@ function initApp() {
   setupEventListeners();
   updateBackpackBadge();
   handleBookOrChapterChange(false, true);
+
+  if (typeof ShareService !== "undefined") {
+    ShareService.init();
+  }
 }
 
 // 應用主題與字體
@@ -307,6 +311,10 @@ function renderTier1Sheet(container) {
         <span class="text-xs text-stone-500 ml-2">${isEn ? "~1-2 pages A4, for personal & small group study" : "約 1~2 頁 A4，適合個人與團契"}</span>
       </div>
       <div class="flex items-center gap-2">
+        <button onclick="ShareService.openShareModal('tier1')" class="action-btn px-3 py-1.5 text-xs rounded-md border border-stone-300 text-stone-700 hover:bg-stone-50 transition-all flex items-center gap-1 font-medium">
+          <span>🔗</span>
+          <span>${isEn ? "Share with Group" : "分享給組員"}</span>
+        </button>
         <button onclick="toggleSaveCurrentSheet()" class="action-btn px-3 py-1.5 text-xs rounded-md border ${isSavedSheet ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold' : 'border-stone-300 text-stone-700 hover:bg-stone-50'} transition-all flex items-center gap-1">
           <span>${isSavedSheet ? (isEn ? '⭐ Saved' : '⭐ 已在背包') : (isEn ? '🎒 Save to Backpack' : '🎒 存入背包')}</span>
         </button>
@@ -885,6 +893,10 @@ function renderTier2Dossier(container) {
         <span class="text-xs text-stone-500 ml-2">${isEn ? "Leader Prep × Deep Theological Exploration" : "小組長備課 × 個人深入鑽研"}</span>
       </div>
       <div class="flex items-center gap-2">
+        <button onclick="ShareService.openShareModal('tier2')" class="action-btn px-3 py-1.5 text-xs rounded-md border border-stone-300 text-stone-700 hover:bg-stone-50 transition-all flex items-center gap-1 font-medium">
+          <span>🔗</span>
+          <span>${isEn ? "Share Leader Guide" : "分享組長手冊"}</span>
+        </button>
         <button onclick="triggerPrint()" class="action-btn px-3 py-1.5 text-xs bg-stone-900 text-white rounded-md hover:bg-stone-800 transition-colors flex items-center gap-1 font-medium">
           <span>${isEn ? "🖨️ Print Leader Dossier" : "🖨️ 列印深度行囊"}</span>
         </button>
@@ -2703,6 +2715,9 @@ function renderBackpackCards() {
           <span>${isEn ? "📖 Open in Study Desk" : "📖 進入查閱"}</span>
         </button>
         <div class="flex items-center gap-1.5">
+          <button onclick="ShareService.openShareModal()" class="p-1.5 text-stone-500 hover:text-stone-900 rounded hover:bg-stone-100 text-xs" title="${isEn ? 'Share Sheet' : '分享此材料'}">
+            🔗
+          </button>
           <button onclick="triggerPrint()" class="p-1.5 text-stone-500 hover:text-stone-900 rounded hover:bg-stone-100 text-xs" title="${isEn ? 'Print Sheet' : '列印此單張'}">
             🖨️
           </button>
