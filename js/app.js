@@ -72,10 +72,13 @@ function initApp() {
 
   setupEventListeners();
   updateBackpackBadge();
-  handleBookOrChapterChange(false, true);
 
+  let isSharedLoaded = false;
   if (typeof ShareService !== "undefined") {
-    ShareService.init();
+    isSharedLoaded = ShareService.init();
+  }
+  if (!isSharedLoaded) {
+    handleBookOrChapterChange(false, true);
   }
 }
 

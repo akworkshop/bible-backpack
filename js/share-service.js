@@ -10,7 +10,7 @@ const ShareService = {
 
   // 初始化：檢查網址中是否帶有小組長分享的查經資料
   init() {
-    this.checkUrlForSharedPack();
+    return this.checkUrlForSharedPack();
   },
 
   // 將研經材料緊湊序列化以減小體積
@@ -39,8 +39,8 @@ const ShareService = {
       };
     }
 
-    // 壓縮 Tier 1 (靈修單張)
-    if ((mode === "tier1" || mode === "all") && studyData.tier1_sheet) {
+    // 打包 Tier 1 (靈修單張)
+    if (studyData.tier1_sheet) {
       const t1 = studyData.tier1_sheet;
       payload.t1 = {
         t: t1.title,
@@ -59,8 +59,8 @@ const ShareService = {
       };
     }
 
-    // 壓縮 Tier 2 (深度行囊)
-    if ((mode === "tier2" || mode === "all") && studyData.tier2_dossier) {
+    // 打包 Tier 2 (深度行囊)
+    if (studyData.tier2_dossier) {
       const t2 = studyData.tier2_dossier;
       payload.t2 = {
         t: t2.title,
@@ -78,10 +78,11 @@ const ShareService = {
           try: t2.archaeology.treatyStructure,
           art: t2.archaeology.visualArtifacts || []
         } : null,
-        dif: Array.isArray(t2.difficulties) ? t2.difficulties.map(d => [d.question, d.orthodoxAnswer]) : [],
+        dif: Array.isArray(t2.difficulties) ? t2.difficulties.map(d => [d.question, d.orthodoxAnswer || d.answer || ""]) : [],
         lg: t2.leaderGuide ? {
           ice: t2.leaderGuide.icebreaker,
           flow: t2.leaderGuide.flowTips,
+          tb: t2.leaderGuide.timeBudget || "45-60 min",
           conc: t2.leaderGuide.conclusionPrayer
         } : null
       };
@@ -107,7 +108,8 @@ const ShareService = {
           tag: item[1] || "",
           question: item[2] || "",
           hint: item[3] || "",
-          answer: item[4] || ""
+          answer: item[4] || "",
+          leaderAnswer: item[4] || ""
         })) : [],
         takeaway: t1.tk || "",
         prayer: t1.pr || ""
@@ -140,11 +142,13 @@ const ShareService = {
         } : null,
         difficulties: Array.isArray(t2.dif) ? t2.dif.map(item => ({
           question: item[0] || "",
-          orthodoxAnswer: item[1] || ""
+          orthodoxAnswer: item[1] || "",
+          answer: item[1] || ""
         })) : [],
         leaderGuide: t2.lg ? {
           icebreaker: t2.lg.ice || "",
           flowTips: t2.lg.flow || "",
+          timeBudget: t2.lg.tb || "45-60 分鐘",
           conclusionPrayer: t2.lg.conc || ""
         } : null
       };
@@ -453,7 +457,7 @@ const ShareService = {
           currentActiveTier = t;
         }
       }
-      return;
+      return false;
     }
 
     // 解碼資料並渲染
@@ -481,23 +485,67 @@ const ShareService = {
       currentChapter = restored.chapter;
       currentActiveTier = restored.mode === "tier2" ? "tier2" : "tier1";
 
+      // 若某些欄位在預載庫中存在但分享包未包含，自動從預載庫補全
+      let t1 = restored.tier1_sheet;
+      let t2 = restored.tier2_dossier;
+      if (typeof getPresetPack === "function") {
+        const preset = getPresetPack(currentBook, currentChapter);
+        if (preset) {
+          if (!t1 && preset.tier1_sheet) t1 = preset.tier1_sheet;
+          if (!t2 && preset.tier2_dossier) t2 = preset.tier2_dossier;
+        }
+      }
+
       const bookMeta = typeof BIBLE_BOOKS !== "undefined" ? BIBLE_BOOKS.find(b => b.name === currentBook) : null;
       activeStudyData = {
         bookId: bookMeta ? bookMeta.id : "shared",
-        bookName: restored.bookName,
-        chapter: restored.chapter,
+        bookName: currentBook,
+        chapter: currentChapter,
         verses: [],
-        tier1_sheet: restored.tier1_sheet,
-        tier2_dossier: restored.tier2_dossier
+        tier1_sheet: t1,
+        tier2_dossier: t2
       };
 
-      // 自動快取至離線存儲，供後續隨時查看
+      // 記憶為用戶最後瀏覽章節，並存入離線快取
       if (typeof BackpackStore !== "undefined") {
+        BackpackStore.setLastLocation(currentBook, currentChapter);
+
         const lang = BackpackStore.getLanguage() || "zh";
         const ver = BackpackStore.getBibleVersion() || "cuv";
         const selectedTasteIds = BackpackStore.getTastes();
-        let tasteHash = `${lang}-${ver}-` + (selectedTasteIds || []).sort().join("-") + "-shared";
-        BackpackStore.saveCachedPack(currentBook, currentChapter, activeStudyData, tasteHash);
+        let standardHash = `${lang}-${ver}-` + (selectedTasteIds || []).sort().join("-") + (BackpackStore.getCustomTaste() ? `-${BackpackStore.getCustomTaste()}` : "");
+        let sharedHash = `${lang}-${ver}-` + (selectedTasteIds || []).sort().join("-") + "-shared";
+        BackpackStore.saveCachedPack(currentBook, currentChapter, activeStudyData, standardHash);
+        BackpackStore.saveCachedPack(currentBook, currentChapter, activeStudyData, sharedHash);
+      }
+
+      // 同步頂部書卷選單與章節輸入框
+      const bookSelect = document.getElementById("book-selector-select");
+      if (bookSelect) bookSelect.value = currentBook;
+      const chapInput = document.getElementById("chapter-selector-input");
+      if (chapInput) chapInput.value = currentChapter;
+      if (typeof renderChapterDropdown === "function") renderChapterDropdown();
+
+      // 同步切換視圖標籤
+      const btnTier1 = document.getElementById("tab-tier1");
+      const btnTier2 = document.getElementById("tab-tier2");
+      if (currentActiveTier === "tier2") {
+        btnTier2?.classList.add("tab-active");
+        btnTier1?.classList.remove("tab-active");
+      } else {
+        btnTier1?.classList.add("tab-active");
+        btnTier2?.classList.remove("tab-active");
+      }
+      if (typeof updateMobileBottomNavState === "function") {
+        updateMobileBottomNavState(currentActiveTier);
+      }
+
+      // ★ 核心修復：立即重新渲染左側經文與右側雙層材料！
+      if (typeof renderScripture === "function") {
+        renderScripture();
+      }
+      if (typeof renderActiveTierContent === "function") {
+        renderActiveTierContent();
       }
 
       // 渲染頂部小組共學提示條
@@ -505,10 +553,13 @@ const ShareService = {
         this.renderSharedPackBanner(restored);
         const isEn = typeof I18n !== "undefined" && I18n.isEn();
         showToast(isEn ? "🎉 Loaded study material shared by your group leader!" : "🎉 已載入組長分享的小組查經材料！", 4000);
-      }, 200);
+      }, 100);
+
+      return true;
 
     } catch (err) {
       console.error("Error processing shared pack URL:", err);
+      return false;
     }
   },
 
