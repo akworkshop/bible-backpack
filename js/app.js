@@ -73,6 +73,11 @@ function initApp() {
   setupEventListeners();
   updateBackpackBadge();
 
+  // 初始化 Supabase 雲端認證與同步 (若已登入則背景雙向同步)
+  if (typeof AuthService !== "undefined") {
+    AuthService.init();
+  }
+
   // 檢查是否由分享連結或小組碼打開
   const hasShareParams = (window.location.hash && (window.location.hash.includes("code=") || window.location.hash.includes("share="))) ||
                          (window.location.search && (window.location.search.includes("code=") || window.location.search.includes("share=")));
@@ -1921,6 +1926,9 @@ function closeBackpackModal() {
 function removeBackpackItem(id) {
   const items = BackpackStore.getSavedItems().filter(i => i.id !== id);
   localStorage.setItem("bible_backpack_saved_items", JSON.stringify(items));
+  if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+    AuthService.syncDeleteItem(id);
+  }
   openBackpackModal();
   updateBackpackBadge();
 }
@@ -1928,7 +1936,11 @@ function removeBackpackItem(id) {
 function clearBackpack() {
   const isEn = typeof I18n !== "undefined" && I18n.isEn();
   if (confirm(isEn ? "Are you sure you want to clear all saved items in your backpack?" : "確定要清空背包中已收藏的所有材料嗎？")) {
+    const oldItems = BackpackStore.getSavedItems();
     localStorage.removeItem("bible_backpack_saved_items");
+    if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+      oldItems.forEach(i => AuthService.syncDeleteItem(i.id));
+    }
     openBackpackModal();
     updateBackpackBadge();
   }
@@ -2236,6 +2248,11 @@ function saveSettingsModal() {
   }
   showToast(isEn ? `Settings saved! Active channel: ${activeDesc}` : `設置已保存！當前通道：${activeDesc}`);
   renderScripture();
+
+  // 若已登入 Supabase，自動上傳最新設定至雲端備份
+  if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+    AuthService.syncUpProfile();
+  }
 
   // 若先前有點選等待生成的書卷或用戶正要調配，立即自動觸發生成
   if (pendingGenerationBook && hasValidConfig) {
@@ -2775,6 +2792,9 @@ function handleBackpackSearch(val) {
 function removeBackpackCardItem(id) {
   const items = BackpackStore.getSavedItems().filter(i => i.id !== id);
   localStorage.setItem("bible_backpack_saved_items", JSON.stringify(items));
+  if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+    AuthService.syncDeleteItem(id);
+  }
   renderBackpackHub();
   showToast("已從背包中移出！");
 }

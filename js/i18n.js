@@ -177,7 +177,23 @@ const I18n = {
       shareCopyBtn: "複製連結",
       shareCopiedToast: "✅ 查經分享連結已複製！可直接貼至 WhatsApp / LINE 小組群！",
       shareWhatsappBtn: "傳送到 WhatsApp 群組",
-      shareNativeBtn: "手機原生分享 (LINE/AirDrop)"
+      shareNativeBtn: "手機原生分享 (LINE/AirDrop)",
+
+      // 雲端帳號與同步中心 (Auth & Cloud Sync)
+      authModalTitle: "雲端帳號與同步中心",
+      authModalDesc: "跨設備自動同步您的研經背包與 API 設置",
+      authGoogleSignIn: "使用 Google 帳號一鍵登入",
+      authOrEmail: "或使用 Email 登入",
+      authEmailLabel: "電子郵件 (Email):",
+      authPasswordLabel: "設定密碼 (Password):",
+      authSignInBtn: "登入帳號",
+      authSignUpBtn: "註冊新帳號",
+      authMagicLinkBtn: "✨ 免密碼快速登入 (Email 魔法連結)",
+      authFreeNotice: "💡 免付費保證：Bible Backpack 堅持提供免費純文字研經儲存。未登入時系統自動使用手機 LocalStorage 離線保存；登入後享受跨手機、電腦自動雲端同步！",
+      navAuthLogin: "登入",
+      authSyncNowBtn: "立即雙向手動同步 (Sync Now)",
+      authManageSettingsBtn: "管理我的 API Keys 與模型設置",
+      authSignOutBtn: "🚪 登出帳號 (切換回本地訪客模式)"
     },
     en: {
       appName: "Bible Backpack",
@@ -330,7 +346,23 @@ const I18n = {
       shareCopyBtn: "Copy Link",
       shareCopiedToast: "✅ Share link copied! Ready to paste into group chat.",
       shareWhatsappBtn: "Send to WhatsApp Group",
-      shareNativeBtn: "Share via Apps (AirDrop/LINE)"
+      shareNativeBtn: "Share via Apps (AirDrop/LINE)",
+
+      // Auth & Cloud Sync
+      authModalTitle: "Cloud Account & Sync Center",
+      authModalDesc: "Automatically sync your study backpack and API settings across devices",
+      authGoogleSignIn: "Continue with Google",
+      authOrEmail: "or sign in with Email",
+      authEmailLabel: "Email Address:",
+      authPasswordLabel: "Password:",
+      authSignInBtn: "Sign In",
+      authSignUpBtn: "Create Account",
+      authMagicLinkBtn: "✨ Passwordless Sign-in (Magic Link)",
+      authFreeNotice: "💡 Zero-Cost Guarantee: Bible Backpack provides free text-based study storage. Guest mode saves offline in LocalStorage; logging in syncs seamlessly across devices!",
+      navAuthLogin: "Login",
+      authSyncNowBtn: "Sync Now",
+      authManageSettingsBtn: "Manage API Keys & AI Models",
+      authSignOutBtn: "🚪 Log Out (Switch to Local Guest Mode)"
     }
   },
 

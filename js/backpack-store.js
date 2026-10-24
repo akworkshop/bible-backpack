@@ -52,10 +52,17 @@ const BackpackStore = {
     if (index >= 0) {
       items.splice(index, 1);
       localStorage.setItem("bible_backpack_saved_items", JSON.stringify(items));
+      if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+        AuthService.syncDeleteItem(item.id);
+      }
       return false; // 已移除
     } else {
-      items.unshift({ ...item, savedAt: new Date().toISOString() });
+      const fullItem = { ...item, savedAt: new Date().toISOString() };
+      items.unshift(fullItem);
       localStorage.setItem("bible_backpack_saved_items", JSON.stringify(items));
+      if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+        AuthService.syncUpSingleItem(fullItem);
+      }
       return true; // 已添加
     }
   },
@@ -196,12 +203,18 @@ const BackpackStore = {
       packs.unshift(pack);
     }
     localStorage.setItem("bible_backpack_packs", JSON.stringify(packs));
+    if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+      AuthService.syncUpStudyPacks();
+    }
     return pack;
   },
 
   deleteStudyPack(id) {
     const packs = this.getStudyPacks().filter(p => p.id !== id);
     localStorage.setItem("bible_backpack_packs", JSON.stringify(packs));
+    if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
+      AuthService.syncUpStudyPacks();
+    }
   },
 
   createStudyPack(title) {
