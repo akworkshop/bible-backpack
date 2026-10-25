@@ -917,8 +917,11 @@
         
         <!-- 狀態 A：尚未登入 (Guest View) -->
         <div id="auth-modal-guest-view" class="space-y-4">
-          <!-- Google 一鍵登入大按鈕 -->
-          <button type="button" onclick="AuthService.signInWithGoogle()" class="w-full py-3 px-4 border border-stone-300 rounded-xl bg-white hover:bg-stone-50 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-xs text-sm font-semibold text-stone-800">
+          <!-- Google 原生免轉址按鈕槽位 (GIS In-Page / One Tap) -->
+          <div id="google-onetap-btn-slot" class="hidden flex justify-center w-full min-h-[44px]"></div>
+
+          <!-- Google 備用一鍵登入大按鈕 -->
+          <button id="google-fallback-btn" type="button" onclick="AuthService.signInWithGoogle()" class="w-full py-3 px-4 border border-stone-300 rounded-xl bg-white hover:bg-stone-50 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-xs text-sm font-semibold text-stone-800">
             <svg class="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -928,7 +931,13 @@
             <span data-i18n="authGoogleSignIn">使用 Google 帳號一鍵登入</span>
           </button>
 
-          <div class="flex items-center gap-2 my-2 text-2xs text-stone-400 uppercase tracking-wider">
+          <!-- 官方安全保證說明 -->
+          <div class="flex items-center justify-center gap-1.5 text-2xs text-stone-500 py-0.5">
+            <span>🛡️</span>
+            <span>官方 Google 原生身分驗證 · 雲端端對端加密</span>
+          </div>
+
+          <div class="flex items-center gap-2 my-1 text-2xs text-stone-400 uppercase tracking-wider">
             <div class="flex-1 h-px bg-stone-200"></div>
             <span data-i18n="authOrEmail">或使用 Email 登入</span>
             <div class="flex-1 h-px bg-stone-200"></div>
@@ -1028,6 +1037,9 @@
   </div>
 
   <!-- ================= 腳本依賴加載 (Scripts) ================= -->
+  <!-- Google 官方 Identity Services (GIS - 頁內原生 One Tap 免轉址驗證) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <!-- Supabase 官方 JS SDK (使用者驗證與雲端資料庫) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 

@@ -414,6 +414,15 @@ const BackpackStore = {
       const key = `bible_pack_cache_${book}_${chapter}_${tasteHash}`;
       localStorage.setItem(key, JSON.stringify(packData));
     } catch (e) {}
+  },
+
+  // Google OAuth Client ID (用於頁內 Google One Tap 原生免轉址登入)
+  getGoogleClientId() {
+    return localStorage.getItem("bible_backpack_google_client_id") || "";
+  },
+
+  setGoogleClientId(clientId) {
+    localStorage.setItem("bible_backpack_google_client_id", (clientId || "").trim());
   }
 };
 

@@ -6,7 +6,9 @@
 
 const SUPABASE_CONFIG = {
   url: "https://rllyvqxnxfgnhqfiwijz.supabase.co",
-  anonKey: "sb_publishable_Ey4Jetmbl7ZjkX8C135PAg_vwlm-gnB"
+  anonKey: "sb_publishable_Ey4Jetmbl7ZjkX8C135PAg_vwlm-gnB",
+  // Google OAuth 2.0 Web Client ID (用於頁內 Google One Tap 原生免跳轉登入，徹底隱藏 supabase 網址)
+  googleClientId: ""
 };
 
 const AuthService = {
@@ -45,6 +47,9 @@ const AuthService = {
         this.updateAuthUI();
         if (this.currentUser) {
           this.syncDownFromCloud();
+        } else {
+          // 未登入時嘗試初始化 Google One Tap 原生頁內驗證
+          this.initGoogleOneTap();
         }
       });
     } catch (err) {
@@ -71,7 +76,84 @@ const AuthService = {
 
   // ================= 認證操作 (Authentication Actions) =================
 
-  // 1. Google 一鍵登入 (OAuth)
+  // 初始化 Google Identity Services (GIS) 原生頁內免跳轉登入
+  initGoogleOneTap() {
+    const clientId = (typeof BackpackStore !== "undefined" && BackpackStore.getGoogleClientId()) || SUPABASE_CONFIG.googleClientId;
+    if (!clientId) return;
+
+    const setupGIS = () => {
+      if (typeof google === "undefined" || !google.accounts || !google.accounts.id) {
+        setTimeout(setupGIS, 300);
+        return;
+      }
+
+      try {
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: async (response) => {
+            await this.handleGoogleCredentialResponse(response);
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+
+        // 渲染頁面內的 Google 原生登入按鈕
+        const container = document.getElementById("google-onetap-btn-slot");
+        const fallbackBtn = document.getElementById("google-fallback-btn");
+        if (container) {
+          container.innerHTML = "";
+          google.accounts.id.renderButton(container, {
+            theme: "outline",
+            size: "large",
+            type: "standard",
+            text: "continue_with",
+            shape: "pill",
+            logo_alignment: "left",
+            width: 300
+          });
+          container.classList.remove("hidden");
+          if (fallbackBtn) fallbackBtn.classList.add("hidden");
+        }
+
+        // 若使用者尚未登入，且在主頁面停留，喚起 Google One Tap 浮動提示卡片
+        if (!this.isLoggedIn()) {
+          google.accounts.id.prompt();
+        }
+      } catch (e) {
+        console.warn("Google Identity Services init error:", e);
+      }
+    };
+
+    setupGIS();
+  },
+
+  // 處理 Google 原生 ID Token 登入 (零跳轉、完全不顯示 supabase 網址)
+  async handleGoogleCredentialResponse(response) {
+    if (!this.client || !response || !response.credential) return;
+    const isEn = typeof I18n !== "undefined" && I18n.isEn();
+    this.setSyncStatus(true);
+
+    try {
+      const { data, error } = await this.client.auth.signInWithIdToken({
+        provider: "google",
+        token: response.credential
+      });
+
+      if (error) throw error;
+      this.currentUser = data.user;
+      this.closeAuthModal();
+      this.updateAuthUI();
+      showToast(isEn ? `👋 Welcome, ${this.getUserDisplayName()}!` : `👋 歡迎回來，${this.getUserDisplayName()}！`);
+      await this.syncDownFromCloud();
+    } catch (err) {
+      console.error("Google ID Token login error:", err);
+      showToast(isEn ? `Login error: ${err.message}` : `Google 登入失敗：${err.message}`);
+    } finally {
+      this.setSyncStatus(false);
+    }
+  },
+
+  // 1. Google 備用一鍵登入 (OAuth 轉址流程)
   async signInWithGoogle() {
     if (!this.client) return;
     const isEn = typeof I18n !== "undefined" && I18n.isEn();
@@ -518,6 +600,7 @@ const AuthService = {
     } else {
       loggedInView?.classList.add("hidden");
       guestView?.classList.remove("hidden");
+      this.initGoogleOneTap();
     }
 
     modal.classList.remove("hidden");
