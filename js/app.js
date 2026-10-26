@@ -149,16 +149,20 @@ function toggleLanguage() {
   showToast(next === "en" ? "Switched to English interface" : "已切換至繁體中文介面");
 }
 
-// 頂部當前口味標籤展示
+// 設置彈窗內當前口味標籤展示與即時預覽
 function renderTasteBadges() {
+  const selectedTasteIds = BackpackStore.getTastes();
+  const customKeyword = BackpackStore.getCustomTaste();
+  renderActiveTasteBadgesPreview(selectedTasteIds, customKeyword);
+}
+
+function renderActiveTasteBadgesPreview(selectedTasteIds, customKeyword) {
   const container = document.getElementById("active-taste-badges");
   if (!container) return;
 
   const isEn = typeof I18n !== "undefined" && I18n.isEn();
-  const selectedTasteIds = BackpackStore.getTastes();
   const allTastes = BackpackStore.AVAILABLE_TASTES;
   const activeTastes = allTastes.filter(t => selectedTasteIds.includes(t.id));
-  const customKeyword = BackpackStore.getCustomTaste();
 
   let html = activeTastes.map(t => {
     const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t) : t;
@@ -180,7 +184,19 @@ function renderTasteBadges() {
     `;
   }
 
+  if (!html) {
+    html = `<span class="text-stone-400 text-xs italic">${isEn ? "No specific lenses selected (orthodox balanced exegesis)" : "尚未選擇特定口味（以經典正統研經為準）"}</span>`;
+  }
+
   container.innerHTML = html;
+}
+
+// 當用戶在設置彈窗點選/取消口味或輸入關鍵字時，即時更新預覽標籤
+function handleTasteCheckboxChange() {
+  const checkboxes = document.querySelectorAll("input[name='taste_opt']:checked");
+  const selectedIds = Array.from(checkboxes).map(c => c.value);
+  const customKeyword = document.getElementById("custom-taste-input")?.value?.trim() || "";
+  renderActiveTasteBadgesPreview(selectedIds, customKeyword);
 }
 
 // 渲染經文列表（支援 CUV 和合本、API.Bible NIV/NIrV/CEV 與本地快取）
@@ -1829,54 +1845,32 @@ function renderTasteOptionsList() {
     const checked = currentTastes.includes(t.id) ? "checked" : "";
     const info = typeof I18n !== "undefined" ? I18n.getTasteInfo(t) : t;
     return `
-      <label class="flex items-start gap-3 p-3 rounded-lg border border-stone-200 hover:bg-stone-50 cursor-pointer select-none transition-colors">
-        <input type="checkbox" name="taste_opt" value="${t.id}" ${checked} class="mt-1 rounded text-amber-800 focus:ring-amber-800">
-        <div>
-          <div class="text-sm font-semibold text-stone-900 flex items-center gap-1.5 flex-wrap">
+      <label class="flex items-start gap-2.5 p-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 has-[:checked]:bg-amber-50/60 has-[:checked]:border-amber-700 cursor-pointer select-none transition-all">
+        <input type="checkbox" name="taste_opt" value="${t.id}" ${checked} onchange="handleTasteCheckboxChange()" class="mt-0.5 rounded text-amber-800 focus:ring-amber-800">
+        <div class="min-w-0 flex-1">
+          <div class="text-xs font-bold text-stone-900 flex items-center gap-1.5 flex-wrap">
             <span>${t.icon}</span>
             <span>${escapeHtml(info.name)}</span>
-            <span class="text-2xs text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded font-normal">${escapeHtml(info.category)}</span>
+            <span class="text-2xs text-stone-500 bg-stone-100 px-1.5 py-0.2 rounded font-normal">${escapeHtml(info.category)}</span>
           </div>
-          <p class="text-xs text-stone-600 mt-0.5">${escapeHtml(info.desc)}</p>
+          <p class="text-2xs text-stone-500 mt-0.5 leading-snug">${escapeHtml(info.desc)}</p>
         </div>
       </label>
     `;
   }).join("");
 }
 
+// 點擊原有的「研經口味」按鈕時，直接打開設置彈窗並定位到「研經口味」分頁
 function openTasteModal() {
-  const modal = document.getElementById("taste-modal");
-  if (!modal) return;
-
-  renderTasteOptionsList();
-
-  const customInput = document.getElementById("custom-taste-input");
-  if (customInput) customInput.value = BackpackStore.getCustomTaste();
-  modal.classList.remove("hidden");
+  openSettingsModal("tastes");
 }
 
 function saveTasteModal() {
-  const checkboxes = document.querySelectorAll("input[name='taste_opt']:checked");
-  const selectedIds = Array.from(checkboxes).map(c => c.value);
-  const customKeyword = document.getElementById("custom-taste-input").value.trim();
-  const isEn = typeof I18n !== "undefined" && I18n.isEn();
-
-  BackpackStore.saveTastes(selectedIds, customKeyword);
-  closeTasteModal();
-  renderTasteBadges();
-  
-  const provider = BackpackStore.getProvider();
-  const apiKey = provider === "groq" ? BackpackStore.getGroqKey() : BackpackStore.getApiKey();
-  if (apiKey || provider === "local") {
-    showToast(isEn ? "Study taste preferences updated! Regenerating materials..." : "口味設定已更新，正在重新調配最新材料...");
-    generateWithCurrentTastes(true);
-  } else {
-    showToast(isEn ? "Study taste preferences updated!" : "口味設定已更新！");
-  }
+  saveSettingsModal();
 }
 
 function closeTasteModal() {
-  document.getElementById("taste-modal")?.classList.add("hidden");
+  closeSettingsModal();
 }
 
 function openBackpackModal() {
@@ -2008,8 +2002,43 @@ async function syncLocalModelsDropdown(endpointUrl) {
   }
 }
 
-// 設置彈窗
-function openSettingsModal(notice = "") {
+// 切換設置彈窗內部的分頁標籤（Tab 1: AI 通道與系統 / Tab 2: 研經口味與風格）
+function switchSettingsTab(tabName = "ai") {
+  const tabAI = document.getElementById("settings-tab-ai");
+  const tabTastes = document.getElementById("settings-tab-tastes");
+  const btnAI = document.getElementById("tab-btn-settings-ai");
+  const btnTastes = document.getElementById("tab-btn-settings-tastes");
+
+  if (tabName === "tastes") {
+    tabAI?.classList.add("hidden");
+    tabTastes?.classList.remove("hidden");
+    btnAI?.classList.remove("bg-white", "text-stone-900", "font-bold", "shadow-xs");
+    btnAI?.classList.add("text-stone-600", "font-medium");
+    btnTastes?.classList.add("bg-white", "text-stone-900", "font-bold", "shadow-xs");
+    btnTastes?.classList.remove("text-stone-600", "font-medium");
+    renderTasteOptionsList();
+    renderTasteBadges();
+  } else {
+    tabTastes?.classList.add("hidden");
+    tabAI?.classList.remove("hidden");
+    btnTastes?.classList.remove("bg-white", "text-stone-900", "font-bold", "shadow-xs");
+    btnTastes?.classList.add("text-stone-600", "font-medium");
+    btnAI?.classList.add("bg-white", "text-stone-900", "font-bold", "shadow-xs");
+    btnAI?.classList.remove("text-stone-600", "font-medium");
+  }
+}
+
+// 設置彈窗（支援指定打開分頁：'ai' 或 'tastes'）
+function openSettingsModal(targetTabOrNotice = "ai", maybeNotice = "") {
+  let targetTab = "ai";
+  let notice = "";
+  if (targetTabOrNotice === "tastes" || targetTabOrNotice === "ai") {
+    targetTab = targetTabOrNotice;
+    notice = maybeNotice;
+  } else if (typeof targetTabOrNotice === "string") {
+    notice = targetTabOrNotice;
+  }
+
   const modal = document.getElementById("settings-modal");
   const keyInput = document.getElementById("api-key-input");
   const groqInput = document.getElementById("groq-key-input");
@@ -2057,6 +2086,10 @@ function openSettingsModal(notice = "") {
     apibibleStatusEl.innerHTML = "";
   }
 
+  // 填充自訂口味關鍵字
+  const customTasteInput = document.getElementById("custom-taste-input");
+  if (customTasteInput) customTasteInput.value = BackpackStore.getCustomTaste();
+
   // 更新語系按鈕樣式
   const currentLang = BackpackStore.getLanguage();
   const btnZh = document.getElementById("lang-btn-zh");
@@ -2088,6 +2121,9 @@ function openSettingsModal(notice = "") {
     localStatusEl.className = "mt-1.5 text-2xs hidden";
     localStatusEl.innerHTML = "";
   }
+
+  // 切換至指定分頁
+  switchSettingsTab(targetTab);
 
   modal?.classList.remove("hidden");
 }
@@ -2233,6 +2269,19 @@ function saveSettingsModal() {
   if (nirvId) BackpackStore.setApiBibleId("nirv", nirvId);
   if (cevId) BackpackStore.setApiBibleId("cev", cevId);
 
+  // 儲存研經口味與風格偏好 (Tab 2)
+  const tasteCheckboxes = document.querySelectorAll("input[name='taste_opt']:checked");
+  const selectedTasteIds = Array.from(tasteCheckboxes).map(c => c.value);
+  const customTasteInput = document.getElementById("custom-taste-input");
+  const customKeyword = customTasteInput ? customTasteInput.value.trim() : BackpackStore.getCustomTaste();
+
+  const oldTastes = JSON.stringify(BackpackStore.getTastes());
+  const oldCustom = BackpackStore.getCustomTaste();
+  const tastesChanged = (oldTastes !== JSON.stringify(selectedTasteIds)) || (oldCustom !== customKeyword);
+
+  BackpackStore.saveTastes(selectedTasteIds, customKeyword);
+  renderTasteBadges();
+
   closeSettingsModal();
   let activeDesc = "";
   let hasValidConfig = false;
@@ -2246,12 +2295,19 @@ function saveSettingsModal() {
     activeDesc = `🌟 Google Gemini (${BackpackStore.getModelName()})`;
     hasValidConfig = !!geminiKey;
   }
-  showToast(isEn ? `Settings saved! Active channel: ${activeDesc}` : `設置已保存！當前通道：${activeDesc}`);
-  renderScripture();
 
-  // 若已登入 Supabase，自動上傳最新設定至雲端備份
+  // 若已登入 Supabase，自動上傳最新設定（包含 API 與口味）至雲端備份
   if (typeof AuthService !== "undefined" && AuthService.isLoggedIn()) {
     AuthService.syncUpProfile();
+  }
+
+  // 若口味有變更且已有可用 AI 配置，自動重新調配靈修單張與行囊
+  if (tastesChanged && hasValidConfig && !pendingGenerationBook) {
+    showToast(isEn ? "Settings & study lenses updated! Regenerating materials..." : "設置與口味偏好已更新，正在重新調配最新材料...");
+    generateWithCurrentTastes(true);
+  } else {
+    showToast(isEn ? `Settings saved! Active channel: ${activeDesc}` : `設置已保存！當前通道：${activeDesc}`);
+    renderScripture();
   }
 
   // 若先前有點選等待生成的書卷或用戶正要調配，立即自動觸發生成

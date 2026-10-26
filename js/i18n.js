@@ -193,7 +193,14 @@ const I18n = {
       navAuthLogin: "登入",
       authSyncNowBtn: "立即雙向手動同步 (Sync Now)",
       authManageSettingsBtn: "管理我的 API Keys 與模型設置",
-      authSignOutBtn: "🚪 登出帳號 (切換回本地訪客模式)"
+      authSignOutBtn: "🚪 登出帳號 (切換回本地訪客模式)",
+
+      // 設置分頁與口味整合 (Settings Tabs)
+      settingsTabAI: "AI 通道與系統",
+      settingsTabTastes: "研經口味與風格",
+      activeTastesLabel: "當前生效中的口味標籤：",
+      tasteHelpBanner: "💡 <strong>什麼是研經口味？</strong> 選擇您與團契感興趣的視角（例如：科學印證、歷史考據、職場上班族、數學邏輯、青少年生活應用等），AI 將為您專屬調配切合不同群體的神學考證與討論應用。",
+      tastesPreviewHint: "即時預覽"
     },
     en: {
       appName: "Bible Backpack",
@@ -362,7 +369,14 @@ const I18n = {
       navAuthLogin: "Login",
       authSyncNowBtn: "Sync Now",
       authManageSettingsBtn: "Manage API Keys & AI Models",
-      authSignOutBtn: "🚪 Log Out (Switch to Local Guest Mode)"
+      authSignOutBtn: "🚪 Log Out (Switch to Local Guest Mode)",
+
+      // Settings Tabs & Lenses
+      settingsTabAI: "AI & System",
+      settingsTabTastes: "Study Lenses",
+      activeTastesLabel: "Active Study Lenses:",
+      tasteHelpBanner: "💡 <strong>What are Study Lenses?</strong> Select perspectives tailored to your group (e.g. Science, Historical Exegesis, Workplace Faith, Logic, Youth Application). AI will customize discussion prompts and commentary accordingly.",
+      tastesPreviewHint: "Live preview"
     }
   },
 
