@@ -1752,21 +1752,49 @@ async function generateWithCurrentTastes(forceFresh = true) {
 
   const isLocal = provider === "local";
   const timerLabel = isLocal ? "本地離線運算中（180 秒守護）" : "深度生成中（設定 90 秒超時保護）";
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
   const curriculumDesc = activeCurriculumContext
-    ? `正在為《${escapeHtml(activeCurriculumContext.packTitle)}》第 ${activeCurriculumContext.sessionNum} 堂【${escapeHtml(activeCurriculumContext.sessionTitle)}】專屬調配小組主題研經材料...`
-    : `正在調配《${currentBook}》第 ${currentChapter} 章 · 融入視角啟發 · 嚴守歷史正統神學 · 拒絕生硬強塞`;
+    ? (isEn 
+        ? `Preparing custom study material for "${escapeHtml(activeCurriculumContext.packTitle)}" Session ${activeCurriculumContext.sessionNum}: "${escapeHtml(activeCurriculumContext.sessionTitle)}"...` 
+        : `正在為《${escapeHtml(activeCurriculumContext.packTitle)}》第 ${activeCurriculumContext.sessionNum} 堂【${escapeHtml(activeCurriculumContext.sessionTitle)}】專屬調配小組主題研經材料...`)
+    : (isEn 
+        ? `Preparing study sheet & dossier for ${currentBook} Chapter ${currentChapter} with your selected study lenses...` 
+        : `正在調配《${currentBook}》第 ${currentChapter} 章 · 融入視角啟發 · 嚴守歷史正統神學 · 拒絕生硬強塞`);
+
+  const coffeeTitle = typeof I18n !== "undefined" ? I18n.t("coffeeCardTitle", "認同 Bible Backpack 免費研經事工？") : "認同 Bible Backpack 免費研經事工？";
+  const coffeeDesc = typeof I18n !== "undefined" ? I18n.t("coffeeCardDesc", "我們堅持提供零商業廣告、100% 免費的正統研經與小組工具。若本工具祝福了您的靈修或事奉，歡迎請作者喝杯咖啡，支持系統伺服器持續免費運作！") : "我們堅持提供零商業廣告、100% 免費的正統研經與小組工具。若本工具祝福了您的靈修或事奉，歡迎請作者喝杯咖啡，支持系統伺服器持續免費運作！";
+  const coffeeBtn = typeof I18n !== "undefined" ? I18n.t("coffeeBtnText", "Buy Me a Coffee（請喝咖啡支持事工）↗") : "Buy Me a Coffee（請喝咖啡支持事工）↗";
 
   container.innerHTML = `
-    <div class="py-16 text-center space-y-3">
-      <div class="inline-block animate-spin text-4xl mb-2">${activeCurriculumContext ? "🎯" : "🎒"}</div>
-      <div class="font-bold text-stone-900 text-base" id="ai-gen-status">${isLocal ? '本地離線 AI 正在運算調配行囊...' : (activeCurriculumContext ? 'AI 神學主管正在為主題課程調配專屬材料...' : 'AI 神學主管正在根據您的口味調配行囊...')}</div>
+    <div class="py-12 sm:py-16 text-center space-y-3.5 animate-fade-in">
+      <div class="inline-block animate-spin text-4xl mb-1">${activeCurriculumContext ? "🎯" : "🎒"}</div>
+      <div class="font-bold text-stone-900 text-base" id="ai-gen-status">${isLocal ? (isEn ? 'Local AI computing study dossier...' : '本地離線 AI 正在運算調配行囊...') : (activeCurriculumContext ? (isEn ? 'AI Director tailoring curriculum session...' : 'AI 神學主管正在為主題課程調配專屬材料...') : (isEn ? 'AI Director tailoring study pack for you...' : 'AI 神學主管正在根據您的口味調配行囊...'))}</div>
       <div class="text-2xs text-stone-500 font-mono" id="ai-gen-timer">已耗時 0 秒 · ${timerLabel}</div>
-      <div class="text-xs text-stone-500 max-w-md mx-auto leading-relaxed">
+      <div class="text-xs text-stone-500 max-w-md mx-auto leading-relaxed px-4">
         ${curriculumDesc}
       </div>
       <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-2xs text-amber-800 font-medium">
-        <span>✨ 當前口味：${selectedTastes.map(t => t.name).join("、") || "綜合思考"}</span>
+        <span>✨ ${isEn ? 'Current Lenses:' : '當前口味：'}${selectedTastes.map(t => (typeof I18n !== "undefined" ? I18n.getTasteInfo(t).name : t.name)).join("、") || (isEn ? "General Exegesis" : "綜合思考")}</span>
+      </div>
+
+      <!-- 支持事工 (Buy Me a Coffee) 溫暖等待卡片 -->
+      <div class="pt-5 max-w-md mx-auto px-4">
+        <div class="p-4 bg-gradient-to-br from-amber-50/90 via-yellow-50/80 to-amber-100/70 rounded-2xl border border-amber-200/90 shadow-xs text-center space-y-2">
+          <div class="flex items-center justify-center gap-1.5 text-amber-900 font-bold text-xs sm:text-sm">
+            <span>☕</span>
+            <span>${coffeeTitle}</span>
+          </div>
+          <p class="text-2xs text-stone-600 leading-relaxed">
+            ${coffeeDesc}
+          </p>
+          <div class="pt-1">
+            <a href="https://buymeacoffee.com/akworkshop" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 bg-[#FFDD00] hover:bg-[#FFDD00]/90 active:scale-95 text-stone-900 font-bold text-xs rounded-xl shadow-xs transition-all hover:shadow-sm cursor-pointer">
+              <span>☕</span>
+              <span>${coffeeBtn}</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   `;

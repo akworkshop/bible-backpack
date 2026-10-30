@@ -100,6 +100,12 @@
           <span class="hidden xl:inline" data-i18n="navShare">分享</span>
         </button>
 
+        <!-- 支持事工 (Buy Me a Coffee) -->
+        <a href="https://buymeacoffee.com/akworkshop" target="_blank" rel="noopener noreferrer" class="action-btn px-2 sm:px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100/90 text-amber-900 text-xs font-semibold flex items-center gap-1 transition-all shadow-2xs hover:scale-[1.02]" title="支持 Bible Backpack 研經事工 / Buy Me a Coffee">
+          <span class="text-xs">☕</span>
+          <span class="hidden md:inline" data-i18n="supportMinistry">支持事工</span>
+        </a>
+
         <!-- 用戶登入 / 雲端同步狀態按鈕 (Auth & Sync) -->
         <button id="nav-auth-btn" onclick="AuthService.openAuthModal()" class="action-btn px-2 sm:px-2.5 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="登入 / 註冊帳號 (雲端跨設備同步)">
           <span id="nav-auth-avatar"><span>👤</span></span>
@@ -768,10 +774,17 @@
           </div>
         </div>
 
-        <div id="curriculum-gen-status" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-1 text-xs text-amber-900">
+        <div id="curriculum-gen-status" class="hidden p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-2 text-xs text-amber-900">
           <div class="inline-block animate-spin text-lg">🎒</div>
           <div class="font-bold" id="curriculum-status-text">AI 神學主管正在為您企劃課程大綱...</div>
           <div class="text-2xs text-stone-500">精心挑選聖經經文 · 契合正統神學與生活切入點</div>
+          <!-- 企劃中支持事工小提示 -->
+          <div class="pt-2 border-t border-amber-200/70 flex items-center justify-center gap-1.5 text-2xs text-stone-600">
+            <span>☕ 祝福了您的服事？</span>
+            <a href="https://buymeacoffee.com/akworkshop" target="_blank" rel="noopener noreferrer" class="font-bold text-amber-900 hover:underline inline-flex items-center gap-1">
+              <span>請作者喝杯咖啡支持事工 ↗</span>
+            </a>
+          </div>
         </div>
       </div>
 

@@ -200,7 +200,13 @@ const I18n = {
       settingsTabTastes: "研經口味與風格",
       activeTastesLabel: "當前生效中的口味標籤：",
       tasteHelpBanner: "💡 <strong>什麼是研經口味？</strong> 選擇您與團契感興趣的視角（例如：科學印證、歷史考據、職場上班族、數學邏輯、青少年生活應用等），AI 將為您專屬調配切合不同群體的神學考證與討論應用。",
-      tastesPreviewHint: "即時預覽"
+      tastesPreviewHint: "即時預覽",
+
+      // 支持事工 (Buy Me a Coffee)
+      supportMinistry: "支持事工",
+      coffeeCardTitle: "認同 Bible Backpack 免費研經事工？",
+      coffeeCardDesc: "我們堅持提供零商業廣告、100% 免費的正統研經與小組工具。若本工具祝福了您的靈修或事奉，歡迎請作者喝杯咖啡，支持系統伺服器持續免費運作！",
+      coffeeBtnText: "Buy Me a Coffee（請喝咖啡支持事工）↗"
     },
     en: {
       appName: "Bible Backpack",
@@ -376,7 +382,13 @@ const I18n = {
       settingsTabTastes: "Study Lenses",
       activeTastesLabel: "Active Study Lenses:",
       tasteHelpBanner: "💡 <strong>What are Study Lenses?</strong> Select perspectives tailored to your group (e.g. Science, Historical Exegesis, Workplace Faith, Logic, Youth Application). AI will customize discussion prompts and commentary accordingly.",
-      tastesPreviewHint: "Live preview"
+      tastesPreviewHint: "Live preview",
+
+      // Support Ministry (Buy Me a Coffee)
+      supportMinistry: "Support Us",
+      coffeeCardTitle: "Blessed by Bible Backpack Ministry?",
+      coffeeCardDesc: "Bible Backpack is dedicated to staying 100% free with zero ads for personal devotions and small groups. If this tool blesses your spiritual walk or fellowship, consider buying the creator a coffee to support continuous development!",
+      coffeeBtnText: "Buy Me a Coffee ↗"
     }
   },
 
