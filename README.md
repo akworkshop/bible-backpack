@@ -3,11 +3,25 @@
 > **行動基督徒的深度研經與小組行囊 · 讓讀經變得立體、有趣且富有生命力**  
 > *A Modern, Lightweight, Mobile-First Christian Devotional & Group Study Companion*
 
+[![Live Demo](https://img.shields.io/badge/🌐%20Live%20App-biblebackpack.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://biblebackpack.vercel.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-amber.svg)](https://opensource.org/licenses/MIT)
 [![Architecture: Local--First](https://img.shields.io/badge/Architecture-Local--First-emerald.svg)]()
 [![Backend: Supabase%20Free](https://img.shields.io/badge/Backend-Supabase%20(100%25%20Free)-3ECF8E.svg?logo=supabase)]()
 [![AI: Multi--Provider](https://img.shields.io/badge/AI-Gemini%20%7C%20Groq%20%7C%20Ollama-blue.svg)]()
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-akworkshop-FFDD00.svg?logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/akworkshop)
+
+---
+
+### 🌐 線上即刻體驗 (Instant Live Web App)
+👉 **立即打開使用：[https://biblebackpack.vercel.app/](https://biblebackpack.vercel.app/)**  
+*(支援手機、平板與電腦全平台 PWA 體驗，免安裝、免下載，點開即用！)*
+
+---
+
+<div align="center">
+  <img src="docs/images/screenshot-app.png" alt="Bible Backpack 介面展示 - 撒母耳記上第17章 靈修單張與經文對照" style="max-width: 100%; border-radius: 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border: 1px solid #e7e5e4;">
+  <p><em>▲ Bible Backpack 核心雙欄工作台：左側全本經文速查 + 右側 AI 研經口味專屬調配「靈修單張」與「深度行囊」</em></p>
+</div>
 
 ---
 
