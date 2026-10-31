@@ -11,6 +11,20 @@ const AIService = {
     "gemini-2.0-flash"
   ],
 
+  // 解析經文範圍字串（例如："撒母耳記上 17:32-50"、"17:32-50"、"1:1-9"、"19:1-18"、"40:27-31"、"12:1-10"）
+  parseVerseRange(rangeStr) {
+    if (!rangeStr || typeof rangeStr !== "string") return null;
+    const match = rangeStr.match(/(\d+)[:：](\d+)\s*[-~至到]\s*(\d+)/) || rangeStr.match(/(\d+)\s*[-~至到]\s*(\d+)/);
+    if (match) {
+      if (match.length === 4) {
+        return { start: parseInt(match[2]), end: parseInt(match[3]) };
+      } else if (match.length === 3) {
+        return { start: parseInt(match[1]), end: parseInt(match[2]) };
+      }
+    }
+    return null;
+  },
+
   // 根據章節經文節數與內容篇幅動態計算建議問題數量 (4~6 題)
   getRecommendedQuestionCount(bookName, chapter, verses = null) {
     let count = Array.isArray(verses) ? verses.length : 0;
@@ -38,15 +52,26 @@ const AIService = {
     const tasteNames = (selectedTastes || []).map(t => `${t.name} (${t.desc || t.category})`).join("、");
     const activeTasteList = (selectedTastes || []).map(t => t.name);
 
-    // 從本地和合本資料庫提取本章完整經文，讓 AI 緊扣經文逐節深入剖析（不再空泛概括）
+    // 從本地和合本資料庫提取經文（若為主題系列課程且指定了節數範圍，例如 17:32-50，優先高亮並聚焦該範圍經文）
     let scriptureContext = "";
     let chapterVerses = [];
+    let focusedVersesText = "";
+    const parsedRange = curriculumContext ? this.parseVerseRange(curriculumContext.passageRange) : null;
+
     if (typeof BibleService !== "undefined") {
       const verses = BibleService.getChapterVerses(bookName, chapter, version || "cuv");
       if (verses && verses.length > 0 && !verses[0].text.includes("正在載入") && !verses[0].text.includes("Loading")) {
         chapterVerses = verses;
         const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
         scriptureContext = `\n【《${bookName}》第 ${chapter} 章經文原文（共 ${verses.length} 節，請務必緊扣以下經文細節、節數、人名與地名進行深度剖析，嚴禁空泛敷衍）】：\n${formattedVerses}\n`;
+
+        if (parsedRange) {
+          const ranged = verses.filter(v => v.num >= parsedRange.start && v.num <= parsedRange.end);
+          if (ranged.length > 0) {
+            focusedVersesText = `\n【★本堂小組指定聚焦研讀經文範圍（第 ${parsedRange.start} 至 ${parsedRange.end} 節，共 ${ranged.length} 節，所有小組查經討論題目必須嚴格鎖定在這幾節內！嚴禁提問範圍外的事件！）：】\n` + 
+              ranged.map(v => `${v.num}. ${v.text}`).join("\n") + "\n";
+          }
+        }
       }
     }
 
@@ -54,6 +79,10 @@ const AIService = {
 
     let curriculumInstruction = "";
     if (curriculumContext) {
+      const rangeNotice = parsedRange 
+        ? `【★★最重要核心範圍限制★★】：本堂課經文範圍為「${curriculumContext.passageRange}」（第 ${parsedRange.start}～${parsedRange.end} 節）！所有討論題目 (discussionQuestions Q1~Q${qCount})、經文快照與大綱，【必須 100% 聚焦在第 ${parsedRange.start} 至 ${parsedRange.end} 節的經文細節、對話與人物互動上】！絕對不要去提問或考究本章範圍之外（例如 1~${parsedRange.start - 1} 節或 ${parsedRange.end + 1} 節之後）的枝節！`
+        : `【範圍聚焦】：聚焦本堂課指定經文範圍「${curriculumContext.passageRange || `${bookName} 第 ${chapter} 章`}」！`;
+
       curriculumInstruction = `
 【★★極重要指令：本單張為小組主題系列課程專屬研經材料★★】：
 - 本套系列主題：《${curriculumContext.packTitle || "小組主題課程"}》
@@ -63,14 +92,17 @@ const AIService = {
 - 指定小組破冰方向：${curriculumContext.icebreaker || "無"}
 - 指定生活實踐操練：${curriculumContext.lifeAction || "無"}
 
+${rangeNotice}
+${focusedVersesText}
 【課程連貫性與深度整合要求】：
 1. 標題與副標題：tier1_sheet.title 請標註為「《${curriculumContext.packTitle || "小組主題"}》第 ${curriculumContext.sessionNum || 1} 堂 · ${curriculumContext.sessionTitle || ""}」，副標題深刻點出本堂主題。
-2. 核心聚焦：經文快照 (snapshot)、經文分段 (outline)、人物檔案與神學剖析，必須強烈圍繞本堂核心信息「${curriculumContext.coreMessage || ""}」進行深度釋經。
+2. 核心聚焦：經文快照 (snapshot)、經文分段 (outline)、人物檔案與神學剖析，必須強烈圍繞本堂指定經文範圍（${curriculumContext.passageRange || `${bookName} 第 ${chapter} 章`}）與核心信息「${curriculumContext.coreMessage || ""}」進行深度釋經。
 3. 討論問題專屬客製化（共 ${qCount} 題，依本章篇幅動態調配）：
-   - Q1 (經文細讀)：結合本堂聚焦經文細節。
-   - Q2 (主題討論)：必須精準對接本堂「小組討論焦點方向：${curriculumContext.discussionTheme || ""}」，tag 標註「主題探討」。
-   - Q3 (生活應用)：必須緊扣本堂「指定生活實踐操練：${curriculumContext.lifeAction || ""}」，引導組員具體落地。
-   - 後續題目：結合本堂神學深意與團契彼此代禱。
+   - 【範圍守則】：所有問題的經文依據必須出自指定範圍「${curriculumContext.passageRange || `${bookName} 第 ${chapter} 章`}」，嚴禁提問範圍外的經文！
+   - Q1 (經文觀察與細讀)：直接考核本堂指定範圍（如 ${curriculumContext.passageRange}）內的關鍵字句、人物對話、動作或具體情節細節。
+   - Q2 (主題深入探討)：必須精準對接本堂「小組討論焦點方向：${curriculumContext.discussionTheme || ""}」，結合指定範圍經文，tag 標註「主題探討」。
+   - Q3 (生活具體應用)：必須緊扣本堂「指定生活實踐操練：${curriculumContext.lifeAction || ""}」，引導組員從這幾節經文中反思落地行動。
+   - 後續題目：聚焦本段經文的神學轉折與同伴守望代禱。
 4. 破冰與組長提示：tier2_dossier.leaderGuide.icebreaker 請直接融入或深化本課堂指定之破冰「${curriculumContext.icebreaker || ""}」；flowTips 提供組長帶領本主題時的控場與牧養叮嚀。
 `;
     }
@@ -294,12 +326,23 @@ ${kidsInstruction}
 
     let scriptureContext = "";
     let chapterVerses = [];
+    let focusedVersesText = "";
+    const parsedRange = curriculumContext ? this.parseVerseRange(curriculumContext.passageRange) : null;
+
     if (typeof BibleService !== "undefined") {
       const verses = BibleService.getChapterVerses(bookName, chapter, ver);
       if (verses && verses.length > 0 && !verses[0].text.includes("Loading") && !verses[0].text.includes("正在載入")) {
         chapterVerses = verses;
         const formattedVerses = verses.map(v => `${v.num}. ${v.text}`).join("\n");
         scriptureContext = `\n[Scripture Passage (${ver.toUpperCase()}) for ${engBook} Chapter ${chapter} (${verses.length} verses - Strictly examine and quote from these verses below)]:\n${formattedVerses}\n`;
+
+        if (parsedRange) {
+          const ranged = verses.filter(v => v.num >= parsedRange.start && v.num <= parsedRange.end);
+          if (ranged.length > 0) {
+            focusedVersesText = `\n[MANDATORY FOCUS: Targeted Group Study Verses ${parsedRange.start}-${parsedRange.end} (${ranged.length} verses - All discussion questions and reflections MUST strictly focus within these verses)]:\n` +
+              ranged.map(v => `${v.num}. ${v.text}`).join("\n") + "\n";
+          }
+        }
       }
     }
 
@@ -307,6 +350,10 @@ ${kidsInstruction}
 
     let curriculumInstruction = "";
     if (curriculumContext) {
+      const rangeNotice = parsedRange
+        ? `[STRICT PASSAGE CONSTRAINT]: The designated scripture range for this session is "${curriculumContext.passageRange}" (Verses ${parsedRange.start}-${parsedRange.end})! All discussion questions (Q1~Q${qCount}), core snapshot, and outline MUST 100% focus on the text, dialogue, and narrative tension within verses ${parsedRange.start} through ${parsedRange.end}. DO NOT formulate questions on context outside this range!`
+        : `[PASSAGE FOCUS]: Focus study questions and reflection on "${curriculumContext.passageRange || `${engBook} Chapter ${chapter}`}".`;
+
       curriculumInstruction = `
 [CRITICAL INSTRUCTION: Dedicated Study Sheet for Thematic Curriculum Series]:
 - Series Theme: "${curriculumContext.packTitle || "Thematic Study"}"
@@ -315,6 +362,19 @@ ${kidsInstruction}
 - Discussion Focus: ${curriculumContext.discussionTheme || "None"}
 - Icebreaker: ${curriculumContext.icebreaker || "None"}
 - Action Step: ${curriculumContext.lifeAction || "None"}
+
+${rangeNotice}
+${focusedVersesText}
+[Curriculum Continuity & Specificity Requirements]:
+1. Title: tier1_sheet.title must be "${curriculumContext.packTitle || "Study Series"} · Session ${curriculumContext.sessionNum || 1}: ${curriculumContext.sessionTitle || ""}".
+2. Core Focus: Snapshot, outline, and theology must closely align with the core passage (${curriculumContext.passageRange || `${engBook} ${chapter}`}) and theme "${curriculumContext.coreMessage || ""}".
+3. Discussion Questions (${qCount} Questions):
+   - Strict Constraint: Questions must examine details specifically within "${curriculumContext.passageRange || `${engBook} ${chapter}`}".
+   - Q1 (Textual Observation): Inspect key dialogue, characters, and direct words within ${curriculumContext.passageRange || `${engBook} ${chapter}`}.
+   - Q2 (Theme Deep-Dive): Must specifically intersect with "${curriculumContext.discussionTheme || ""}".
+   - Q3 (Life Application): Must directly connect with actionable step "${curriculumContext.lifeAction || ""}".
+   - Additional questions: Explore turning points within this passage and mutual prayer.
+4. Leader Guide: leaderGuide.icebreaker should incorporate or build upon "${curriculumContext.icebreaker || ""}".
 `;
     }
 

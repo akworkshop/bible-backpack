@@ -221,6 +221,9 @@ function renderScripture() {
     titleEl.textContent = isEn 
       ? `${displayName} Chapter ${chap}` 
       : `${displayName} 第 ${chap} 章`;
+    if (activeCurriculumContext && activeCurriculumContext.passageRange) {
+      titleEl.innerHTML = `${escapeHtml(displayName)} ${isEn ? `Chapter ${chap}` : `第 ${chap} 章`} <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 ml-1.5 align-middle">🎯 ${escapeHtml(activeCurriculumContext.passageRange)}</span>`;
+    }
   }
 
   // 1. 優先從 BibleService 讀取 (支援 cuv, niv, nirv, cev)
@@ -249,6 +252,12 @@ function renderScripture() {
     return;
   }
 
+  // 若在小組主題課程模式且指定了節數範圍（如 17:32-50），高亮並標記該指定範圍經文
+  let activeRange = null;
+  if (activeCurriculumContext && typeof AIService !== "undefined" && typeof AIService.parseVerseRange === "function") {
+    activeRange = AIService.parseVerseRange(activeCurriculumContext.passageRange);
+  }
+
   const versesHtml = verses.map(v => {
     if (v.isNotice) {
       return `
@@ -266,10 +275,16 @@ function renderScripture() {
         </div>
       `;
     }
+
+    const isInsideRange = activeRange && (v.num >= activeRange.start && v.num <= activeRange.end);
+    const rangeClasses = isInsideRange 
+      ? 'bg-amber-50/70 border-l-4 border-amber-600 font-medium' 
+      : (activeRange ? 'opacity-50 hover:opacity-100 transition-opacity' : '');
+
     return `
-      <div class="verse-item flex items-baseline gap-2 py-1.5 px-2 rounded hover:bg-stone-50 transition-colors" id="verse-${v.num}">
-        <span class="verse-num text-xs font-bold text-amber-800 w-6 flex-shrink-0 select-none">${v.num}</span>
-        <span class="verse-text text-stone-800 leading-relaxed">${escapeHtml(v.text)}</span>
+      <div class="verse-item flex items-baseline gap-2 py-1.5 px-2 rounded hover:bg-amber-100/40 transition-all ${rangeClasses}" id="verse-${v.num}">
+        <span class="verse-num text-xs font-bold ${isInsideRange ? 'text-amber-900' : 'text-amber-800'} w-6 flex-shrink-0 select-none">${v.num}</span>
+        <span class="verse-text ${isInsideRange ? 'text-stone-900 font-medium' : 'text-stone-800'} leading-relaxed">${escapeHtml(v.text)}</span>
       </div>
     `;
   }).join("");
