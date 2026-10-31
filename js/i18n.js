@@ -210,7 +210,7 @@ const I18n = {
     },
     en: {
       appName: "Bible Backpack",
-      appTagline: "Deep Scripture Study & Fellowship Guide for Christians on the Move",
+      appTagline: "Deep Scripture Study Companion",
       chapterSelect: "Chapter",
       bookSelectorTitle: "Select Book & Chapter",
       searchScripture: "Search scripture...",
@@ -265,9 +265,9 @@ const I18n = {
       backpackHubSubtitle: "Manage your saved devotional sheets, character dossiers, archaeological insights, and multi-session curricula",
       allTastesBadge: "Active Lenses:",
       kidsModeTitleSuffix: " (Kids & Campus Edition)",
-      taste_btn: "Study Lenses",
-      viewStudy: "Study Workspace",
-      viewBackpack: "My Backpack",
+      taste_btn: "Lenses",
+      viewStudy: "Study",
+      viewBackpack: "Backpack",
       adjustTasteBtn: "+ Adjust Lenses",
       chapterPrefix: "Ch.",
       chapterSuffix: "",
@@ -385,7 +385,7 @@ const I18n = {
       tastesPreviewHint: "Live preview",
 
       // Support Ministry (Buy Me a Coffee)
-      supportMinistry: "Support Us",
+      supportMinistry: "Support",
       coffeeCardTitle: "Blessed by Bible Backpack Ministry?",
       coffeeCardDesc: "Bible Backpack is dedicated to staying 100% free with zero ads for personal devotions and small groups. If this tool blesses your spiritual walk or fellowship, consider buying the creator a coffee to support continuous development!",
       coffeeBtnText: "Buy Me a Coffee ↗"
