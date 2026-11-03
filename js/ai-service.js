@@ -193,6 +193,16 @@ ${kidsInstruction}
 6. 【★聖經地理與行軍路線嚴格守則 (Geography & Map Guardrail)】：
    - geography.isJourneyRoute：只有當本章經文明確記載「實際的行軍移動、出埃及遷徙、曠野行程或使徒宣教旅程」時才設為 true；若為定點事件或教導一律設為 false。
    - geography.routePoints：只標註真實聖經地點與座標。
+7. 【★經文精粹與原文微光 (Notable Verses & Original Nuances Guardrail)】：
+   - 在 tier2_dossier.notableVerses 中，精選 1 至 3 處本章最具深度釋經或靈修價值的經文。
+   - 每處經文包含：
+     * verse: 經文章節（如「第 4 節」或「第 17-18 節」）。
+     * quote: 引用該處經文精華字句。
+     * originalWord: 希伯來文（舊約）或希臘文（新約）核心關鍵詞與音譯（如：「ברא (Bara)」、「צבאות (Tzevaot)」）。
+     * originalMeaning: 原文字根、字義深意與中文譯本細微張力剖析（60～100字）。
+     * metaphorOrCultural: 古代近東文化、歷史習俗或盟約隱喻（60～100字）。
+     * christConnection: 基督中心救贖預表或十字架福音連結（60～100字）。
+   - 【自由彈性原則】：若本章無顯著原文特殊爭議，可轉為分析核心金句之深刻神學比喻與生命福音反思，絕不編造虛假的原文資訊。
 
 【★討論問題與全域輸出嚴格禁令 (CRITICAL ANTI-PLACEHOLDER GUARDRAIL)】：
 1. 嚴禁照抄範本提示文字！在以下 JSON 範本中，所有「<請在此直接寫出...>」僅為規則指示與規格說明。
@@ -296,6 +306,16 @@ ${kidsInstruction}
         }
       ]
     },
+    "notableVerses": [
+      {
+        "verse": "第 X 節",
+        "quote": "引用該節核心原文字句（15～35字）",
+        "originalWord": "關鍵詞彙 (希伯來文/希臘文：原文音譯 / Strong's 代號)",
+        "originalMeaning": "原文詞源與字義剖析（60～100字：字根含義、文法時態或中文譯本未完全傳達之微妙張力）",
+        "metaphorOrCultural": "特殊隱喻與文化背景（60～100字：古代近東習俗、盟約儀式或慣用語象徵）",
+        "christConnection": "基督中心與救贖預表（60～100字：指向舊約應許成就、十字架福音或信徒在基督裡的生命）"
+      }
+    ],
     "difficulties": [
       {
         "question": "疑難問題1：針對本章經文最常被信徒或慕道友追問的核心神學/倫理/歷史難題",
@@ -454,6 +474,16 @@ ${kidsInstruction}
 3. Depth & Substance: Avoid superficial one-liners. Every outline section, character profile, and discussion hint/answer must be deeply substantive with chapter verse references.
 4. Visual Artifacts: Cite 2 authentic museum artifacts or excavated biblical sites with their exact English Wikipedia title in "searchQuery".
 5. Language Requirement: All fields in tier1_sheet and tier2_dossier MUST be in ENGLISH.
+6. Notable Verses & Original Nuances:
+   - In tier2_dossier.notableVerses, select 1 to 3 pivotal verses from this chapter with rich exegetical significance.
+   - For each verse provide:
+     * verse: e.g. "Verse 4" or "Verses 17-18"
+     * quote: key textual quotation
+     * originalWord: Hebrew (OT) or Greek (NT) key root/term (transliteration & meaning)
+     * originalMeaning: depth of word meaning and nuances not obvious in translations (60-100 words)
+     * metaphorOrCultural: ancient Near Eastern cultural context, covenantal metaphor or idiom (60-100 words)
+     * christConnection: Christological and redemptive-historical connection (60-100 words)
+   - If this passage has no unusual linguistic dispute, pivot to profound biblical theological metaphors and gospel takeaways.
 
 [CRITICAL ANTI-PLACEHOLDER INSTRUCTION]:
 Do NOT echo or copy placeholder descriptions (e.g., "<Write the actual question...>"). Every "question" field in discussionQuestions must be a real, thoughtful question directly inquiring about the events, dialogue, or characters in ${engBook} ${chapter}!
@@ -555,6 +585,16 @@ Do NOT echo or copy placeholder descriptions (e.g., "<Write the actual question.
         }
       ]
     },
+    "notableVerses": [
+      {
+        "verse": "Verse X",
+        "quote": "Direct key textual quotation (15-35 words)",
+        "originalWord": "Original Keyword (Hebrew / Greek transliteration)",
+        "originalMeaning": "Word root and exegetical nuance in original language (60-100 words)",
+        "metaphorOrCultural": "Cultural context, Near Eastern covenant idiom, or literary metaphor (60-100 words)",
+        "christConnection": "Christ-centered redemption, gospel connection, or spiritual typology (60-100 words)"
+      }
+    ],
     "difficulties": [
       {
         "question": "Theological FAQ 1: A challenging theological, ethical, or historical question often raised from this text",
@@ -887,6 +927,16 @@ ${kidsRule}
           }
         ]
       },
+      notableVerses: [
+        {
+          verse: "本章核心經文",
+          quote: tier1?.takeaway || "敬畏耶和華是智慧的開端。",
+          originalWord: "神聖啟示 (Biblical Revelation)",
+          originalMeaning: "經文在原文中蘊含上帝對屬祂百姓的立約同在與慈愛引導。",
+          metaphorOrCultural: "回歸聖經時代歷史脈絡，神藉著當時代的文化向屬祂的群體說話。",
+          christConnection: "一切經文的應許與救贖，最終都在耶穌基督裡成了「是的與阿們」。"
+        }
+      ],
       difficulties: [
         { 
           question: "本章經文的核心神學意涵與屬靈焦點為何？", 

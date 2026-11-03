@@ -1239,7 +1239,62 @@ function renderTier2Dossier(container) {
         </div>
       </div>
 
-      <!-- 模組 4: 經文疑難與神學解答 -->
+      <!-- 模組 4: 經文精粹與原文微光 (Notable Verses & Original Nuances - 僅在有資料時動態渲染) -->
+      ${(data.notableVerses && Array.isArray(data.notableVerses) && data.notableVerses.length > 0) ? `
+      <div class="dossier-card bg-white border border-stone-200 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
+          <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
+            <span>✨</span>
+            <span>${isEn ? "Notable Verses & Original Nuances" : "經文精粹與原文微光 (Notable Verses & Original Nuances)"}</span>
+          </h3>
+          <span class="text-2xs text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
+            ${isEn ? "Word Study & Typology" : "原文釋經 · 隱喻 · 救贖預表"}
+          </span>
+        </div>
+        <div class="space-y-3">
+          ${data.notableVerses.map(nv => `
+            <div class="p-3 bg-stone-50/80 rounded-xl border border-stone-200 space-y-2.5">
+              <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-stone-200/60 pb-1.5">
+                <span class="font-bold text-amber-900 text-xs sm:text-sm flex items-center gap-1">
+                  <span>📜</span>
+                  <span>${escapeHtml(nv.verse || (isEn ? "Key Verse" : "精選經文"))}</span>
+                </span>
+                ${nv.originalWord ? `
+                  <span class="text-2xs font-mono font-semibold px-2 py-0.5 bg-amber-100/80 text-amber-950 rounded-full border border-amber-200">
+                    ${escapeHtml(nv.originalWord)}
+                  </span>
+                ` : ''}
+              </div>
+              ${nv.quote ? `
+                <blockquote class="italic text-xs text-stone-700 pl-3 border-l-2 border-amber-600 bg-white/70 py-1.5 pr-2 rounded-r leading-relaxed">
+                  “${escapeHtml(nv.quote)}”
+                </blockquote>
+              ` : ''}
+              ${nv.originalMeaning ? `
+                <div class="text-xs text-stone-800 bg-amber-50/60 p-2.5 rounded-lg border border-amber-100/90 leading-relaxed">
+                  <strong class="text-amber-900 block mb-0.5">${isEn ? "🔤 Original Word Insight:" : "🔤 原文詞源與字義剖析："}</strong>
+                  ${escapeHtml(nv.originalMeaning)}
+                </div>
+              ` : ''}
+              ${nv.metaphorOrCultural ? `
+                <div class="text-xs text-stone-800 bg-stone-100/70 p-2.5 rounded-lg border border-stone-200/80 leading-relaxed">
+                  <strong class="text-stone-900 block mb-0.5">${isEn ? "🏛️ Cultural Metaphor & Context:" : "🏛️ 特殊隱喻與文化背景："}</strong>
+                  ${escapeHtml(nv.metaphorOrCultural)}
+                </div>
+              ` : ''}
+              ${nv.christConnection ? `
+                <div class="text-xs text-purple-950 bg-purple-50/70 p-2.5 rounded-lg border border-purple-200/70 leading-relaxed">
+                  <strong class="text-purple-900 block mb-0.5">${isEn ? "✝️ Christological & Redemptive Connection:" : "✝️ 基督中心與救贖預表："}</strong>
+                  ${escapeHtml(nv.christConnection)}
+                </div>
+              ` : ''}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+      ` : ''}
+
+      <!-- 模組 5: 經文疑難與神學解答 -->
       <div class="dossier-card bg-white border border-stone-200 rounded-lg p-4">
         <div class="flex items-center justify-between mb-3 border-b border-stone-100 pb-2">
           <h3 class="font-bold text-stone-900 text-sm flex items-center gap-1.5">
