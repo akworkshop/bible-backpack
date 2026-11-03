@@ -1668,6 +1668,17 @@ function setupEventListeners() {
 }
 
 function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = false) {
+  // ★ 防重入保護：若 AI 正在調配研經材料，阻擋切換並提示使用者稍候，避免競態衝突
+  if (isGeneratingStudyPack && !isInitialLoad) {
+    const isEn = typeof I18n !== "undefined" && I18n.isEn();
+    showToast(isEn ? "⏳ AI is tailoring your study pack. Please wait a moment before switching passages." : "⏳ AI 正在調配當前經文材料中，請稍候片刻再切換經文。");
+    const bookSelect = document.getElementById("book-selector-select");
+    const chapInput = document.getElementById("chapter-selector-input");
+    if (bookSelect) bookSelect.value = currentBook;
+    if (chapInput) chapInput.value = currentChapter;
+    return;
+  }
+
   currentBook = normalizeBookName(currentBook);
 
   // 若切換了與當前主題課堂不同的書卷或章節，自動退出主題模式
@@ -1917,8 +1928,44 @@ function loadDefaultPreset() {
   selectPresetBook("創世記", 1);
 }
 
+let isGeneratingStudyPack = false;
+
+// 更新頁面中所有生成按鈕狀態，鎖定連擊
+function updateGeneratingButtonsState(isBusy) {
+  const isEn = typeof I18n !== "undefined" && I18n.isEn();
+  const navBtn = document.getElementById("nav-regenerate-btn");
+  if (navBtn) {
+    navBtn.disabled = isBusy;
+    if (isBusy) {
+      navBtn.classList.add("opacity-50", "pointer-events-none", "cursor-not-allowed");
+      navBtn.innerHTML = `<span>⏳</span><span>${isEn ? "Generating..." : "調配中..."}</span>`;
+    } else {
+      navBtn.classList.remove("opacity-50", "pointer-events-none", "cursor-not-allowed");
+      navBtn.innerHTML = `<span data-i18n="reGenerate">${isEn ? "✨ Re-generate" : "✨ 重新調配"}</span>`;
+    }
+  }
+
+  // 禁用所有頁面內含有 generateWithCurrentTastes 的按鈕，防止重複點擊連發
+  const otherBtns = document.querySelectorAll("button[onclick*='generateWithCurrentTastes']");
+  otherBtns.forEach(b => {
+    b.disabled = isBusy;
+    if (isBusy) {
+      b.classList.add("opacity-50", "pointer-events-none", "cursor-not-allowed");
+    } else {
+      b.classList.remove("opacity-50", "pointer-events-none", "cursor-not-allowed");
+    }
+  });
+}
+
 // 依當前口味重新生成 (forceFresh: 是否強制跳過快取重新調配，預設為 true)
 async function generateWithCurrentTastes(forceFresh = true) {
+  // ★ 關鍵防護：若 AI 正在生成中，直接攔截並提示，絕對禁止並發重入與重複扣額度
+  if (isGeneratingStudyPack) {
+    const isEn = typeof I18n !== "undefined" && I18n.isEn();
+    showToast(isEn ? "⏳ AI is currently tailoring your study pack, please wait..." : "⏳ AI 正在調配研經材料中，請稍候，請勿重複點擊！");
+    return;
+  }
+
   const provider = BackpackStore.getProvider();
   const apiKey = provider === "groq" 
     ? BackpackStore.getGroqKey() 
@@ -1935,6 +1982,9 @@ async function generateWithCurrentTastes(forceFresh = true) {
 
   const container = document.getElementById("tier-content-container");
   if (!container) return;
+
+  isGeneratingStudyPack = true;
+  updateGeneratingButtonsState(true);
 
   const isLocal = provider === "local";
   const timerLabel = isLocal ? "本地離線運算中（180 秒守護）" : "深度生成中（設定 90 秒超時保護）";
@@ -2033,19 +2083,23 @@ async function generateWithCurrentTastes(forceFresh = true) {
           可能原因：API Key 輸入有誤、模型伺服器超載或連線逾時。您可以重試、檢查 API Key，或隨時切換體驗內建的 4 大經典書卷！
         </p>
         <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
-          <button onclick="generateWithCurrentTastes(true)" class="px-4 py-2 bg-amber-800 text-white text-xs rounded-lg font-medium hover:bg-amber-900 shadow-sm flex items-center gap-1.5">
+          <button onclick="generateWithCurrentTastes(true)" class="px-4 py-2 bg-amber-800 text-white text-xs rounded-lg font-medium hover:bg-amber-900 shadow-sm flex items-center gap-1.5 cursor-pointer">
             <span>🔄</span>
             <span>重新嘗試調配</span>
           </button>
-          <button onclick="openSettingsModal()" class="px-3.5 py-2 bg-white border border-stone-300 text-stone-700 text-xs rounded-lg hover:bg-stone-50">
+          <button onclick="openSettingsModal()" class="px-3.5 py-2 bg-white border border-stone-300 text-stone-700 text-xs rounded-lg hover:bg-stone-50 cursor-pointer">
             <span>⚙️ 檢查 API Key 設置</span>
           </button>
-          <button onclick="loadDefaultPreset()" class="px-3.5 py-2 bg-stone-100 text-stone-700 text-xs rounded-lg hover:bg-stone-200">
+          <button onclick="loadDefaultPreset()" class="px-3.5 py-2 bg-stone-100 text-stone-700 text-xs rounded-lg hover:bg-stone-200 cursor-pointer">
             <span>📖 切換為經典預載書卷</span>
           </button>
         </div>
       </div>
     `;
+  } finally {
+    clearInterval(timerInterval);
+    isGeneratingStudyPack = false;
+    updateGeneratingButtonsState(false);
   }
 }
 
@@ -3122,7 +3176,14 @@ function setCurriculumTopic(t) {
   if (input) input.value = t;
 }
 
+let isGeneratingCurriculum = false;
+
 async function startGenerateCurriculum() {
+  if (isGeneratingCurriculum) {
+    showToast("⏳ 課程企劃正在進行中，請勿重複點擊！");
+    return;
+  }
+
   const topic = document.getElementById("curriculum-topic-input")?.value?.trim();
   const sessions = parseInt(document.getElementById("curriculum-sessions-select")?.value) || 4;
   const target = document.getElementById("curriculum-target-select")?.value || "小組團契";
@@ -3146,8 +3207,12 @@ async function startGenerateCurriculum() {
   const statusText = document.getElementById("curriculum-status-text");
   const btn = document.getElementById("btn-start-curriculum");
 
+  isGeneratingCurriculum = true;
   if (statusEl) statusEl.classList.remove("hidden");
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add("opacity-60", "pointer-events-none", "cursor-not-allowed");
+  }
 
   try {
     const selectedTasteIds = BackpackStore.getTastes();
@@ -3166,7 +3231,11 @@ async function startGenerateCurriculum() {
     showToast(`企劃失敗: ${err.message}`, 4000);
     if (statusText) statusText.textContent = `生成出錯: ${err.message}`;
   } finally {
-    if (btn) btn.disabled = false;
+    isGeneratingCurriculum = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove("opacity-60", "pointer-events-none", "cursor-not-allowed");
+    }
   }
 }
 

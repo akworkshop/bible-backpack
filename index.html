@@ -228,7 +228,7 @@
           </div>
 
           <!-- 重新調配生成按鈕 (強制跳過快取，重新向 AI 請求最新材料) -->
-          <button onclick="generateWithCurrentTastes(true)" class="action-btn px-2.5 sm:px-3 py-2 bg-amber-800 text-white hover:bg-amber-900 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors shadow-sm flex-shrink-0" title="強制重新調配生成最新研經材料">
+          <button id="nav-regenerate-btn" onclick="generateWithCurrentTastes(true)" class="action-btn px-2.5 sm:px-3 py-2 bg-amber-800 text-white hover:bg-amber-900 rounded-lg text-xs font-medium flex items-center gap-1 transition-colors shadow-sm flex-shrink-0 cursor-pointer" title="強制重新調配生成最新研經材料">
             <span data-i18n="reGenerate">✨ 重新調配</span>
           </button>
         </div>
