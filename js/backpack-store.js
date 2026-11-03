@@ -423,6 +423,33 @@ const BackpackStore = {
 
   setGoogleClientId(clientId) {
     localStorage.setItem("bible_backpack_google_client_id", (clientId || "").trim());
+  },
+
+  // 記錄最後訪問頁面視圖 ('study' | 'backpack')
+  getLastView() {
+    return localStorage.getItem("bible_backpack_last_view") || "study";
+  },
+
+  setLastView(view) {
+    localStorage.setItem("bible_backpack_last_view", view === "backpack" ? "backpack" : "study");
+  },
+
+  // 記錄最後訪問的研經層級 ('tier1' | 'tier2')
+  getLastTier() {
+    return localStorage.getItem("bible_backpack_last_tier") || "tier1";
+  },
+
+  setLastTier(tier) {
+    localStorage.setItem("bible_backpack_last_tier", tier === "tier2" ? "tier2" : "tier1");
+  },
+
+  // 記錄每日首次訪問奉獻提示日期 (格式: YYYY-MM-DD)
+  getLastCoffeePromptDate() {
+    return localStorage.getItem("bible_backpack_last_coffee_prompt_date") || "";
+  },
+
+  setLastCoffeePromptDate(dateStr) {
+    localStorage.setItem("bible_backpack_last_coffee_prompt_date", dateStr || "");
   }
 };
 

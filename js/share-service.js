@@ -238,6 +238,9 @@ const ShareService = {
 
     // 顯示載入中動畫並打開彈窗
     modal.classList.remove("hidden");
+    try {
+      history.pushState({ modal: "share-modal" }, "");
+    } catch (e) {}
     const qrContainer = document.getElementById("share-qrcode-container");
     if (qrContainer) {
       qrContainer.innerHTML = `
@@ -251,9 +254,14 @@ const ShareService = {
     await this.updateShareModalContent();
   },
 
-  closeShareModal() {
+  closeShareModal(fromPopState = false) {
     const modal = document.getElementById("share-modal");
     if (modal) modal.classList.add("hidden");
+    if (!fromPopState && history.state && history.state.modal === "share-modal") {
+      try {
+        history.back();
+      } catch (e) {}
+    }
   },
 
   // 切換分享內容範圍（靈修單張 vs 深度手冊 vs 完整雙層）

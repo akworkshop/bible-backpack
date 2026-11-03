@@ -204,9 +204,16 @@ const I18n = {
 
       // 支持事工 (Buy Me a Coffee)
       supportMinistry: "支持事工",
+      supportMinistryBtn: "支持事工 Buy Me a Coffee",
       coffeeCardTitle: "認同 Bible Backpack 免費研經事工？",
       coffeeCardDesc: "我們堅持提供零商業廣告、100% 免費的正統研經與小組工具。若本工具祝福了您的靈修或事奉，歡迎請作者喝杯咖啡，支持系統伺服器持續免費運作！",
-      coffeeBtnText: "Buy Me a Coffee（請喝咖啡支持事工）↗"
+      coffeeBtnText: "Buy Me a Coffee（請喝咖啡支持事工）↗",
+      coffeeModalTitle: "支持 Bible Backpack 事工同行",
+      coffeeModalSubtitle: "Free Ministry · Powered by Love & Faith",
+      coffeeModalP1: "平安！感謝您使用 <strong>Bible Backpack</strong>。本工具完全免費、開放給所有基督徒、主日學導師與查經小組使用。",
+      coffeeModalP2: "💡 隨著使用人數增長，雲端伺服器與進階 AI 模型 API 調配皆產生實質開銷。若此工具對您的個人靈修或團契備課有幫助，誠摯邀請您請作者喝杯咖啡，支持這項無營利事工持續運作與成長！",
+      coffeeModalDismiss: "今天稍後再說",
+      coffeeModalSupportBtn: "☕ 請我喝杯咖啡支持事工 ↗"
     },
     en: {
       appName: "Bible Backpack",
@@ -386,9 +393,16 @@ const I18n = {
 
       // Support Ministry (Buy Me a Coffee)
       supportMinistry: "Support",
+      supportMinistryBtn: "Support Ministry (Buy Me a Coffee)",
       coffeeCardTitle: "Blessed by Bible Backpack Ministry?",
       coffeeCardDesc: "Bible Backpack is dedicated to staying 100% free with zero ads for personal devotions and small groups. If this tool blesses your spiritual walk or fellowship, consider buying the creator a coffee to support continuous development!",
-      coffeeBtnText: "Buy Me a Coffee ↗"
+      coffeeBtnText: "Buy Me a Coffee ↗",
+      coffeeModalTitle: "Partner with Bible Backpack Ministry",
+      coffeeModalSubtitle: "Free Ministry · Powered by Love & Faith",
+      coffeeModalP1: "Peace to you! Thank you for using <strong>Bible Backpack</strong>. This tool is completely free for all believers, Sunday school teachers, and Bible study groups.",
+      coffeeModalP2: "💡 As user adoption grows, cloud servers and advanced AI model API calls incur real ongoing costs. If this companion blesses your devotional walk or small group preparation, please consider buying a coffee to support this nonprofit ministry!",
+      coffeeModalDismiss: "Maybe Later Today",
+      coffeeModalSupportBtn: "☕ Buy Me a Coffee ↗"
     }
   },
 

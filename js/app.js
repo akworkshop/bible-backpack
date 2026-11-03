@@ -6,6 +6,25 @@ let currentActiveTier = "tier1"; // "tier1" (靈修單張) 或 "tier2" (深度�
 let activeStudyData = typeof GENESIS_1_DATA !== "undefined" ? GENESIS_1_DATA : JOSHUA_1_DATA;
 let activeCurriculumContext = null; // 當前正在研讀的小組主題課程上下文（若非 null 則處於主題課程研讀模式）
 
+// ★ 書卷名稱標準化規範化工具（同時支援中文全名、英文名與 USFM 簡寫代碼）
+function normalizeBookName(name) {
+  if (!name) return "創世記";
+  if (typeof BibleService !== "undefined" && typeof BibleService.getBookMeta === "function") {
+    const meta = BibleService.getBookMeta(name);
+    if (meta && meta.name) return meta.name;
+  }
+  if (typeof BIBLE_BOOKS !== "undefined" && Array.isArray(BIBLE_BOOKS)) {
+    const trimmed = String(name).trim().toLowerCase();
+    const meta = BIBLE_BOOKS.find(b => 
+      b.name === name || 
+      b.english.toLowerCase() === trimmed || 
+      b.id.toLowerCase() === trimmed
+    );
+    if (meta && meta.name) return meta.name;
+  }
+  return name;
+}
+
 // 渲染主題課程模式橫幅
 function renderCurriculumBanner() {
   const banner = document.getElementById("curriculum-session-banner");
@@ -50,8 +69,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function initApp() {
   // 讀取上次打開的書卷與章節（首次進入預設為《創世記》第 1 章）
   const lastLoc = BackpackStore.getLastLocation();
-  currentBook = lastLoc.book || "創世記";
-  currentChapter = lastLoc.chapter || 1;
+  currentBook = normalizeBookName(lastLoc ? lastLoc.book : "創世記");
+  currentChapter = (lastLoc && lastLoc.chapter) ? lastLoc.chapter : 1;
+
+  // ★ 還原上次訪問的研經層級 (tier1 vs tier2)
+  const savedTier = BackpackStore.getLastTier();
+  if (savedTier === "tier2" || savedTier === "tier1") {
+    currentActiveTier = savedTier;
+  }
+
+  // ★ 記錄初始 History State，防止用戶初次按下返回鍵時直接退出網站
+  try {
+    history.replaceState({ view: currentView || "study", tier: currentActiveTier }, "");
+  } catch (e) {}
 
   applyThemeAndFont();
 
@@ -70,13 +100,36 @@ function initApp() {
   if (chapInput) chapInput.value = currentChapter;
   renderChapterDropdown();
 
+  // 同步還原當前選取的聖經譯本
+  const verSelect = document.getElementById("bible-version-select");
+  if (verSelect) {
+    verSelect.value = (BackpackStore.getBibleVersion() || "cuv").toLowerCase();
+  }
+
   setupEventListeners();
   updateBackpackBadge();
+
+  // ★ 若先前使用者在「我的背包」頁面，自動還原頁面視圖
+  const savedView = BackpackStore.getLastView();
+  if (savedView === "backpack") {
+    navigateTo("backpack", true, true);
+  }
+
+  // ★ 若先前停留於 Tier 2 深度行囊，還原按鈕選取高亮狀態
+  if (currentActiveTier === "tier2") {
+    const btnTier1 = document.getElementById("tab-tier1");
+    const btnTier2 = document.getElementById("tab-tier2");
+    btnTier2?.classList.add("tab-active");
+    btnTier1?.classList.remove("tab-active");
+  }
 
   // 初始化 Supabase 雲端認證與同步 (若已登入則背景雙向同步)
   if (typeof AuthService !== "undefined") {
     AuthService.init();
   }
+
+  // ★ 每日首次訪問顯示支持事工彈窗 (Daily First-Visit Buy Me a Coffee prompt)
+  checkDailyCoffeePrompt();
 
   // 檢查是否由分享連結或小組碼打開
   const hasShareParams = (window.location.hash && (window.location.hash.includes("code=") || window.location.hash.includes("share="))) ||
@@ -92,6 +145,42 @@ function initApp() {
     });
   } else {
     handleBookOrChapterChange(false, true);
+  }
+}
+
+// 每日首次訪問支持事工彈窗排程檢測
+function checkDailyCoffeePrompt() {
+  try {
+    const todayStr = new Date().toLocaleDateString('en-CA'); // 格式 YYYY-MM-DD
+    const lastPromptDate = BackpackStore.getLastCoffeePromptDate();
+    if (lastPromptDate !== todayStr) {
+      setTimeout(() => {
+        openDailyCoffeeModal();
+        BackpackStore.setLastCoffeePromptDate(todayStr);
+      }, 1600);
+    }
+  } catch (e) {
+    console.warn("[Bible Backpack] 每日支持提示檢測略過:", e);
+  }
+}
+
+function openDailyCoffeeModal() {
+  const modal = document.getElementById("daily-coffee-modal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  try {
+    history.pushState({ modal: "daily-coffee-modal", view: currentView, tier: currentActiveTier }, "");
+  } catch (e) {}
+}
+
+function closeDailyCoffeeModal(fromPopState = false) {
+  const modal = document.getElementById("daily-coffee-modal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+  if (!fromPopState && history.state && history.state.modal === "daily-coffee-modal") {
+    try {
+      history.back();
+    } catch (e) {}
   }
 }
 
@@ -1238,8 +1327,17 @@ function renderTier2Dossier(container) {
 }
 
 // 切換 Tier 標籤
-function switchTier(tier) {
+function switchTier(tier, isPopState = false) {
   currentActiveTier = tier;
+  if (typeof BackpackStore !== "undefined" && typeof BackpackStore.setLastTier === "function") {
+    BackpackStore.setLastTier(tier);
+  }
+
+  if (!isPopState) {
+    try {
+      history.pushState({ view: currentView || "study", tier: tier }, "");
+    } catch (e) {}
+  }
 
   const btnTier1 = document.getElementById("tab-tier1");
   const btnTier2 = document.getElementById("tab-tier2");
@@ -1336,6 +1434,9 @@ function renderBookSelector() {
     "預言書": "Prophecy (Revelation)"
   };
 
+  const normCurrent = normalizeBookName(currentBook);
+  currentBook = normCurrent;
+
   let html = "";
   let currentSec = "";
 
@@ -1349,7 +1450,7 @@ function renderBookSelector() {
         : `${book.testament === 'OT' ? '舊約' : '新約'} · ${currentSec}`;
       html += `<optgroup label="—— ${secLabel} ——">`;
     }
-    const selected = book.name === currentBook ? "selected" : "";
+    const selected = (book.name === normCurrent || book.english.toLowerCase() === normCurrent.toLowerCase()) ? "selected" : "";
     const bName = isEn ? book.english : book.name;
     const chapSuffix = isEn ? `(${book.chapters} ch)` : `(${book.chapters}章)`;
     html += `<option value="${book.name}" ${selected}>${bName} ${chapSuffix}</option>`;
@@ -1357,6 +1458,9 @@ function renderBookSelector() {
   html += `</optgroup>`;
 
   select.innerHTML = html;
+  if (normCurrent) {
+    select.value = normCurrent;
+  }
 }
 
 let pendingGenerationBook = null;
@@ -1460,7 +1564,7 @@ function setupEventListeners() {
   // 書卷更換
   const bookSelect = document.getElementById("book-selector-select");
   bookSelect?.addEventListener("change", (e) => {
-    currentBook = e.target.value;
+    currentBook = normalizeBookName(e.target.value);
     currentChapter = 1;
     const chapInput = document.getElementById("chapter-selector-input");
     if (chapInput) chapInput.value = 1;
@@ -1509,14 +1613,18 @@ function setupEventListeners() {
 }
 
 function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = false) {
+  currentBook = normalizeBookName(currentBook);
+
   // 若切換了與當前主題課堂不同的書卷或章節，自動退出主題模式
-  if (activeCurriculumContext && (activeCurriculumContext.bookName !== currentBook || activeCurriculumContext.chapter !== currentChapter)) {
+  if (activeCurriculumContext && (normalizeBookName(activeCurriculumContext.bookName) !== currentBook || activeCurriculumContext.chapter !== currentChapter)) {
     activeCurriculumContext = null;
   }
   renderCurriculumBanner();
 
   // 更新章節選擇器上限與合法範圍
-  const bookMeta = typeof BIBLE_BOOKS !== "undefined" ? BIBLE_BOOKS.find(b => b.name === currentBook) : null;
+  const bookMeta = typeof BibleService !== "undefined" 
+    ? BibleService.getBookMeta(currentBook) 
+    : (typeof BIBLE_BOOKS !== "undefined" ? BIBLE_BOOKS.find(b => b.name === currentBook) : null);
   const chapInput = document.getElementById("chapter-selector-input");
   if (bookMeta) {
     if (currentChapter < 1) currentChapter = 1;
@@ -1717,20 +1825,28 @@ function showOfflineOrKeyModal(book, chapter) {
   }
   pendingGenerationBook = { book, chapter };
   modal?.classList.remove("hidden");
+  try {
+    history.pushState({ modal: "explore-book-modal", view: currentView, tier: currentActiveTier }, "");
+  } catch (e) {}
 }
 
-function closeExploreModal() {
+function closeExploreModal(fromPopState = false) {
   document.getElementById("explore-book-modal")?.classList.add("hidden");
+  if (!fromPopState && history.state && history.state.modal === "explore-book-modal") {
+    try {
+      history.back();
+    } catch (e) {}
+  }
 }
 
 // 快捷選擇經典預載書卷
 function selectPresetBook(bookName, chapter) {
-  currentBook = bookName;
+  currentBook = normalizeBookName(bookName);
   currentChapter = chapter;
   
   const bookSelect = document.getElementById("book-selector-select");
   const chapInput = document.getElementById("chapter-selector-input");
-  if (bookSelect) bookSelect.value = bookName;
+  if (bookSelect) bookSelect.value = currentBook;
   if (chapInput) chapInput.value = chapter;
 
   closeExploreModal();
@@ -1921,6 +2037,10 @@ function openBackpackModal() {
   const container = document.getElementById("backpack-items-container");
   if (!modal || !container) return;
 
+  try {
+    history.pushState({ modal: "backpack-modal", view: currentView, tier: currentActiveTier }, "");
+  } catch (e) {}
+
   const items = BackpackStore.getSavedItems();
   const isEn = typeof I18n !== "undefined" && I18n.isEn();
 
@@ -1956,8 +2076,13 @@ function openBackpackModal() {
   modal.classList.remove("hidden");
 }
 
-function closeBackpackModal() {
+function closeBackpackModal(fromPopState = false) {
   document.getElementById("backpack-modal")?.classList.add("hidden");
+  if (!fromPopState && history.state && history.state.modal === "backpack-modal") {
+    try {
+      history.back();
+    } catch (e) {}
+  }
 }
 
 function removeBackpackItem(id) {
@@ -2083,6 +2208,9 @@ function openSettingsModal(targetTabOrNotice = "ai", maybeNotice = "") {
   }
 
   const modal = document.getElementById("settings-modal");
+  try {
+    history.pushState({ modal: "settings-modal", view: currentView, tier: currentActiveTier }, "");
+  } catch (e) {}
   const keyInput = document.getElementById("api-key-input");
   const groqInput = document.getElementById("groq-key-input");
   const localEndpointInput = document.getElementById("local-endpoint-input");
@@ -2421,8 +2549,13 @@ async function testApiBibleKey() {
   }
 }
 
-function closeSettingsModal() {
+function closeSettingsModal(fromPopState = false) {
   document.getElementById("settings-modal")?.classList.add("hidden");
+  if (!fromPopState && history.state && history.state.modal === "settings-modal") {
+    try {
+      history.back();
+    } catch (e) {}
+  }
 }
 
 // 儲存 API 與個人設定至本地 .json 檔案（方便跨裝置或部署至 Netlify 後一鍵還原）
@@ -2567,8 +2700,17 @@ let currentBackpackSearch = "";
 let routeMapInstance = null;
 let marchAnimationTimeout = null;
 
-function navigateTo(viewName, skipAutoScroll = false) {
+function navigateTo(viewName, skipAutoScroll = false, isPopState = false) {
   currentView = viewName;
+  if (typeof BackpackStore !== "undefined" && typeof BackpackStore.setLastView === "function") {
+    BackpackStore.setLastView(viewName);
+  }
+
+  if (!isPopState) {
+    try {
+      history.pushState({ view: viewName, tier: currentActiveTier }, "");
+    } catch (e) {}
+  }
 
   const studyPage = document.getElementById("study-workspace-page");
   const backpackPage = document.getElementById("backpack-hub-page");
@@ -2906,10 +3048,18 @@ function openCurriculumStudioModal() {
   if (topicInput) topicInput.value = "";
   if (statusEl) statusEl.classList.add("hidden");
   modal?.classList.remove("hidden");
+  try {
+    history.pushState({ modal: "curriculum-modal", view: currentView, tier: currentActiveTier }, "");
+  } catch (e) {}
 }
 
-function closeCurriculumModal() {
+function closeCurriculumModal(fromPopState = false) {
   document.getElementById("curriculum-modal")?.classList.add("hidden");
+  if (!fromPopState && history.state && history.state.modal === "curriculum-modal") {
+    try {
+      history.back();
+    } catch (e) {}
+  }
 }
 
 function setCurriculumTopic(t) {
@@ -3000,7 +3150,7 @@ function jumpToCurriculumSession(packId, sessionNum) {
   };
 
   navigateTo('study');
-  currentBook = session.bookName;
+  currentBook = normalizeBookName(session.bookName);
   currentChapter = session.chapter || 1;
 
   const bookSelect = document.getElementById("book-selector-select");
@@ -3376,9 +3526,105 @@ function openImageModal(url, title, desc, pageUrl = null) {
   }
 
   modal.classList.remove("hidden");
+  try {
+    history.pushState({ modal: "image-preview-modal", view: currentView, tier: currentActiveTier }, "");
+  } catch (e) {}
 }
 
-function closeImageModal() {
+function closeImageModal(fromPopState = false) {
   document.getElementById("image-preview-modal")?.classList.add("hidden");
+  if (!fromPopState && history.state && history.state.modal === "image-preview-modal") {
+    try {
+      history.back();
+    } catch (e) {}
+  }
 }
+
+// ================= 瀏覽器返回/前進與彈窗歷史狀態管理 (Browser History & Popstate) =================
+function getActiveModalId() {
+  const modalIds = [
+    "daily-coffee-modal",
+    "image-preview-modal",
+    "settings-modal",
+    "curriculum-modal",
+    "share-modal",
+    "auth-modal",
+    "explore-book-modal",
+    "backpack-modal"
+  ];
+  for (const id of modalIds) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains("hidden")) {
+      return id;
+    }
+  }
+  return null;
+}
+
+function closeActiveModalById(id) {
+  if (!id) return;
+  switch (id) {
+    case "daily-coffee-modal":
+      closeDailyCoffeeModal(true);
+      break;
+    case "image-preview-modal":
+      closeImageModal(true);
+      break;
+    case "settings-modal":
+      closeSettingsModal(true);
+      break;
+    case "curriculum-modal":
+      closeCurriculumModal(true);
+      break;
+    case "share-modal":
+      if (typeof ShareService !== "undefined" && typeof ShareService.closeShareModal === "function") {
+        ShareService.closeShareModal(true);
+      } else {
+        document.getElementById("share-modal")?.classList.add("hidden");
+      }
+      break;
+    case "auth-modal":
+      if (typeof AuthService !== "undefined" && typeof AuthService.closeAuthModal === "function") {
+        AuthService.closeAuthModal(true);
+      } else {
+        document.getElementById("auth-modal")?.classList.add("hidden");
+      }
+      break;
+    case "explore-book-modal":
+      closeExploreModal(true);
+      break;
+    case "backpack-modal":
+      closeBackpackModal(true);
+      break;
+    default:
+      document.getElementById(id)?.classList.add("hidden");
+  }
+}
+
+// 監聽瀏覽器返回鍵 (Go Back)：優先關閉當前開啟的彈窗；若無彈窗則退回上一動作（如從背包回到工作台、從Tier2回到Tier1），避免意外離開頁面
+window.addEventListener("popstate", (e) => {
+  const activeModal = getActiveModalId();
+  if (activeModal) {
+    closeActiveModalById(activeModal);
+    return;
+  }
+
+  // 若當前在背包頁面，返回鍵應回到研經工作台
+  if (currentView === "backpack") {
+    navigateTo("study", true, true);
+    return;
+  }
+
+  // 若先前記錄有狀態，還原視圖或層級
+  if (e.state) {
+    if (e.state.view && e.state.view !== currentView) {
+      navigateTo(e.state.view, true, true);
+    }
+    if (e.state.tier && e.state.tier !== currentActiveTier) {
+      switchTier(e.state.tier, true);
+    }
+  } else if (currentActiveTier === "tier2") {
+    switchTier("tier1", true);
+  }
+});
 

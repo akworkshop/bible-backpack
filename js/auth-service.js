@@ -604,11 +604,19 @@ const AuthService = {
     }
 
     modal.classList.remove("hidden");
+    try {
+      history.pushState({ modal: "auth-modal" }, "");
+    } catch (e) {}
   },
 
-  closeAuthModal() {
+  closeAuthModal(fromPopState = false) {
     const modal = document.getElementById("auth-modal");
     if (modal) modal.classList.add("hidden");
+    if (!fromPopState && history.state && history.state.modal === "auth-modal") {
+      try {
+        history.back();
+      } catch (e) {}
+    }
   },
 
   // 渲染已登入時的管理面板資訊

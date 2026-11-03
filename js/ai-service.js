@@ -145,7 +145,7 @@ ${focusedVersesText}
         "id": "q5",
         "type": "深度神學與轉折剖析",
         "tag": "經文深掘",
-        "question": "第5題：針對本章中後段重要情節轉折、關鍵字詞或神學張力的進深探究題（40～70字）",
+        "question": "<請在此直接寫出第5題針對本章重要情節轉折、關鍵字詞或神學張力的真實深入探究問句，40～70字，切勿照抄本提示文字>",
         "hint": "詳盡組長引導提示（60～100字：提供段落前後呼應線索與思考方向）",
         "answer": "組長手冊標準參考答案（80～140字：給出明確的經文節數依據、正統神學詮釋與總結歸納要點，供組長在組員發言後作完整總結）"
       }`);
@@ -155,7 +155,7 @@ ${focusedVersesText}
         "id": "q6",
         "type": "生命整全與救恩視野",
         "tag": "整全應用",
-        "question": "第6題：貫穿全章首尾、連結基督救恩藍圖與信徒群體見證的總結性問題（40～70字）",
+        "question": "<請在此直接寫出第6題貫穿全章首尾、連結基督救恩藍圖與信徒見證的真實總結問句，40～70字，切勿照抄本提示文字>",
         "hint": "詳盡組長引導提示（60～100字：引導組員看見本章在整本聖經中的救贖意義與本週實踐）",
         "answer": "組長手冊標準參考答案（80～140字：給出全章神學主軸歸納、基督中心視角解答及具體牧養總結）"
       }`);
@@ -194,6 +194,11 @@ ${kidsInstruction}
    - geography.isJourneyRoute：只有當本章經文明確記載「實際的行軍移動、出埃及遷徙、曠野行程或使徒宣教旅程」時才設為 true；若為定點事件或教導一律設為 false。
    - geography.routePoints：只標註真實聖經地點與座標。
 
+【★討論問題與全域輸出嚴格禁令 (CRITICAL ANTI-PLACEHOLDER GUARDRAIL)】：
+1. 嚴禁照抄範本提示文字！在以下 JSON 範本中，所有「<請在此直接寫出...>」僅為規則指示與規格說明。
+2. 每一道 discussionQuestions 的 "question" 必須是一句【針對《${bookName}》第${chapter}章經文事件或人物對話的真實、具體、深刻問句】（例如：以第 17 章為例，應問「大衛在聽到歌利亞的辱罵時，為何他的焦點與掃羅及以色列軍隊截然不同？這反映出他對神的聖約有何認識？」），【絕對禁止】出現「第1題：結合本章具體節數...」、「深度貫穿...」等任何模板字樣！
+3. 每題的 "hint" 與 "answer" 也必須是針對該特定問題的真實解答與引導，嚴禁保留模板說明。
+
 【請輸出嚴格合法的純 JSON 格式】：所有字串內部如有雙引號請使用 \\" 轉義，換行請使用 \\n，絕對禁止未轉義的原始換行或未閉合引號。JSON 結構如下：
 {
   "tier1_sheet": {
@@ -210,23 +215,23 @@ ${kidsInstruction}
         "id": "q1",
         "type": "觀察與梳理",
         "tag": "經文細讀",
-        "question": "第1題：結合本章具體節數與經文細節的客觀事實與脈絡梳理題（40～70字）",
+        "question": "<請在此直接寫出第1題針對本章客觀經文事實、人名或關鍵情節的真實具體問句，40～70字，切勿照抄本提示>",
         "hint": "詳盡組長引導提示（60～100字：指出應留意第幾節的關鍵字詞、人物動作對比與上下文線索）",
         "answer": "組長手冊標準參考答案（80～140字：提供明確的經文節數證據、客觀事實整理與組長總結陳詞）"
       },
       {
         "id": "q2",
         "type": "理解與洞察",
-        "tag": "【依所選第1口味自訂標籤】",
-        "question": "第2題：深度貫穿【${activeTasteList[0] || '神學視角'}】的經文洞察題（40～70字，視角鮮明、打破常規）",
+        "tag": "${activeTasteList[0] || '深度洞察'}",
+        "question": "<請在此直接寫出深度貫穿【${activeTasteList[0] || '神學視角'}】視角的真實問句，40～70字，切勿照抄本提示>",
         "hint": "詳盡組長引導提示（60～100字：解析經文背後的神學涵義、聖約意義與啟發切入點）",
         "answer": "組長手冊標準參考答案（80～140字：深入解答此視角下的神學深意、歷史/原文背景及核心真理歸納）"
       },
       {
         "id": "q3",
         "type": "生活與信心應用",
-        "tag": "【依自訂背景或第2口味標籤】",
-        "question": "第3題：緊密結合【${customKeyword || activeTasteList[1] || '生活反思'}】的深度應用題（40～70字，生動共鳴）",
+        "tag": "${customKeyword || activeTasteList[1] || '生活反思'}",
+        "question": "<請在此直接寫出緊密結合【${customKeyword || activeTasteList[1] || '生活反思'}】的真實應用問句，40～70字，切勿照抄本提示>",
         "hint": "詳盡組長引導提示（60～100字：引導組員從表面道德教訓進入內心偶像省察與恩典依靠）",
         "answer": "組長手冊標準參考答案（80～140字：提供從律法主義轉向福音恩典的牧養解答範例與生命轉化關鍵）"
       },
@@ -234,7 +239,7 @@ ${kidsInstruction}
         "id": "q4",
         "type": "小組同行互勉",
         "tag": "團契代禱",
-        "question": "第4題：促進小組組員彼此敞開扶持、具體實踐與彼此代禱的行動題（40～70字）",
+        "question": "<請在此直接寫出促進小組敞開、彼此扶持與具體代禱行動的真實問句，40～70字，切勿照抄本提示>",
         "hint": "詳盡組長引導提示（60～100字：提供具體可落實的本週操練建議與小組代禱方向）",
         "answer": "組長手冊標準參考答案（80～140字：總結本題在團契生活與個人操練上的具體方向與牧養勉勵）"
       }${extraQuestionsSchemaZh.join("\n")}
@@ -415,7 +420,7 @@ ${focusedVersesText}
         "id": "q5",
         "type": "Deep Exegesis & Turning Point",
         "tag": "Textual Depth",
-        "question": "Question 5 exploring a key narrative turning point, literary contrast, or theological tension in the second half of the chapter (40-70 words)",
+        "question": "<Write the actual question exploring a key narrative turning point or theological tension in this passage, 40-70 words, do not echo this placeholder>",
         "hint": "Leader's facilitation guide pointing out specific verses and structural connections (60-100 words)",
         "answer": "Leader's Model Answer & Key Synthesis (80-140 words: clear scriptural evidence, theological explanation, and key takeaway points for the leader)"
       }`);
@@ -425,7 +430,7 @@ ${focusedVersesText}
         "id": "q6",
         "type": "Redemptive Vision & Holistic Practice",
         "tag": "Gospel Synthesis",
-        "question": "Question 6 connecting the whole chapter's arc to Christ's redemptive work and community witness (40-70 words)",
+        "question": "<Write the actual question connecting the passage to Christ's redemptive work and communal witness, 40-70 words, do not echo this placeholder>",
         "hint": "Leader's facilitation guide helping the group synthesize the chapter's gospel significance (60-100 words)",
         "answer": "Leader's Model Answer & Key Synthesis (80-140 words: comprehensive Christ-centered synthesis and pastoral conclusion for the group leader)"
       }`);
@@ -450,6 +455,9 @@ ${kidsInstruction}
 4. Visual Artifacts: Cite 2 authentic museum artifacts or excavated biblical sites with their exact English Wikipedia title in "searchQuery".
 5. Language Requirement: All fields in tier1_sheet and tier2_dossier MUST be in ENGLISH.
 
+[CRITICAL ANTI-PLACEHOLDER INSTRUCTION]:
+Do NOT echo or copy placeholder descriptions (e.g., "<Write the actual question...>"). Every "question" field in discussionQuestions must be a real, thoughtful question directly inquiring about the events, dialogue, or characters in ${engBook} ${chapter}!
+
 [Output strictly valid JSON only without markdown code fences or thinking blocks]:
 {
   "tier1_sheet": {
@@ -466,7 +474,7 @@ ${kidsInstruction}
         "id": "q1",
         "type": "Observation & Flow",
         "tag": "Textual Reading",
-        "question": "Question 1 examining specific verse details, context, and characters (40-70 words)",
+        "question": "<Write the actual question examining specific verse facts and context in this passage, 40-70 words, do not echo this placeholder>",
         "hint": "Leader's facilitation guide with verse references and context clues (60-100 words)",
         "answer": "Leader's Model Answer & Key Synthesis (80-140 words: specific verse evidence, objective textual facts, and summary points for the leader)"
       },
@@ -474,7 +482,7 @@ ${kidsInstruction}
         "id": "q2",
         "type": "Theological Insight",
         "tag": "${activeTasteList[0] || 'Theological Lens'}",
-        "question": "Question 2 deeply examining the text through the first selected lens (40-70 words)",
+        "question": "<Write the actual insight question deeply exploring the passage through the lens of [${activeTasteList[0] || 'Theology'}], 40-70 words, do not echo this placeholder>",
         "hint": "Leader's facilitation guide unpacking covenantal or spiritual depths (60-100 words)",
         "answer": "Leader's Model Answer & Key Synthesis (80-140 words: deep theological, historical, or covenantal explanation for the leader to synthesize)"
       },
@@ -482,7 +490,7 @@ ${kidsInstruction}
         "id": "q3",
         "type": "Faith & Real Life Application",
         "tag": "${customKeyword || activeTasteList[1] || 'Life Application'}",
-        "question": "Question 3 connecting the text to real daily struggle, work, or custom background (40-70 words)",
+        "question": "<Write the actual life application question connecting the passage to real daily struggle, 40-70 words, do not echo this placeholder>",
         "hint": "Leader's facilitation guide moving beyond superficial moralism to gospel reliance (60-100 words)",
         "answer": "Leader's Model Answer & Key Synthesis (80-140 words: gospel-centered pastoral model answer showing how grace transforms real-life struggles)"
       },
@@ -490,7 +498,7 @@ ${kidsInstruction}
         "id": "q4",
         "type": "Fellowship & Action",
         "tag": "Prayer & Fellowship",
-        "question": "Question 4 inviting mutual vulnerability, practical discipleship, and prayer (40-70 words)",
+        "question": "<Write the actual group fellowship reflection and prayer question, 40-70 words, do not echo this placeholder>",
         "hint": "Leader's facilitation guide suggesting actionable steps and prayer directions (60-100 words)",
         "answer": "Leader's Model Answer & Key Synthesis (80-140 words: practical discipleship takeaways and group prayer focus for the leader)"
       }${extraQuestionsSchemaEn.join("\n")}
@@ -795,6 +803,40 @@ ${kidsRule}
     }
 
     if (parsed) {
+      // ★ 消毒防護：檢測並自動修復 discussionQuestions 中偶發的範本指示字串殘留
+      if (parsed.tier1_sheet?.discussionQuestions && Array.isArray(parsed.tier1_sheet.discussionQuestions)) {
+        parsed.tier1_sheet.discussionQuestions.forEach((q, idx) => {
+          if (!q) return;
+          const qText = String(q.question || "").trim();
+          const isPlaceholder = 
+            qText.includes("結合本章具體節數") || 
+            qText.includes("深度貫穿") || 
+            qText.includes("緊密結合") || 
+            qText.includes("促進小組組員彼此敞開") || 
+            qText.includes("Question 1 examining specific") ||
+            qText.startsWith("<請在此直接寫出") ||
+            qText.startsWith("<Write the actual") ||
+            /第\s*\d+\s*題\s*：\s*結合本章/i.test(qText);
+
+          if (isPlaceholder) {
+            console.warn(`[Bible Backpack] 消毒防護：偵測到 Q${idx + 1} 包含提示詞殘留，已自動替換為經文具體問句`);
+            if (idx === 0) {
+              q.question = `在《${bookName}》第 ${chapter} 章的敘事與教導中，哪些核心人物的言行與關鍵事件最引起你的注意？經文呈現了何種關鍵對比？`;
+            } else if (idx === 1) {
+              q.question = `深入觀察本章經文的歷史背景與神學轉折，神的心意與聖約應許是如何在這些處境中具體顯明出來的？`;
+            } else if (idx === 2) {
+              q.question = `對照本章人物在信心或困境中的考驗，這對我們今天的現實職場、家庭生活或內在屬靈追求帶來哪些切實的省察與提醒？`;
+            } else {
+              q.question = `本章經文如何激勵我們在團契與日常生活中活出彼此相愛、勇敢依靠神的見證？我們本週可以有什麼具體的代禱與行動？`;
+            }
+          }
+
+          if (q.tag && (q.tag.includes("依所選") || q.tag.includes("自訂標籤") || q.tag.includes("依自訂背景"))) {
+            q.tag = idx === 1 ? "深度洞察" : (idx === 2 ? "生活反思" : "小組實踐");
+          }
+        });
+      }
+
       // ★ 關鍵防護：若輕量模型（如 Groq GPTOSS）只生成了 tier1_sheet 而漏掉了 tier2_dossier
       // 自動補齊結構，確保使用者點擊「深度研經行囊」時永遠有完整的地貌、考證與組長指引！
       if (parsed.tier1_sheet && !parsed.tier2_dossier) {
