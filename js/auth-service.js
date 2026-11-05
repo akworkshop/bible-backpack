@@ -605,7 +605,13 @@ const AuthService = {
 
     modal.classList.remove("hidden");
     try {
-      history.pushState({ modal: "auth-modal" }, "");
+      history.pushState({
+        modal: "auth-modal",
+        view: typeof currentView !== "undefined" ? currentView : "study",
+        tier: typeof currentActiveTier !== "undefined" ? currentActiveTier : "tier1",
+        book: typeof currentBook !== "undefined" ? currentBook : "創世記",
+        chapter: typeof currentChapter !== "undefined" ? currentChapter : 1
+      }, "");
     } catch (e) {}
   },
 

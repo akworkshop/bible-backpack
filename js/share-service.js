@@ -239,7 +239,13 @@ const ShareService = {
     // 顯示載入中動畫並打開彈窗
     modal.classList.remove("hidden");
     try {
-      history.pushState({ modal: "share-modal" }, "");
+      history.pushState({
+        modal: "share-modal",
+        view: typeof currentView !== "undefined" ? currentView : "study",
+        tier: typeof currentActiveTier !== "undefined" ? currentActiveTier : "tier1",
+        book: typeof currentBook !== "undefined" ? currentBook : "創世記",
+        chapter: typeof currentChapter !== "undefined" ? currentChapter : 1
+      }, "");
     } catch (e) {}
     const qrContainer = document.getElementById("share-qrcode-container");
     if (qrContainer) {

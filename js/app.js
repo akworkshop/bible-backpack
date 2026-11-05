@@ -78,9 +78,14 @@ function initApp() {
     currentActiveTier = savedTier;
   }
 
-  // ★ 記錄初始 History State，防止用戶初次按下返回鍵時直接退出網站
+  // ★ 記錄初始 History State，包含書卷與章節，防止用戶初次按下返回鍵時直接退出網站
   try {
-    history.replaceState({ view: currentView || "study", tier: currentActiveTier }, "");
+    history.replaceState({
+      view: currentView || "study",
+      tier: currentActiveTier || "tier1",
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
 
   applyThemeAndFont();
@@ -169,7 +174,13 @@ function openDailyCoffeeModal() {
   if (!modal) return;
   modal.classList.remove("hidden");
   try {
-    history.pushState({ modal: "daily-coffee-modal", view: currentView, tier: currentActiveTier }, "");
+    history.pushState({
+      modal: "daily-coffee-modal",
+      view: currentView,
+      tier: currentActiveTier,
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
 }
 
@@ -1390,7 +1401,12 @@ function switchTier(tier, isPopState = false) {
 
   if (!isPopState) {
     try {
-      history.pushState({ view: currentView || "study", tier: tier }, "");
+      history.pushState({
+        view: currentView || "study",
+        tier: tier,
+        book: currentBook,
+        chapter: currentChapter
+      }, "");
     } catch (e) {}
   }
 
@@ -1667,9 +1683,9 @@ function setupEventListeners() {
   });
 }
 
-function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = false) {
-  // ★ 防重入保護：若 AI 正在調配研經材料，阻擋切換並提示使用者稍候，避免競態衝突
-  if (isGeneratingStudyPack && !isInitialLoad) {
+function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = false, isPopState = false) {
+  // ★ 防重入保護：若 AI 正在調配研經材料且非返回鍵導航，阻擋切換並提示使用者稍候，避免競態衝突
+  if (isGeneratingStudyPack && !isInitialLoad && !isPopState) {
     const isEn = typeof I18n !== "undefined" && I18n.isEn();
     showToast(isEn ? "⏳ AI is tailoring your study pack. Please wait a moment before switching passages." : "⏳ AI 正在調配當前經文材料中，請稍候片刻再切換經文。");
     const bookSelect = document.getElementById("book-selector-select");
@@ -1677,6 +1693,12 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
     if (bookSelect) bookSelect.value = currentBook;
     if (chapInput) chapInput.value = currentChapter;
     return;
+  }
+
+  // 若使用者在生成途中透過返回鍵強制回退，解開生成鎖以維持介面操作順暢
+  if (isPopState && isGeneratingStudyPack) {
+    isGeneratingStudyPack = false;
+    updateGeneratingButtonsState(false);
   }
 
   currentBook = normalizeBookName(currentBook);
@@ -1701,6 +1723,33 @@ function handleBookOrChapterChange(forceRegenerate = false, isInitialLoad = fals
       chapInput.max = bookMeta.chapters;
       chapInput.value = currentChapter;
     }
+  }
+
+  // ★ 記錄歷史狀態：若書卷或章節變更，將新經文位置推入瀏覽器 History 堆疊；若是初次載入，則替換目前狀態
+  if (!isInitialLoad && !isPopState) {
+    const currentState = history.state;
+    const stateBook = currentState && currentState.book ? normalizeBookName(currentState.book) : null;
+    const stateChap = currentState && currentState.chapter ? parseInt(currentState.chapter, 10) : null;
+
+    if (stateBook !== currentBook || stateChap !== currentChapter) {
+      try {
+        history.pushState({
+          view: currentView || "study",
+          tier: currentActiveTier || "tier1",
+          book: currentBook,
+          chapter: currentChapter
+        }, "");
+      } catch (e) {}
+    }
+  } else if (isInitialLoad) {
+    try {
+      history.replaceState({
+        view: currentView || "study",
+        tier: currentActiveTier || "tier1",
+        book: currentBook,
+        chapter: currentChapter
+      }, "");
+    } catch (e) {}
   }
 
   // 同步更新頂部書卷選單與章節下拉面板
@@ -1892,7 +1941,13 @@ function showOfflineOrKeyModal(book, chapter) {
   pendingGenerationBook = { book, chapter };
   modal?.classList.remove("hidden");
   try {
-    history.pushState({ modal: "explore-book-modal", view: currentView, tier: currentActiveTier }, "");
+    history.pushState({
+      modal: "explore-book-modal",
+      view: currentView,
+      tier: currentActiveTier,
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
 }
 
@@ -2147,7 +2202,13 @@ function openBackpackModal() {
   if (!modal || !container) return;
 
   try {
-    history.pushState({ modal: "backpack-modal", view: currentView, tier: currentActiveTier }, "");
+    history.pushState({
+      modal: "backpack-modal",
+      view: currentView,
+      tier: currentActiveTier,
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
 
   const items = BackpackStore.getSavedItems();
@@ -2318,7 +2379,13 @@ function openSettingsModal(targetTabOrNotice = "ai", maybeNotice = "") {
 
   const modal = document.getElementById("settings-modal");
   try {
-    history.pushState({ modal: "settings-modal", view: currentView, tier: currentActiveTier }, "");
+    history.pushState({
+      modal: "settings-modal",
+      view: currentView,
+      tier: currentActiveTier,
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
   const keyInput = document.getElementById("api-key-input");
   const groqInput = document.getElementById("groq-key-input");
@@ -2817,7 +2884,12 @@ function navigateTo(viewName, skipAutoScroll = false, isPopState = false) {
 
   if (!isPopState) {
     try {
-      history.pushState({ view: viewName, tier: currentActiveTier }, "");
+      history.pushState({
+        view: viewName,
+        tier: currentActiveTier,
+        book: currentBook,
+        chapter: currentChapter
+      }, "");
     } catch (e) {}
   }
 
@@ -3158,7 +3230,13 @@ function openCurriculumStudioModal() {
   if (statusEl) statusEl.classList.add("hidden");
   modal?.classList.remove("hidden");
   try {
-    history.pushState({ modal: "curriculum-modal", view: currentView, tier: currentActiveTier }, "");
+    history.pushState({
+      modal: "curriculum-modal",
+      view: currentView,
+      tier: currentActiveTier,
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
 }
 
@@ -3651,7 +3729,13 @@ function openImageModal(url, title, desc, pageUrl = null) {
 
   modal.classList.remove("hidden");
   try {
-    history.pushState({ modal: "image-preview-modal", view: currentView, tier: currentActiveTier }, "");
+    history.pushState({
+      modal: "image-preview-modal",
+      view: currentView,
+      tier: currentActiveTier,
+      book: currentBook,
+      chapter: currentChapter
+    }, "");
   } catch (e) {}
 }
 
@@ -3725,7 +3809,7 @@ function closeActiveModalById(id) {
   }
 }
 
-// 監聽瀏覽器返回鍵 (Go Back)：優先關閉當前開啟的彈窗；若無彈窗則退回上一動作（如從背包回到工作台、從Tier2回到Tier1），避免意外離開頁面
+// 監聽瀏覽器返回鍵 (Go Back)：優先關閉當前開啟的彈窗；若無彈窗則退回上一動作（經文位置、視圖、層級），避免意外離開頁面
 window.addEventListener("popstate", (e) => {
   const activeModal = getActiveModalId();
   if (activeModal) {
@@ -3733,22 +3817,37 @@ window.addEventListener("popstate", (e) => {
     return;
   }
 
-  // 若當前在背包頁面，返回鍵應回到研經工作台
-  if (currentView === "backpack") {
-    navigateTo("study", true, true);
-    return;
-  }
-
-  // 若先前記錄有狀態，還原視圖或層級
+  // 若先前記錄有狀態，依序還原層級、視圖或經文
   if (e.state) {
-    if (e.state.view && e.state.view !== currentView) {
-      navigateTo(e.state.view, true, true);
-    }
     if (e.state.tier && e.state.tier !== currentActiveTier) {
       switchTier(e.state.tier, true);
     }
-  } else if (currentActiveTier === "tier2") {
-    switchTier("tier1", true);
+    if (e.state.view && e.state.view !== currentView) {
+      navigateTo(e.state.view, true, true);
+    }
+    if (e.state.book && e.state.chapter) {
+      const targetBook = normalizeBookName(e.state.book);
+      const targetChap = parseInt(e.state.chapter, 10);
+      if (targetBook !== currentBook || targetChap !== currentChapter) {
+        currentBook = targetBook;
+        currentChapter = targetChap;
+
+        const bookSelect = document.getElementById("book-selector-select");
+        if (bookSelect) bookSelect.value = currentBook;
+        const chapInput = document.getElementById("chapter-selector-input");
+        if (chapInput) chapInput.value = currentChapter;
+        renderChapterDropdown();
+
+        handleBookOrChapterChange(false, false, true);
+      }
+    }
+  } else {
+    // 當無歷史狀態時（例如從外部連結進入或回退至最底層時）
+    if (currentView === "backpack") {
+      navigateTo("study", true, true);
+    } else if (currentActiveTier === "tier2") {
+      switchTier("tier1", true);
+    }
   }
 });
 
