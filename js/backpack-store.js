@@ -312,6 +312,23 @@ const BackpackStore = {
     localStorage.setItem("bible_backpack_groq_model", (model || "llama-3.3-70b-versatile").trim());
   },
 
+  // OpenRouter 設定 (支援 stealth/crouton-alpha 等模型)
+  getOpenRouterKey() {
+    return localStorage.getItem("bible_backpack_openrouter_key") || "";
+  },
+
+  setOpenRouterKey(key) {
+    localStorage.setItem("bible_backpack_openrouter_key", (key || "").trim());
+  },
+
+  getOpenRouterModel() {
+    return localStorage.getItem("bible_backpack_openrouter_model") || "stealth/crouton-alpha";
+  },
+
+  setOpenRouterModel(model) {
+    localStorage.setItem("bible_backpack_openrouter_model", (model || "stealth/crouton-alpha").trim());
+  },
+
   // 本地離線 AI 設定 (Ollama / LM Studio)
   getLocalEndpoint() {
     return localStorage.getItem("bible_backpack_local_endpoint") || "http://localhost:11434/v1";

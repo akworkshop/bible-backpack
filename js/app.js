@@ -2024,7 +2024,9 @@ async function generateWithCurrentTastes(forceFresh = true) {
   const provider = BackpackStore.getProvider();
   const apiKey = provider === "groq" 
     ? BackpackStore.getGroqKey() 
-    : (provider === "local" ? (BackpackStore.getLocalEndpoint() || "http://localhost:11434/v1") : BackpackStore.getApiKey());
+    : (provider === "openrouter"
+      ? BackpackStore.getOpenRouterKey()
+      : (provider === "local" ? (BackpackStore.getLocalEndpoint() || "http://localhost:11434/v1") : BackpackStore.getApiKey()));
   if (provider !== "local" && !apiKey) {
     // 無 API Key 時，提供示範模式說明或打開設置
     showOfflineOrKeyModal(currentBook, currentChapter);
@@ -2418,6 +2420,31 @@ function openSettingsModal(targetTabOrNotice = "ai", maybeNotice = "") {
   const groqModelSelect = document.getElementById("groq-model-select-input");
   if (groqModelSelect) groqModelSelect.value = BackpackStore.getGroqModel();
 
+  const openrouterInput = document.getElementById("openrouter-key-input");
+  const openrouterStatusEl = document.getElementById("openrouter-test-status");
+  if (openrouterInput) openrouterInput.value = BackpackStore.getOpenRouterKey();
+  if (openrouterStatusEl) {
+    openrouterStatusEl.className = "mt-1.5 text-2xs hidden";
+    openrouterStatusEl.innerHTML = "";
+  }
+
+  const openrouterModelSelect = document.getElementById("openrouter-model-select-input");
+  const openrouterCustomInput = document.getElementById("openrouter-custom-model-input");
+  const savedOpenRouterModel = BackpackStore.getOpenRouterModel() || "stealth/crouton-alpha";
+  if (openrouterModelSelect) {
+    const knownOption = Array.from(openrouterModelSelect.options).find(o => o.value === savedOpenRouterModel);
+    if (knownOption) {
+      openrouterModelSelect.value = savedOpenRouterModel;
+      if (openrouterCustomInput) openrouterCustomInput.classList.add("hidden");
+    } else {
+      openrouterModelSelect.value = "custom";
+      if (openrouterCustomInput) {
+        openrouterCustomInput.classList.remove("hidden");
+        openrouterCustomInput.value = savedOpenRouterModel;
+      }
+    }
+  }
+
   const apiBibleKeyInput = document.getElementById("api-bible-key-input");
   const apibibleIdNiv = document.getElementById("apibible-id-niv");
   const apibibleIdNirv = document.getElementById("apibible-id-nirv");
@@ -2475,17 +2502,32 @@ function openSettingsModal(targetTabOrNotice = "ai", maybeNotice = "") {
   modal?.classList.remove("hidden");
 }
 
+function handleOpenRouterModelChange(val) {
+  const customInput = document.getElementById("openrouter-custom-model-input");
+  if (!customInput) return;
+  if (val === "custom") {
+    customInput.classList.remove("hidden");
+    customInput.focus();
+  } else {
+    customInput.classList.add("hidden");
+  }
+}
+
 function toggleProviderSettings(provider) {
   const geminiBox = document.getElementById("provider-gemini-box");
   const groqBox = document.getElementById("provider-groq-box");
+  const openrouterBox = document.getElementById("provider-openrouter-box");
   const localBox = document.getElementById("provider-local-box");
 
   geminiBox?.classList.add("hidden");
   groqBox?.classList.add("hidden");
+  openrouterBox?.classList.add("hidden");
   localBox?.classList.add("hidden");
 
   if (provider === "groq") {
     groqBox?.classList.remove("hidden");
+  } else if (provider === "openrouter") {
+    openrouterBox?.classList.remove("hidden");
   } else if (provider === "local") {
     localBox?.classList.remove("hidden");
     const ep = document.getElementById("local-endpoint-input")?.value;
@@ -2554,6 +2596,40 @@ async function testCurrentApiKey(targetProvider) {
     return;
   }
 
+  if (provider === "openrouter") {
+    const openrouterInput = document.getElementById("openrouter-key-input");
+    const openrouterModelSelect = document.getElementById("openrouter-model-select-input");
+    const openrouterCustomInput = document.getElementById("openrouter-custom-model-input");
+    const statusEl = document.getElementById("openrouter-test-status");
+    if (!openrouterInput || !statusEl) return;
+    const key = openrouterInput.value.trim();
+    let model = openrouterModelSelect ? openrouterModelSelect.value : BackpackStore.getOpenRouterModel();
+    if (model === "custom" && openrouterCustomInput && openrouterCustomInput.value.trim()) {
+      model = openrouterCustomInput.value.trim();
+    }
+
+    if (!key) {
+      statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
+      statusEl.innerHTML = isEn
+        ? "⚠️ Please enter an OpenRouter API Key (e.g., sk-or-v1-...) before testing"
+        : "⚠️ 請先輸入 OpenRouter API Key (如 sk-or-v1-...) 再進行連線測試";
+      return;
+    }
+
+    statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-amber-50 text-amber-800 border border-amber-200 block";
+    statusEl.innerHTML = `<span class="inline-block animate-spin mr-1">⏳</span> ${isEn ? `Testing OpenRouter API (${model})...` : `正在連線測試 OpenRouter API (${model})...`}`;
+
+    const result = await AIService.testApiKey(key, model, "openrouter");
+    if (result.ok) {
+      statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 block";
+      statusEl.innerHTML = `<span>${escapeHtml(result.message)}</span>`;
+    } else {
+      statusEl.className = "mt-1.5 text-2xs p-2 rounded bg-red-50 text-red-800 border border-red-200 block";
+      statusEl.innerHTML = `<span>❌ ${escapeHtml(result.message)}</span>`;
+    }
+    return;
+  }
+
   // Google Gemini 測試
   const keyInput = document.getElementById("api-key-input");
   const modelSelect = document.getElementById("model-select-input");
@@ -2592,6 +2668,13 @@ function saveSettingsModal() {
   const provider = selectedProviderRadio ? selectedProviderRadio.value : "gemini";
   const geminiKey = document.getElementById("api-key-input")?.value;
   const groqKey = document.getElementById("groq-key-input")?.value;
+  const openrouterKey = document.getElementById("openrouter-key-input")?.value;
+  const openrouterModelSelect = document.getElementById("openrouter-model-select-input");
+  const openrouterCustomInput = document.getElementById("openrouter-custom-model-input");
+  let openrouterModel = openrouterModelSelect?.value || "stealth/crouton-alpha";
+  if (openrouterModel === "custom" && openrouterCustomInput && openrouterCustomInput.value.trim()) {
+    openrouterModel = openrouterCustomInput.value.trim();
+  }
   const localEndpoint = document.getElementById("local-endpoint-input")?.value;
   const localModel = document.getElementById("local-model-input")?.value;
   const geminiModel = document.getElementById("model-select-input")?.value;
@@ -2606,6 +2689,8 @@ function saveSettingsModal() {
   BackpackStore.setProvider(provider);
   BackpackStore.setApiKey(geminiKey);
   BackpackStore.setGroqKey(groqKey);
+  if (openrouterKey !== undefined) BackpackStore.setOpenRouterKey(openrouterKey);
+  if (openrouterModel) BackpackStore.setOpenRouterModel(openrouterModel);
   if (localEndpoint) BackpackStore.setLocalEndpoint(localEndpoint);
   if (localModel) BackpackStore.setLocalModel(localModel);
   if (geminiModel) BackpackStore.setModelName(geminiModel);
@@ -2635,6 +2720,9 @@ function saveSettingsModal() {
   if (provider === "groq") {
     activeDesc = `⚡ Groq (${BackpackStore.getGroqModel()})`;
     hasValidConfig = !!groqKey;
+  } else if (provider === "openrouter") {
+    activeDesc = `🌐 OpenRouter (${BackpackStore.getOpenRouterModel()})`;
+    hasValidConfig = !!openrouterKey;
   } else if (provider === "local") {
     activeDesc = `💻 ${isEn ? "Local AI" : "本地離線"} (${BackpackStore.getLocalModel()})`;
     hasValidConfig = !!BackpackStore.getLocalEndpoint();
@@ -2748,6 +2836,8 @@ function exportSettingsToFile() {
     geminiModel: document.getElementById("model-select-input")?.value || BackpackStore.getModelName(),
     groqApiKey: (document.getElementById("groq-key-input")?.value ?? BackpackStore.getGroqKey()).trim(),
     groqModel: document.getElementById("groq-model-select-input")?.value || BackpackStore.getGroqModel(),
+    openRouterApiKey: (document.getElementById("openrouter-key-input")?.value ?? BackpackStore.getOpenRouterKey()).trim(),
+    openRouterModel: BackpackStore.getOpenRouterModel(),
     localEndpoint: (document.getElementById("local-endpoint-input")?.value ?? BackpackStore.getLocalEndpoint()).trim(),
     localModel: document.getElementById("local-model-input")?.value || BackpackStore.getLocalModel(),
     apiBibleKey: (document.getElementById("api-bible-key-input")?.value ?? BackpackStore.getApiBibleKey()).trim(),
@@ -2799,6 +2889,8 @@ function importSettingsFromFile(event) {
       if (cfg.geminiModel) BackpackStore.setModelName(cfg.geminiModel);
       if (typeof cfg.groqApiKey === "string") BackpackStore.setGroqKey(cfg.groqApiKey);
       if (cfg.groqModel) BackpackStore.setGroqModel(cfg.groqModel);
+      if (typeof cfg.openRouterApiKey === "string") BackpackStore.setOpenRouterKey(cfg.openRouterApiKey);
+      if (cfg.openRouterModel) BackpackStore.setOpenRouterModel(cfg.openRouterModel);
       if (cfg.localEndpoint) BackpackStore.setLocalEndpoint(cfg.localEndpoint);
       if (cfg.localModel) BackpackStore.setLocalModel(cfg.localModel);
       if (typeof cfg.apiBibleKey === "string") BackpackStore.setApiBibleKey(cfg.apiBibleKey);
@@ -3274,7 +3366,9 @@ async function startGenerateCurriculum() {
   const provider = BackpackStore.getProvider();
   const apiKey = provider === "groq" 
     ? BackpackStore.getGroqKey() 
-    : (provider === "local" ? (BackpackStore.getLocalEndpoint() || "http://localhost:11434/v1") : BackpackStore.getApiKey());
+    : (provider === "openrouter"
+      ? BackpackStore.getOpenRouterKey()
+      : (provider === "local" ? (BackpackStore.getLocalEndpoint() || "http://localhost:11434/v1") : BackpackStore.getApiKey()));
   if (provider !== "local" && !apiKey) {
     closeCurriculumModal();
     openSettingsModal("請先在設置中填入免費 API Key，即可讓 AI 為您企劃多堂主題查經套裝！");

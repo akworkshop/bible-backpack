@@ -418,7 +418,7 @@
         <!-- AI 供應商選擇 -->
         <div>
           <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_provider_label">AI 服務通道 (AI Engine Provider)：</label>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
             <label class="p-2.5 rounded-xl border border-stone-200 hover:border-amber-700 cursor-pointer flex items-center gap-2 bg-stone-50 has-[:checked]:bg-amber-50 has-[:checked]:border-amber-800 transition-all">
               <input type="radio" name="ai_provider" value="gemini" onchange="toggleProviderSettings('gemini')" class="text-amber-800" checked>
               <div>
@@ -431,6 +431,13 @@
               <div>
                 <div class="font-bold text-xs text-stone-900" data-i18n="settings_groq_title">⚡ Groq (推薦通道)</div>
                 <div class="text-2xs text-stone-500" data-i18n="settings_groq_sub">超極速 500t/s · 永不塞車</div>
+              </div>
+            </label>
+            <label class="p-2.5 rounded-xl border border-stone-200 hover:border-amber-700 cursor-pointer flex items-center gap-2 bg-stone-50 has-[:checked]:bg-amber-50 has-[:checked]:border-amber-800 transition-all">
+              <input type="radio" name="ai_provider" value="openrouter" onchange="toggleProviderSettings('openrouter')" class="text-amber-800">
+              <div>
+                <div class="font-bold text-xs text-stone-900" data-i18n="settings_openrouter_title">🌐 OpenRouter</div>
+                <div class="text-2xs text-stone-500" data-i18n="settings_openrouter_sub">Crouton Alpha · 1M 上下文</div>
               </div>
             </label>
             <label class="p-2.5 rounded-xl border border-stone-200 hover:border-amber-700 cursor-pointer flex items-center gap-2 bg-stone-50 has-[:checked]:bg-amber-50 has-[:checked]:border-amber-800 transition-all">
@@ -499,6 +506,41 @@
               <option value="mixtral-8x7b-32768" data-i18n="model_groq_mixtral">mixtral-8x7b-32768 (MoE 專家架構 · 32K 長上下文)</option>
               <option value="gemma2-9b-it" data-i18n="model_groq_gemma">gemma2-9b-it (Google Gemma 2 9B · 正統嚴謹)</option>
             </select>
+          </div>
+        </div>
+
+        <!-- OpenRouter 設置群 (支援 stealth/crouton-alpha) -->
+        <div id="provider-openrouter-box" class="space-y-3 hidden">
+          <div>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_openrouter_key_label">OpenRouter API Key (支援 Crouton Alpha · 免費 1M 上下文)：</label>
+            <div class="flex gap-2">
+              <input type="password" id="openrouter-key-input" placeholder="sk-or-v1-..." class="flex-1 p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs">
+              <button type="button" onclick="testCurrentApiKey('openrouter')" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-800 rounded-lg text-xs font-medium whitespace-nowrap flex items-center gap-1">
+                <span>⚡</span>
+                <span data-i18n="settings_test_btn">測試連線</span>
+              </button>
+            </div>
+            <div id="openrouter-test-status" class="mt-1.5 text-2xs hidden"></div>
+            <p class="text-2xs text-stone-500 mt-1.5 leading-relaxed" data-i18n="settings_openrouter_help">
+              • 支援神秘高效能模型 <strong>stealth/crouton-alpha</strong>（免費預覽階段 · 1,000,000 Token 超大上下文）！<br>
+              • 可在 <a href="https://openrouter.ai/keys" target="_blank" class="text-amber-800 underline font-semibold">openrouter.ai/keys</a> 幾秒鐘內免費取得 API Key。<br>
+              • 亦可自由無縫切換 DeepSeek、Claude、Llama 等 OpenRouter 數百款模型。
+            </p>
+          </div>
+
+          <div>
+            <label class="font-bold text-stone-800 block mb-1" data-i18n="settings_openrouter_model">OpenRouter 模型選擇 (OpenRouter Model)：</label>
+            <div class="space-y-1.5">
+              <select id="openrouter-model-select-input" onchange="handleOpenRouterModelChange(this.value)" class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 text-xs bg-white text-stone-800 font-mono">
+                <option value="stealth/crouton-alpha" selected>stealth/crouton-alpha (預設推薦 · 1M 上下文 · 免費高速)</option>
+                <option value="deepseek/deepseek-chat">deepseek/deepseek-chat (DeepSeek V3 · 性價比旗艦)</option>
+                <option value="meta-llama/llama-3.3-70b-instruct">meta-llama/llama-3.3-70b-instruct (Llama 3.3 70B · 開源旗艦)</option>
+                <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet (Claude 3.5 Sonnet)</option>
+                <option value="google/gemini-2.5-flash">google/gemini-2.5-flash (Gemini 2.5 Flash via OpenRouter)</option>
+                <option value="custom">自訂模型名稱 (輸入 OpenRouter 模型 ID)...</option>
+              </select>
+              <input type="text" id="openrouter-custom-model-input" placeholder="例如：mistralai/mistral-large-2411" class="w-full p-2 rounded-lg border border-stone-200 focus:outline-none focus:border-amber-700 font-mono text-xs hidden">
+            </div>
           </div>
         </div>
 

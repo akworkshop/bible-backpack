@@ -1041,6 +1041,13 @@ ${kidsRule}
       return result;
     }
 
+    // 4. 若選擇 OpenRouter 供應商（支援 stealth/crouton-alpha · 1M 上下文）
+    if (provider === "openrouter") {
+      const result = await this.generateWithOpenRouter(promptText, onStatusUpdate, bookName, chapter);
+      BackpackStore.saveCachedPack(bookName, chapter, tasteHash, result);
+      return result;
+    }
+
     // 4. 預設 Google Gemini 通道：具備多模型自動容錯與防 High Demand 輪替鏈
     const rawApiKey = BackpackStore.getApiKey();
     const apiKey = (rawApiKey || "").trim().replace(/^["']|["']$/g, '');
@@ -1139,6 +1146,13 @@ ${kidsRule}
 
     if (provider === "groq") {
       const parsed = await this.generateWithGroq(promptText, onStatusUpdate);
+      parsed.id = "pack-" + Date.now();
+      parsed.createdAt = new Date().toLocaleDateString();
+      return parsed;
+    }
+
+    if (provider === "openrouter") {
+      const parsed = await this.generateWithOpenRouter(promptText, onStatusUpdate);
       parsed.id = "pack-" + Date.now();
       parsed.createdAt = new Date().toLocaleDateString();
       return parsed;
@@ -1372,6 +1386,56 @@ ${kidsRule}
     return this.cleanAndParseJSON(rawText, bookName, chapter);
   },
 
+  // 透過 OpenRouter API 生成研經材料 (原生支援 stealth/crouton-alpha, DeepSeek, Claude, Llama 等)
+  async generateWithOpenRouter(promptText, onStatusUpdate = null, bookName = "", chapter = 1) {
+    const rawKey = BackpackStore.getOpenRouterKey();
+    const apiKey = (rawKey || "").trim();
+    if (!apiKey) {
+      throw new Error("請先在設置中填入 OpenRouter API Key！可至 openrouter.ai/keys 免費申請");
+    }
+
+    const openRouterModel = BackpackStore.getOpenRouterModel() || "stealth/crouton-alpha";
+
+    if (onStatusUpdate) {
+      onStatusUpdate(`🌐 正在調用 OpenRouter (${openRouterModel}) 調配雙層研經材料...`);
+    }
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": (typeof window !== "undefined" && window.location.origin) ? window.location.origin : "https://biblebackpack.vercel.app",
+        "X-Title": "Bible Backpack"
+      },
+      body: JSON.stringify({
+        model: openRouterModel,
+        messages: [
+          { 
+            role: "system", 
+            content: this.buildSystemPrompt()
+          },
+          { role: "user", content: promptText }
+        ],
+        temperature: 0.45,
+        max_tokens: 8000,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      const errMsg = errData?.error?.message || `OpenRouter API 請求失敗 (HTTP ${response.status})`;
+      throw new Error(errMsg);
+    }
+
+    const data = await response.json();
+    const rawText = data?.choices?.[0]?.message?.content;
+    if (!rawText) throw new Error("未能從 OpenRouter 獲取生成文本");
+
+    return this.cleanAndParseJSON(rawText, bookName, chapter);
+  },
+
   // 測試 API Key 或本地端點有效性
   async testApiKey(apiKey, modelName = "gemini-2.5-flash", provider = "gemini", customEndpoint = "") {
     if (provider === "local") {
@@ -1435,6 +1499,42 @@ ${kidsRule}
         return { ok: false, message: "Groq API Key 無效，請確認後重新輸入" };
       } catch (e) {
         return { ok: false, message: "無法連接 Groq 伺服器，請檢查網路狀況" };
+      }
+    }
+
+    if (provider === "openrouter") {
+      try {
+        const openRouterModel = modelName || BackpackStore.getOpenRouterModel() || "stealth/crouton-alpha";
+        const resp = await fetch("https://openrouter.ai/api/v1/auth/key", {
+          headers: { 
+            "Authorization": `Bearer ${cleanKey}`,
+            "HTTP-Referer": (typeof window !== "undefined" && window.location.origin) ? window.location.origin : "https://biblebackpack.vercel.app",
+            "X-Title": "Bible Backpack"
+          }
+        });
+        if (resp.ok) {
+          const keyInfo = await resp.json().catch(() => ({}));
+          const label = keyInfo?.data?.label ? `(${keyInfo.data.label})` : "";
+          const usage = typeof keyInfo?.data?.usage === "number" ? `· 已用: $${keyInfo.data.usage.toFixed(4)}` : "";
+          return {
+            ok: true,
+            activeModel: openRouterModel,
+            message: `🌐 OpenRouter 連線成功！${label} ${usage} 當前模型：${openRouterModel}`
+          };
+        } else if (resp.status === 401) {
+          return { ok: false, message: "OpenRouter API Key 無效，請確認後重新輸入" };
+        } else {
+          // 嘗試 fallback 驗證 models 端點
+          const mResp = await fetch("https://openrouter.ai/api/v1/models", {
+            headers: { "Authorization": `Bearer ${cleanKey}` }
+          });
+          if (mResp.ok) {
+            return { ok: true, activeModel: openRouterModel, message: `🌐 OpenRouter 連線成功！當前模型：${openRouterModel}` };
+          }
+          return { ok: false, message: `OpenRouter 連線驗證失敗 (HTTP ${resp.status})` };
+        }
+      } catch (e) {
+        return { ok: false, message: "無法連接 OpenRouter 伺服器，請檢查網路狀況" };
       }
     }
 

@@ -275,6 +275,8 @@ const AuthService = {
         if (profile.gemini_model) BackpackStore.setModelName(profile.gemini_model);
         if (profile.groq_api_key) BackpackStore.setGroqKey(profile.groq_api_key);
         if (profile.groq_model) BackpackStore.setGroqModel(profile.groq_model);
+        if (profile.openrouter_api_key) BackpackStore.setOpenRouterKey(profile.openrouter_api_key);
+        if (profile.openrouter_model) BackpackStore.setOpenRouterModel(profile.openrouter_model);
         if (profile.local_endpoint) BackpackStore.setLocalEndpoint(profile.local_endpoint);
         if (profile.local_model) BackpackStore.setLocalModel(profile.local_model);
         if (profile.api_bible_key) BackpackStore.setApiBibleKey(profile.api_bible_key);
@@ -495,6 +497,9 @@ const AuthService = {
   refreshSettingsFormFields() {
     const geminiKeyInput = document.getElementById("api-key-input");
     const groqKeyInput = document.getElementById("groq-key-input");
+    const openrouterKeyInput = document.getElementById("openrouter-key-input");
+    const openrouterModelSelect = document.getElementById("openrouter-model-select-input");
+    const openrouterCustomInput = document.getElementById("openrouter-custom-model-input");
     const localEndpointInput = document.getElementById("local-endpoint-input");
     const localModelInput = document.getElementById("local-model-input");
     const geminiModelSelect = document.getElementById("model-select-input");
@@ -506,6 +511,21 @@ const AuthService = {
 
     if (geminiKeyInput) geminiKeyInput.value = BackpackStore.getApiKey();
     if (groqKeyInput) groqKeyInput.value = BackpackStore.getGroqKey();
+    if (openrouterKeyInput) openrouterKeyInput.value = BackpackStore.getOpenRouterKey();
+    const curOpenRouterModel = BackpackStore.getOpenRouterModel() || "stealth/crouton-alpha";
+    if (openrouterModelSelect) {
+      const opt = Array.from(openrouterModelSelect.options).find(o => o.value === curOpenRouterModel);
+      if (opt) {
+        openrouterModelSelect.value = curOpenRouterModel;
+        if (openrouterCustomInput) openrouterCustomInput.classList.add("hidden");
+      } else {
+        openrouterModelSelect.value = "custom";
+        if (openrouterCustomInput) {
+          openrouterCustomInput.classList.remove("hidden");
+          openrouterCustomInput.value = curOpenRouterModel;
+        }
+      }
+    }
     if (localEndpointInput) localEndpointInput.value = BackpackStore.getLocalEndpoint();
     if (localModelInput) localModelInput.value = BackpackStore.getLocalModel();
     if (geminiModelSelect) geminiModelSelect.value = BackpackStore.getModelName();
