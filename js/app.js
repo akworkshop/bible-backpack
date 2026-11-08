@@ -114,10 +114,12 @@ function initApp() {
   setupEventListeners();
   updateBackpackBadge();
 
-  // ★ 若先前使用者在「我的背包」頁面，自動還原頁面視圖
+  // ★ 若先前使用者在「我的背包」或「API教學」頁面，自動還原頁面視圖
   const savedView = BackpackStore.getLastView();
   if (savedView === "backpack") {
     navigateTo("backpack", true, true);
+  } else if (savedView === "guide") {
+    navigateTo("guide", true, true);
   }
 
   // ★ 若先前停留於 Tier 2 深度行囊，還原按鈕選取高亮狀態
@@ -2987,40 +2989,109 @@ function navigateTo(viewName, skipAutoScroll = false, isPopState = false) {
 
   const studyPage = document.getElementById("study-workspace-page");
   const backpackPage = document.getElementById("backpack-hub-page");
+  const guidePage = document.getElementById("api-guide-page");
   const tabStudy = document.getElementById("view-tab-study");
   const tabBackpack = document.getElementById("view-tab-backpack");
+  const tabGuide = document.getElementById("view-tab-guide");
   const tasteBar = document.getElementById("taste-bar-container");
 
   if (viewName === "study") {
     studyPage?.classList.remove("hidden");
     backpackPage?.classList.add("hidden");
+    guidePage?.classList.add("hidden");
     tasteBar?.classList.remove("hidden");
 
     tabStudy?.classList.add("bg-white", "text-stone-900", "shadow-sm", "font-bold");
     tabStudy?.classList.remove("text-stone-600");
     tabBackpack?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
     tabBackpack?.classList.add("text-stone-600");
+    tabGuide?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
+    tabGuide?.classList.add("text-stone-600");
 
     updateMobileBottomNavState("scripture");
     if (!skipAutoScroll) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  } else {
+  } else if (viewName === "backpack") {
     studyPage?.classList.add("hidden");
     backpackPage?.classList.remove("hidden");
+    guidePage?.classList.add("hidden");
     tasteBar?.classList.add("hidden");
 
     tabBackpack?.classList.add("bg-white", "text-stone-900", "shadow-sm", "font-bold");
     tabBackpack?.classList.remove("text-stone-600");
     tabStudy?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
     tabStudy?.classList.add("text-stone-600");
+    tabGuide?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
+    tabGuide?.classList.add("text-stone-600");
 
     updateMobileBottomNavState("backpack");
     renderBackpackHub();
     if (!skipAutoScroll) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  } else if (viewName === "guide") {
+    studyPage?.classList.add("hidden");
+    backpackPage?.classList.add("hidden");
+    guidePage?.classList.remove("hidden");
+    tasteBar?.classList.add("hidden");
+
+    tabGuide?.classList.add("bg-white", "text-stone-900", "shadow-sm", "font-bold");
+    tabGuide?.classList.remove("text-stone-600");
+    tabStudy?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
+    tabStudy?.classList.add("text-stone-600");
+    tabBackpack?.classList.remove("bg-white", "text-stone-900", "shadow-sm", "font-bold");
+    tabBackpack?.classList.add("text-stone-600");
+
+    updateMobileBottomNavState("guide");
+    if (!skipAutoScroll) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }
+}
+
+// 快速跳轉至 API 設定教學頁指定錨點章節
+function openApiGuide(sectionId = null) {
+  navigateTo("guide");
+  if (sectionId) {
+    setTimeout(() => {
+      const el = document.getElementById(`guide-${sectionId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.classList.add("ring-2", "ring-amber-500", "ring-offset-2", "rounded-2xl");
+        setTimeout(() => el.classList.remove("ring-2", "ring-amber-500", "ring-offset-2"), 2500);
+      }
+    }, 120);
+  }
+}
+
+// 從教學頁直接開啟設定彈窗並切換至該供應商
+function jumpToSettingsProvider(providerName) {
+  openSettingsModal();
+  const radio = document.querySelector(`input[name="ai_provider"][value="${providerName}"]`);
+  if (radio) {
+    radio.checked = true;
+    toggleProviderSettings(providerName);
+  }
+}
+
+// 教學代碼/指令一鍵複製
+function copyGuideCode(codeId, btnEl) {
+  const codeEl = document.getElementById(codeId);
+  if (!codeEl) return;
+  const text = codeEl.textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btnEl.innerHTML;
+    btnEl.innerHTML = "<span>✅ 已複製</span>";
+    btnEl.classList.add("bg-emerald-600", "text-white");
+    setTimeout(() => {
+      btnEl.innerHTML = orig;
+      btnEl.classList.remove("bg-emerald-600", "text-white");
+    }, 2000);
+    showToast("已複製指令至剪貼簿！");
+  }).catch(() => {
+    showToast("複製失敗，請手動選取指令複製");
+  });
 }
 
 // 同步手機底部導航列按鈕高亮狀態
@@ -3937,7 +4008,7 @@ window.addEventListener("popstate", (e) => {
     }
   } else {
     // 當無歷史狀態時（例如從外部連結進入或回退至最底層時）
-    if (currentView === "backpack") {
+    if (currentView === "backpack" || currentView === "guide") {
       navigateTo("study", true, true);
     } else if (currentActiveTier === "tier2") {
       switchTier("tier1", true);
