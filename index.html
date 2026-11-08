@@ -467,43 +467,36 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                <span class="text-stone-400 text-3xs ml-2 font-sans">Google AI Studio 控制台圖解</span>
+                <span class="text-stone-400 text-3xs ml-2 font-sans font-semibold">Google AI Studio 控制台截圖參考</span>
               </div>
-              <span class="text-stone-500">🔒 aistudio.google.com</span>
+              <span class="text-stone-500 font-mono text-3xs">aistudio.google.com/app/apikey</span>
             </div>
 
-            <div class="bg-stone-950 rounded-xl p-3 border border-stone-800/80 space-y-3 font-sans">
-              <!-- 側邊欄與按鈕示意 -->
-              <div class="grid grid-cols-12 gap-2 text-2xs">
-                <div class="col-span-4 bg-stone-900/90 p-2.5 rounded-lg border border-stone-800 space-y-2">
-                  <div class="text-stone-400 text-3xs uppercase font-bold">選單導航</div>
-                  <div class="text-stone-400">💬 Prompt</div>
-                  <div class="p-1.5 rounded bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 flex items-center justify-between">
-                    <span>🔑 Get API key</span>
-                    <span class="text-xs">👈 點此</span>
-                  </div>
-                  <div class="text-stone-400">📊 Tune models</div>
-                </div>
+            <!-- 真實截圖預覽 (點擊可放大檢視) -->
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-stone-800 bg-stone-950" onclick="openImageModal('assets/images/tutorials/gemini-guide.jpg', 'Google AI Studio API Key 申請圖解', '在 aistudio.google.com/app/apikey 點擊「+ Create API key」建立金鑰並複製', 'https://aistudio.google.com/app/apikey', '前往 Google AI Studio ↗', '官方後台流程圖解')">
+              <img src="assets/images/tutorials/gemini-guide.jpg" alt="Google AI Studio 申請流程圖解" class="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-[1.02]">
+              <div class="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/50 transition-colors flex items-center justify-center">
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity px-3.5 py-1.5 rounded-full bg-stone-900/95 text-white text-xs font-semibold backdrop-blur-xs flex items-center gap-1.5 shadow-xl border border-stone-700">
+                  <span>🔍</span>
+                  <span>點擊放大檢視高清截圖</span>
+                </span>
+              </div>
+              <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-stone-300 text-3xs font-sans backdrop-blur-xs flex items-center gap-1 border border-white/10">
+                <span>🔍</span>
+                <span>點擊放大</span>
+              </div>
+            </div>
 
-                <div class="col-span-8 bg-stone-900/40 p-2.5 rounded-lg border border-stone-800/80 space-y-2.5">
-                  <div class="flex items-center justify-between">
-                    <span class="font-bold text-white text-xs">API Keys</span>
-                    <span class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-3xs flex items-center gap-1 shadow-xs">
-                      <span>+ Create API key</span>
-                      <span>👈 點此生成</span>
-                    </span>
-                  </div>
-                  <div class="p-2 bg-stone-950 rounded border border-stone-800 flex items-center justify-between">
-                    <div>
-                      <div class="text-3xs text-stone-400">Generated Key:</div>
-                      <div class="font-mono text-emerald-400 text-2xs">AIzaSyB3••••••••••••••••••••••••</div>
-                    </div>
-                    <span class="px-2 py-1 bg-stone-800 text-stone-200 rounded text-3xs font-bold border border-stone-700">📋 Copy</span>
-                  </div>
-                  <p class="text-3xs text-stone-400 leading-tight">
-                    * 複製這串 <code>AIzaSy...</code>，回到 Bible Backpack 貼入即可。
-                  </p>
-                </div>
+            <!-- 圖解流程重點備註 -->
+            <div class="p-2.5 bg-stone-950 rounded-xl border border-stone-800/80 space-y-2 font-sans text-3xs">
+              <div class="flex items-center justify-between text-stone-300 font-semibold">
+                <span>📌 三步極速獲取金鑰：</span>
+                <span class="text-amber-400">100% 免費 · 免信用卡</span>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5 text-center text-stone-400">
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❶ 點擊 Create API key</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❷ 選擇或新建專案</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800 text-emerald-400">❸ 複製 AIzaSy...</div>
               </div>
             </div>
           </div>
@@ -599,40 +592,36 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                <span class="text-stone-400 text-3xs ml-2 font-sans">Groq Console 控制台圖解</span>
+                <span class="text-stone-400 text-3xs ml-2 font-sans font-semibold">Groq Console 控制台截圖參考</span>
               </div>
-              <span class="text-stone-500">🔒 console.groq.com/keys</span>
+              <span class="text-stone-500 font-mono text-3xs">console.groq.com/keys</span>
             </div>
 
-            <div class="bg-stone-950 rounded-xl p-3 border border-stone-800/80 space-y-3 font-sans">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-bold text-white text-xs">API Keys Management</div>
-                  <div class="text-3xs text-stone-400">Ultra-fast LPU inference tokens</div>
-                </div>
-                <span class="px-2.5 py-1 bg-orange-600 hover:bg-orange-500 text-white rounded font-bold text-3xs flex items-center gap-1 shadow-xs">
-                  <span>+ Create API Key</span>
-                  <span>👈 點此按鈕</span>
+            <!-- 真實截圖預覽 (點擊可放大檢視) -->
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-stone-800 bg-stone-950" onclick="openImageModal('assets/images/tutorials/groq-guide.jpg', 'GroqCloud Console API Key 申請圖解', '在 console.groq.com/keys 點擊「+ Create API Key」輸入名稱並複製 gsk_ 金鑰', 'https://console.groq.com/keys', '前往 Groq Console ↗', '官方後台流程圖解')">
+              <img src="assets/images/tutorials/groq-guide.jpg" alt="GroqCloud Console 申請流程圖解" class="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-[1.02]">
+              <div class="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/50 transition-colors flex items-center justify-center">
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity px-3.5 py-1.5 rounded-full bg-stone-900/95 text-white text-xs font-semibold backdrop-blur-xs flex items-center gap-1.5 shadow-xl border border-stone-700">
+                  <span>🔍</span>
+                  <span>點擊放大檢視高清截圖</span>
                 </span>
               </div>
-
-              <!-- 彈窗模擬 -->
-              <div class="p-3 bg-stone-900 rounded-lg border border-orange-500/40 space-y-2">
-                <div class="text-3xs font-bold text-orange-300">Name your key (彈窗命名)：</div>
-                <div class="p-1.5 bg-stone-950 rounded border border-stone-700 font-mono text-stone-200 text-3xs">
-                  BibleBackpack
-                </div>
-                <div class="text-right">
-                  <span class="px-2 py-0.5 bg-orange-600 text-white rounded text-3xs font-bold">Submit</span>
-                </div>
+              <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-stone-300 text-3xs font-sans backdrop-blur-xs flex items-center gap-1 border border-white/10">
+                <span>🔍</span>
+                <span>點擊放大</span>
               </div>
+            </div>
 
-              <div class="p-2.5 bg-stone-950 rounded border border-stone-800 flex items-center justify-between">
-                <div>
-                  <div class="text-3xs text-stone-400">Secret Key (僅顯示一次)：</div>
-                  <div class="font-mono text-orange-400 text-2xs">gsk_••••••••••••••••••••••••••••••••••••••••</div>
-                </div>
-                <span class="px-2 py-1 bg-orange-700 text-white rounded text-3xs font-bold shadow-xs">📋 Copy</span>
+            <!-- 圖解流程重點備註 -->
+            <div class="p-2.5 bg-stone-950 rounded-xl border border-stone-800/80 space-y-2 font-sans text-3xs">
+              <div class="flex items-center justify-between text-stone-300 font-semibold">
+                <span>📌 三步極速獲取金鑰：</span>
+                <span class="text-orange-400">極速 500t/s · 每日 14,400 次</span>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5 text-center text-stone-400">
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❶ 點擊 Create Key</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❷ 命名 BibleBackpack</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800 text-orange-400">❸ 複製 gsk_...</div>
               </div>
             </div>
           </div>
@@ -718,35 +707,36 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                <span class="text-stone-400 text-3xs ml-2 font-sans">OpenRouter 儀表板圖解</span>
+                <span class="text-stone-400 text-3xs ml-2 font-sans font-semibold">OpenRouter 儀表板截圖參考</span>
               </div>
-              <span class="text-stone-500">🔒 openrouter.ai/keys</span>
+              <span class="text-stone-500 font-mono text-3xs">openrouter.ai/keys</span>
             </div>
 
-            <div class="bg-stone-950 rounded-xl p-3 border border-stone-800/80 space-y-3 font-sans">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-bold text-white text-xs">OpenRouter API Keys</div>
-                  <div class="text-3xs text-stone-400">Universal API for LLMs</div>
-                </div>
-                <span class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded font-bold text-3xs flex items-center gap-1 shadow-xs">
-                  <span>+ Create Key</span>
-                  <span>👈 點此建立</span>
+            <!-- 真實截圖預覽 (點擊可放大檢視) -->
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-stone-800 bg-stone-950" onclick="openImageModal('assets/images/tutorials/openrouter-guide.jpg', 'OpenRouter API Key 與 Crouton-Alpha 圖解', '在 openrouter.ai/keys 點擊「+ Create Key」建立 sk-or-v1- 金鑰，暢享 1M 上下文 free preview 模型', 'https://openrouter.ai/keys', '前往 OpenRouter ↗', '官方後台流程圖解')">
+              <img src="assets/images/tutorials/openrouter-guide.jpg" alt="OpenRouter API Key 申請流程圖解" class="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-[1.02]">
+              <div class="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/50 transition-colors flex items-center justify-center">
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity px-3.5 py-1.5 rounded-full bg-stone-900/95 text-white text-xs font-semibold backdrop-blur-xs flex items-center gap-1.5 shadow-xl border border-stone-700">
+                  <span>🔍</span>
+                  <span>點擊放大檢視高清截圖</span>
                 </span>
               </div>
-
-              <div class="p-2.5 bg-stone-950 rounded border border-purple-500/30 flex items-center justify-between">
-                <div>
-                  <div class="text-3xs text-purple-300 font-bold">Key Generated:</div>
-                  <div class="font-mono text-purple-200 text-2xs">sk-or-v1-••••••••••••••••••••••••••••</div>
-                </div>
-                <span class="px-2 py-1 bg-purple-700 text-white rounded text-3xs font-bold shadow-xs">📋 Copy</span>
+              <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-stone-300 text-3xs font-sans backdrop-blur-xs flex items-center gap-1 border border-white/10">
+                <span>🔍</span>
+                <span>點擊放大</span>
               </div>
+            </div>
 
-              <div class="p-2 bg-stone-900 rounded border border-stone-800 text-3xs text-stone-300 space-y-1">
-                <div class="text-stone-400 font-bold">💡 支援推薦模型：</div>
-                <div>• <code class="text-amber-300 font-mono">stealth/crouton-alpha</code> (免費 · 100 萬 Token)</div>
-                <div>• <code class="text-stone-300 font-mono">deepseek/deepseek-chat</code> (DeepSeek V3)</div>
+            <!-- 圖解流程重點備註 -->
+            <div class="p-2.5 bg-stone-950 rounded-xl border border-stone-800/80 space-y-2 font-sans text-3xs">
+              <div class="flex items-center justify-between text-stone-300 font-semibold">
+                <span>📌 三步建立並使用 Crouton Alpha：</span>
+                <span class="text-purple-300">1M 超長上下文</span>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5 text-center text-stone-400">
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❶ 點擊 Create Key</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❷ 命名確認建立</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800 text-purple-300">❸ 複製 sk-or-v1...</div>
               </div>
             </div>
           </div>
@@ -850,27 +840,41 @@
           </div>
 
           <!-- 視覺化終端機 Mockup 對照圖 -->
-          <div class="bg-stone-950 rounded-2xl p-3 sm:p-4 text-emerald-400 shadow-lg border border-stone-800 space-y-3 font-mono text-2xs">
+          <div class="bg-stone-900 rounded-2xl p-3 sm:p-4 text-white shadow-lg border border-stone-800 space-y-3 font-mono text-2xs">
             <div class="flex items-center justify-between pb-2 border-b border-stone-800">
               <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                <span class="text-stone-400 text-3xs ml-2 font-sans">PowerShell / Terminal 運行示意</span>
+                <span class="text-stone-400 text-3xs ml-2 font-sans font-semibold">Windows PowerShell 實機截圖參考</span>
               </div>
-              <span class="text-stone-500">LocalHost:11434</span>
+              <span class="text-emerald-400 font-mono text-3xs">Localhost:11434</span>
             </div>
 
-            <div class="space-y-2 text-3xs leading-relaxed">
-              <div class="text-stone-400"># 1. 啟動並開放瀏覽器跨域存取</div>
-              <div class="text-white">$ <span class="text-amber-300">$env:OLLAMA_ORIGINS="*" ; ollama serve</span></div>
-              <div class="text-stone-500">time=2026-11-08 msg="listening on 127.0.0.1:11434"</div>
-              <div class="text-stone-500">time=2026-11-08 msg="CORS origins: [*]"</div>
-              
-              <div class="pt-2 text-stone-400"># 2. 自動探測與 API 調用</div>
-              <div class="text-emerald-400">POST http://localhost:11434/api/chat 200 OK</div>
-              <div class="text-stone-400 font-sans mt-1 p-2 bg-stone-900 rounded border border-emerald-900/60">
-                ✅ 成功連線！系統將啟用 <code>think: false</code> 極速模式，跳過冗長思考鏈，直接極速輸出排版漂亮的雙層靈修卡。
+            <!-- 真實截圖預覽 (點擊可放大檢視) -->
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-stone-800 bg-stone-950" onclick="openImageModal('assets/images/tutorials/ollama-guide.jpg', 'Ollama 本地離線終端機設定圖解', '執行 $env:OLLAMA_ORIGINS=\"*\" ; ollama serve 開放瀏覽器跨域存取本機 AI', 'https://ollama.com', '前往 Ollama 官網 ↗', '終端機指令實測截圖')">
+              <img src="assets/images/tutorials/ollama-guide.jpg" alt="Ollama 本地終端機運行截圖" class="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-[1.02]">
+              <div class="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/50 transition-colors flex items-center justify-center">
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity px-3.5 py-1.5 rounded-full bg-stone-900/95 text-white text-xs font-semibold backdrop-blur-xs flex items-center gap-1.5 shadow-xl border border-stone-700">
+                  <span>🔍</span>
+                  <span>點擊放大檢視高清截圖</span>
+                </span>
+              </div>
+              <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-stone-300 text-3xs font-sans backdrop-blur-xs flex items-center gap-1 border border-white/10">
+                <span>🔍</span>
+                <span>點擊放大</span>
+              </div>
+            </div>
+
+            <!-- 圖解流程重點備註 -->
+            <div class="p-2.5 bg-stone-950 rounded-xl border border-stone-800/80 space-y-2 font-sans text-3xs">
+              <div class="flex items-center justify-between text-stone-300 font-semibold">
+                <span>📌 核心指令速查：</span>
+                <span class="text-emerald-400">100% 離線 · 零費用</span>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5 text-center text-stone-400">
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800 font-mono text-stone-300">❶ pull qwen3.5:9b</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800 font-mono text-emerald-400">❷ serve CORS="*"</div>
               </div>
             </div>
           </div>
@@ -943,29 +947,43 @@
             </div>
           </div>
 
-          <!-- 視覺化圖解 -->
-          <div class="bg-stone-900 rounded-2xl p-4 text-white shadow-lg border border-stone-800 space-y-3 font-sans text-xs">
+          <!-- 視覺化瀏覽器 Mockup 對照圖 -->
+          <div class="bg-stone-900 rounded-2xl p-3 sm:p-4 text-white shadow-lg border border-stone-800 space-y-3 font-mono text-2xs">
             <div class="flex items-center justify-between pb-2 border-b border-stone-800">
               <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-                <span class="text-stone-400 text-3xs ml-2">API.Bible 後台示意</span>
+                <span class="text-stone-400 text-3xs ml-2 font-sans font-semibold">API.Bible 開發者後台截圖參考</span>
               </div>
-              <span class="text-stone-500 text-2xs">scripture.api.bible</span>
+              <span class="text-stone-500 font-mono text-3xs">scripture.api.bible</span>
             </div>
 
-            <div class="bg-stone-950 rounded-xl p-3 border border-stone-800 space-y-2 text-2xs">
-              <div class="text-stone-400">Applications / API Keys</div>
-              <div class="p-2 bg-stone-900 rounded border border-stone-700 flex items-center justify-between">
-                <div>
-                  <div class="text-3xs text-stone-400">API Key:</div>
-                  <div class="font-mono text-blue-300 text-3xs">b6••••••••••••••••••••••••••••••••</div>
-                </div>
-                <span class="px-2 py-0.5 bg-blue-700 text-white rounded text-3xs font-bold">Copy</span>
+            <!-- 真實截圖預覽 (點擊可放大檢視) -->
+            <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-stone-800 bg-stone-950" onclick="openImageModal('assets/images/tutorials/apibible-guide.jpg', 'API.Bible 開發者後台圖解', '在 scripture.api.bible 註冊建立 Application 並複製 API Key 讀取英文譯本', 'https://scripture.api.bible/signup', '前往 API.Bible 註冊 ↗', '官方後台流程圖解')">
+              <img src="assets/images/tutorials/apibible-guide.jpg" alt="API.Bible 開發者後台申請流程圖解" class="w-full h-auto object-cover rounded-lg transition-transform duration-300 group-hover:scale-[1.02]">
+              <div class="absolute inset-0 bg-stone-950/20 group-hover:bg-stone-950/50 transition-colors flex items-center justify-center">
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity px-3.5 py-1.5 rounded-full bg-stone-900/95 text-white text-xs font-semibold backdrop-blur-xs flex items-center gap-1.5 shadow-xl border border-stone-700">
+                  <span>🔍</span>
+                  <span>點擊放大檢視高清截圖</span>
+                </span>
               </div>
-              <div class="text-3xs text-stone-400">
-                貼入 Bible Backpack 後，點擊「驗證並偵測」，系統自動下載章節經文並離線快取。
+              <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/75 text-stone-300 text-3xs font-sans backdrop-blur-xs flex items-center gap-1 border border-white/10">
+                <span>🔍</span>
+                <span>點擊放大</span>
+              </div>
+            </div>
+
+            <!-- 圖解流程重點備註 -->
+            <div class="p-2.5 bg-stone-950 rounded-xl border border-stone-800/80 space-y-2 font-sans text-3xs">
+              <div class="flex items-center justify-between text-stone-300 font-semibold">
+                <span>📌 官方正版英文經文授權：</span>
+                <span class="text-blue-400">NIV · NIrV · CEV</span>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5 text-center text-stone-400">
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❶ 註冊開發者帳號</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800">❷ 建立 Application</div>
+                <div class="p-1.5 rounded bg-stone-900 border border-stone-800 text-blue-400">❸ 複製 API Key</div>
               </div>
             </div>
           </div>
@@ -1501,19 +1519,19 @@
         <button onclick="closeImageModal()" class="text-stone-400 hover:text-stone-700 text-lg p-1">✕</button>
       </div>
       <div class="p-4 overflow-y-auto flex-1 flex flex-col items-center">
-        <img id="modal-preview-img" src="" alt="考古影像" class="w-full max-h-[55vh] object-contain rounded-lg border border-stone-200 shadow-xs mb-3">
+        <img id="modal-preview-img" src="" alt="預覽影像" class="w-full max-h-[60vh] object-contain rounded-lg border border-stone-200 shadow-xs mb-3">
         <p id="modal-preview-desc" class="text-xs text-stone-600 leading-relaxed text-center max-w-lg"></p>
         <div id="modal-preview-source-container" class="mt-2.5 hidden">
           <a id="modal-preview-source-link" href="#" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-700 text-2xs rounded-full transition-colors">
             <span>🏛️</span>
-            <span id="modal-preview-source-text">查閱維基共享考古典藏檔案 ↗</span>
+            <span id="modal-preview-source-text">前往官方或相關網頁 ↗</span>
           </a>
         </div>
       </div>
       <div class="p-2.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between">
-        <span class="text-2xs text-emerald-800 font-medium bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-          <span>📷</span>
-          <span>即時線上真實考古照</span>
+        <span id="modal-preview-badge" class="text-2xs text-stone-700 font-medium bg-stone-100 border border-stone-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+          <span>🔍</span>
+          <span id="modal-preview-badge-text">高清圖解參考</span>
         </span>
         <button onclick="closeImageModal()" class="px-4 py-1.5 bg-stone-900 text-white text-xs rounded-lg font-medium hover:bg-stone-800">關閉檢視</button>
       </div>

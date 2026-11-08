@@ -3869,19 +3869,23 @@ function simulateMarchRoute() {
 }
 
 // ================= 圖片高清預覽模態框 (Image Preview Modal) =================
-function openImageModal(url, title, desc, pageUrl = null) {
+function openImageModal(url, title, desc, pageUrl = null, sourceText = "前往官方或相關網頁 ↗", badgeText = "高清圖解參考") {
   const modal = document.getElementById("image-preview-modal");
   const imgEl = document.getElementById("modal-preview-img");
   const titleEl = document.getElementById("modal-preview-title");
   const descEl = document.getElementById("modal-preview-desc");
   const sourceContainer = document.getElementById("modal-preview-source-container");
   const sourceLink = document.getElementById("modal-preview-source-link");
+  const sourceTextEl = document.getElementById("modal-preview-source-text");
+  const badgeTextEl = document.getElementById("modal-preview-badge-text");
 
   if (!modal || !imgEl) return;
 
   imgEl.src = url;
-  if (titleEl) titleEl.textContent = title;
-  if (descEl) descEl.textContent = desc;
+  if (titleEl) titleEl.textContent = title || "圖片詳情";
+  if (descEl) descEl.textContent = desc || "";
+  if (badgeTextEl) badgeTextEl.textContent = badgeText;
+  if (sourceTextEl && sourceText) sourceTextEl.textContent = sourceText;
 
   if (sourceContainer && sourceLink) {
     if (pageUrl) {
